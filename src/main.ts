@@ -124,8 +124,8 @@ function createWindow(): BrowserWindow {
                     const serverSelectButton = $('<button type="button" data-action="returnServerSelect" id="server-button" data-tooltip="Return to Server Select"><i class="fas fa-server"></i></button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
                     setTimeout(() => {
-                        $('nav#setup-menu').append(serverSelectButton)
-                    }, 200);
+                        $('div#setup-menu-buttons').append(serverSelectButton)
+                    }, 1000);
                 }
             `);
         }
