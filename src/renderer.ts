@@ -86,9 +86,11 @@ async function createGameItem(game: GameConfig) {
 
     li.id = game.cssId;
 
-    (li.querySelector("#user-name") as HTMLInputElement).value = loginData.user;
-    (li.querySelector("#user-password") as HTMLInputElement).value = loginData.password;
-    (li.querySelector("#admin-password") as HTMLInputElement).value = loginData.adminPassword;
+    (li.querySelector(".user-name") as HTMLInputElement).value = loginData.user;
+    (li.querySelector(".user-password") as HTMLInputElement).value = loginData.password;
+    (li.querySelector(".admin-password") as HTMLInputElement).value = loginData.adminPassword;
+    (li.querySelector(".game-name-edit") as HTMLInputElement).value = game.name;
+    (li.querySelector(".game-url-edit") as HTMLInputElement).value = game.url;
     li.querySelector("a").innerText = game.name;
     li.querySelector(".game-button").addEventListener("click", () => {
         window.api.openGame(game.id ?? game.name);
@@ -97,25 +99,42 @@ async function createGameItem(game: GameConfig) {
     gameItemList.appendChild(li);
     const userConfiguration = li.querySelector("div.user-configuration") as HTMLDivElement;
     userConfiguration.style.height = `${userConfiguration.scrollHeight}px`;
-    userConfiguration.querySelector("#delete-game")?.addEventListener("click", async () => {
+    userConfiguration.querySelector(".delete-game")?.addEventListener("click", async () => {
         await updateGameList((appConfig) => {
             appConfig.games = appConfig.games.filter((g) => g.id !== game.id);
         });
         await createGameList();
     });
     const gameId = game.id ?? game.name;
-    const saveButton = userConfiguration.querySelector("#save-user-data") as HTMLButtonElement;
-    saveButton.addEventListener("click", (e) => {
+    const saveButton = userConfiguration.querySelector(".save-user-data") as HTMLButtonElement;
+    saveButton.addEventListener("click", async (e) => {
         if (!(e.target instanceof Element))
             return;
         e.target.closest(".user-configuration").classList.add("hidden");
         const closeUserConfig = e.target.closest(".user-configuration") as HTMLDivElement;
-        const user = (closeUserConfig.querySelector("#user-name") as HTMLInputElement).value;
-        const password = (closeUserConfig.querySelector("#user-password") as HTMLInputElement).value;
-        const adminPassword = (closeUserConfig.querySelector("#admin-password") as HTMLInputElement).value;
-        console.log({gameId, user, password, adminPassword})
+        const user = (closeUserConfig.querySelector(".user-name") as HTMLInputElement).value;
+        const password = (closeUserConfig.querySelector(".user-password") as HTMLInputElement).value;
+        const adminPassword = (closeUserConfig.querySelector(".admin-password") as HTMLInputElement).value;
+        const newGameName = (closeUserConfig.querySelector(".game-name-edit") as HTMLInputElement).value;
+        const newGameUrl = (closeUserConfig.querySelector(".game-url-edit") as HTMLInputElement).value;
+    
+        console.log({gameId, user, password, adminPassword, newGameName, newGameUrl});
+    
+        game.name = newGameName;
+        game.url = newGameUrl;
+    
+        (li.querySelector("a") as HTMLAnchorElement).innerText = newGameName;
+    
+        await updateGameList((appConfig) => {
+            const gameToUpdate = appConfig.games.find((g) => g.id === game.id);
+            if (gameToUpdate) {
+                gameToUpdate.name = newGameName;
+                gameToUpdate.url = newGameUrl;
+            }
+        });
+    
         window.api.saveUserData({gameId, user, password, adminPassword} as SaveUserData);
-    });
+    });   
 }
 
 function applyAppConfig(config: AppConfig) {

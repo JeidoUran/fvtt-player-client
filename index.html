@@ -41,9 +41,9 @@
 </script>
 <div class="content">
     <div class="button-controls">
-        <button onclick="toggleConfigureApp()"><i class="fa-solid fa-gear"></i></button>
-        <button onclick="toggleHelp()"><i class="fa-solid fa-question-circle"></i></button>
-        <button onclick="toggleExportConfig()"><i class="fa-solid fa-file-export"></i></button>
+        <button class="config-button" onclick="toggleConfigureApp()"><i class="fa-solid fa-gear"></i></button>
+        <button class="config-button" onclick="toggleHelp()"><i class="fa-solid fa-question-circle"></i></button>
+        <button class="config-button" onclick="toggleExportConfig()"><i class="fa-solid fa-file-export"></i></button>
     </div>
 
     <div class="update-available hidden2">
@@ -139,19 +139,25 @@
                             class="fa-solid fa-gear"></i></button>
                 </div>
                 <div class="user-configuration hidden">
+                    <div class="game-name-field"> 
+                        <input class="game-name-edit" placeholder="Game Name" type="text" value=""> 
+                    </div> 
+                    <div class="game-url-field"> 
+                        <input class="game-url-edit" placeholder="URL" type="text" value=""> 
+                    </div> 
                     <div class="user-name-field">
-                        <input id="user-name" placeholder="User Name" type="text" value="">
+                        <input class="user-name" placeholder="User Name" type="text" value="">
                     </div>
                     <div class="user-password-field">
-                        <input id="user-password" placeholder="Password" type="password" value="">
+                        <input class="user-password" placeholder="Password" type="password" value="">
                     </div>
                     <div class="admin-password-field">
-                        <input id="admin-password" placeholder="Admin Password" type="password" value="">
+                        <input class="admin-password" placeholder="Admin Password" type="password" value="">
                     </div>
 
                     <div class="button-group">
-                        <button id="save-user-data">Save</button>
-                        <button id="delete-game">Delete</button>
+                        <button class="save-user-data">Save</button>
+                        <button class="delete-game">Delete</button>
                     </div>
                 </div>
             </li>
