@@ -219,12 +219,7 @@ async function createGameList() {
 
     applyAppConfig(config);
 
-    gameItemList.childNodes.forEach((value) => {
-            if (value.nodeName === "template")
-                return;
-            value.remove();
-        }
-    );
+    gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 
     config.games.forEach(createGameItem);
 }
