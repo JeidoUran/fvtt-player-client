@@ -1,11 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy&display=swap');
+
 :root {
-    --color-background: #003049ff;
-    --color-accent: #f77f00ff;
-    --color-text-primary: #eae2b7ff;
+    --color-background: #0e1a23;
+    --color-accent: #98e4f7;
+    --color-text-primary: #88c0a9;
 }
 
 body {
-    background-color: var(--color-background);
+    background: var(--color-background);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -13,6 +16,33 @@ body {
     min-width: 100vw;
     margin: 0;
     padding: 0;
+}
+
+body::after {
+	content: "";
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 20%, transparent 80%);
+	animation: rippleLight 12s infinite linear;
+	z-index: 0;
+	pointer-events: none;
+}
+
+@keyframes rippleLight {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+
+	50% {
+		transform: translate(2%, -2%) scale(1.02);
+	}
+
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
 }
 
 .content {
@@ -46,6 +76,7 @@ input:not([type=color], [type=checkbox]) {
     margin: 0.5rem;
     outline: none;
     transition: all 0.3s ease-in-out;
+    font-family: 'Sorts Mill Goudy', serif;
 }
 
 input[type=checkbox] {
@@ -124,7 +155,9 @@ input:focus {
 }
 
 button {
-    background-color: transparent;
+    /*background-color: transparent;
+    font-family: 'Sorts Mill Goudy', serif;
+    font-family: 'Cinzel', serif;
     backdrop-filter: blur(5px);
     border: 2px solid var(--color-text-primary);
     color: var(--color-text-primary);
@@ -134,11 +167,26 @@ button {
     margin: 0.5rem;
     outline: none;
     transition: all 0.3s ease-in-out;
-    cursor: pointer;
+    cursor: pointer;*/
+    text-decoration: none;
+	color: var(--color-text-primary);
+	overflow: hidden;
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	border-radius: 8px;
+    background-color: rgba(20, 20, 30, 0.65);
+	padding: 0.7rem 1rem;
+	transition: transform 0.3s ease, background 0.3s ease;
 }
 
 button:hover {
-    border: 2px solid var(--color-accent);
+    /*border: 2px solid var(--color-accent);*/
+	background: rgba(40, 40, 60, 0.95);
+	box-shadow: 0 0 15px rgba(136, 192, 169, 0.5);
+	text-shadow: 0 0 4px var(--color-accent);
+	text-decoration: none;
+	cursor: pointer;
 }
 
 #info {
@@ -164,7 +212,7 @@ button:hover {
     margin: 0.5rem 0;
     /*padding: 0.5rem;*/
     background-color: transparent;
-    border: 2px solid var(--color-text-primary);
+    /*border: 2px solid var(--color-text-primary);*/
     color: var(--color-text-primary);
     width: 100%;
     overflow: hidden;
@@ -172,6 +220,9 @@ button:hover {
     backdrop-filter: blur(5px);
     text-shadow: 0 0 5px black;
     box-shadow: 0 0 5px black;
+    border-radius: 8px;
+    background-color: rgba(20, 20, 30, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .hidden {
@@ -208,6 +259,8 @@ table, th, td {
 .field {
     display: flex;
     justify-content: space-between;
+    font-family: 'Sorts Mill Goudy', serif;
+    padding: 0.5rem;
 }
 
 .help {
@@ -231,10 +284,11 @@ table, th, td {
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease-in-out;
-    border: 2px solid var(--color-text-primary);
+    border: 2px solid rgba(255, 255, 255, 0.15);
     padding: 0.5rem;
     background: var(--color-background);
     pointer-events: all;
+    border-radius: 12px;
 }
 
 .config-export {
@@ -242,10 +296,11 @@ table, th, td {
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease-in-out;
-    border: 2px solid var(--color-text-primary);
+    border: 2px solid rgba(255, 255, 255, 0.15);
     padding: 0.5rem;
     background: var(--color-background);
     pointer-events: all;
+    border-radius: 12px;
 }
 
 .config-export code {
@@ -263,9 +318,9 @@ table, th, td {
     color: var(--color-accent);
 }
 
-.game-item:hover {
+/*.game-item:hover {
     border: 2px solid var(--color-accent);
-}
+}*/
 
 a {
     text-decoration: none;
@@ -279,7 +334,7 @@ a {
 .game-item a {
     text-decoration: none;
     cursor: pointer;
-    color: var(--color-text-primary);
+    /*color: var(--color-text-primary);*/
     font-size: 1.5rem;
     font-weight: 700;
     margin-left: 0.5rem;
@@ -293,10 +348,45 @@ a {
     border: none;
     padding: 0.5rem;
     margin: 0;
+    padding: 0.7rem 1rem;
 }
 
-.game-button:hover {
-    border: none;
+.game-title-bar .game-button:hover {
+    /*border: none;*/
+    transform: scale(1.03);
+	background: rgba(40, 40, 60, 0.95);
+	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
+	text-shadow: 0 0 4px var(--color-accent);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.game-title-bar .game-button::before {
+    content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 0;
+	height: 3px;
+	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+	transition: width 0.3s ease, left 0.3s ease;
+}
+
+.game-title-bar .game-button::after {
+    content: "";
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	width: 0;
+	height: 3px;
+	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+	transition: width 0.3s ease, left 0.3s ease;
+}
+
+.game-title-bar .game-button:hover::before,
+.game-title-bar .game-button:hover::after {
+	width: 100%;
+	left: 0;
 }
 
 .game-title-bar {
@@ -306,7 +396,7 @@ a {
 
 .configure-game {
     aspect-ratio: 1;
-    opacity: 0.3;
+    /*opacity: 0.3;*/
     border: none;
     color: var(--color-text-primary);
     font-size: 1rem;
@@ -318,13 +408,31 @@ a {
 }
 
 .configure-game:hover {
-    cursor: pointer;
-    opacity: 1;
+    transform: scale(1.15);
     border: none;
+    background: none;
+	box-shadow: none;
+	text-shadow: 0 0 4px var(--color-accent);
+	text-decoration: none;
+	cursor: pointer;
 }
 
 .button-group {
     display: flex;
     align-items: center;
     justify-content: space-around;
+}
+
+#particles {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.user-configuration .input-large {
+    width: 405px;
 }
