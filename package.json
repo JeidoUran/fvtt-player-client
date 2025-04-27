@@ -16,6 +16,11 @@
       "name": "OmegaRogue",
       "email": "omegarogue@omegavoid.codes",
       "url": "https://omegavoid.codes"
+    },
+    {
+      "name": "JeidoUran",
+      "email": "jeido.uran@hotmail.fr",
+      "url": "https://github.com/JeidoUran"
     }
   ],
   "devDependencies": {
