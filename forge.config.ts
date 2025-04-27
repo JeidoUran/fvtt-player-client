@@ -9,7 +9,20 @@ import {MakerDMG} from '@electron-forge/maker-dmg';
 import {VitePlugin} from '@electron-forge/plugin-vite';
 
 const config: ForgeConfig = {
-    packagerConfig: {},
+    packagerConfig: {
+        asar: true,
+        prune: true, // enlève les devDependencies dans le package final
+        ignore: [
+            /^\/src/,               // ignore le code source
+            /^\/out/,               // si jamais il existe
+            /^\/\.vscode/,          // ignore les fichiers d'éditeur
+            /^\/\.git/,             // ignore Git
+            /^\/forge\.config\.ts/, // ignore ce fichier lui-même
+            /^\/tsconfig\.json/,    // ignore config TypeScript
+            /^\/vite\..*\.ts/       // ignore les configs Vite
+            // ⚡ NE PAS exclure node_modules/electron-squirrel-startup !
+        ],
+    },
     rebuildConfig: {},
     makers: [
         new MakerSquirrel({}),
@@ -29,11 +42,8 @@ const config: ForgeConfig = {
     ],
     plugins: [
         new VitePlugin({
-            // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
-            // If you are familiar with Vite configuration, it will look really familiar.
             build: [
                 {
-                    // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
                     entry: 'src/main.ts',
                     config: 'vite.main.config.ts',
                 },

@@ -1,7 +1,7 @@
 {
   "name": "vtt-desktop-client",
-  "packageManager": "yarn@1.22.19",
-  "version": "1.5.0",
+  "packageManager": "yarn@1.22.22",
+  "version": "1.7.0",
   "license": "MIT",
   "description": "VTT Desktop Client",
   "main": ".vite/build/main.js",
@@ -19,25 +19,25 @@
     }
   ],
   "devDependencies": {
-    "@electron-forge/cli": "^7.4.0",
-    "@electron-forge/maker-deb": "^7.4.0",
-    "@electron-forge/maker-dmg": "^7.4.0",
-    "@electron-forge/maker-flatpak": "^7.4.0",
-    "@electron-forge/maker-rpm": "^7.4.0",
-    "@electron-forge/maker-squirrel": "^7.4.0",
-    "@electron-forge/maker-zip": "^7.4.0",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.4.0",
-    "@electron-forge/plugin-vite": "7.2.0",
-    "@types/node": "^20.14.2",
-    "@typescript-eslint/eslint-plugin": "^7.13.0",
-    "@typescript-eslint/parser": "^7.13.0",
-    "electron": "^29.4.2",
-    "electron-builder": "^24.13.3",
-    "eslint": "^8.57.0",
-    "eslint-plugin-import": "^2.29.1",
+    "@electron-forge/cli": "^7.8.0",
+    "@electron-forge/maker-deb": "^7.8.0",
+    "@electron-forge/maker-dmg": "^7.8.0",
+    "@electron-forge/maker-flatpak": "^7.8.0",
+    "@electron-forge/maker-rpm": "^7.8.0",
+    "@electron-forge/maker-squirrel": "^7.8.0",
+    "@electron-forge/maker-zip": "^7.8.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.0",
+    "@electron-forge/plugin-vite": "7.8.0",
+    "@types/node": "^22.15.2",
+    "@typescript-eslint/eslint-plugin": "^8.31.0",
+    "@typescript-eslint/parser": "^8.31.0",
+    "electron": "^35.2.1",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.25.1",
+    "eslint-plugin-import": "^2.31.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.13"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3"
   },
   "scripts": {
     "start": "electron-forge start",
@@ -48,9 +48,13 @@
     "make:windows": "electron-forge make --platform win32",
     "make:macos": "electron-forge make --platform darwin",
     "lint": "eslint --ext .ts,.tsx .",
-    "make:linuxpkg": "electron-forge make --platform linux --targets '@electron-forge/maker-zip'"
+    "make:linuxpkg": "electron-forge make --platform linux --targets '@electron-forge/maker-zip'",
+    "build-all": "npm run build-main && npm run build-preload && npm run build-renderer",
+    "build-main": "vite build --config vite.main.config.ts",
+    "build-preload": "vite build --config vite.preload.config.ts",
+    "build-renderer": "vite build --config vite.renderer.config.ts"
   },
   "dependencies": {
-    "electron-squirrel-startup": "latest"
+    "electron-squirrel-startup": "^1.0.1"
   }
 }
