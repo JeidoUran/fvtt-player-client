@@ -615,8 +615,12 @@ select#theme-selector option {
     gap: 0.5rem;
     font-size: 0.9rem;
     color: var(--color-text-primary);
-    opacity: 0.8;
+    opacity: 0.9;
     align-self: center;
+}
+
+.game-main-button:hover .server-infos {
+    text-shadow: 0 0 1px var(--color-accent);
 }
 
 .game-main-button {
@@ -633,7 +637,7 @@ select#theme-selector option {
     transform: scale(1.03);
 	background: rgba(40, 40, 60, 0.95);
 	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
-	text-shadow: 0 0 4px var(--color-accent);
+	text-shadow: 0 0 3px var(--color-accent);
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -753,6 +757,17 @@ select#theme-selector option {
     display: inline-block;
     width: 1.5em;
 }
+
+.configure-game i {
+    transition: all 0.3s ease-in-out;
+}
+
+.config-button-wrapper:hover .configure-game i {
+    text-shadow: 0 0 4px var(--color-accent);
+    text-decoration: none;
+    cursor: pointer;
+}
+
 .input-large.user-password,
 .input-large.admin-password {
     margin-right: 0;
