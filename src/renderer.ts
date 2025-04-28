@@ -636,8 +636,8 @@ async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
         statusSpan.innerHTML = `<i class="fa-solid fa-xmark"></i> Offline`;
         versionSpan.innerHTML = `<i class="fa-solid fa-dice-d20"></i> -`;
         systemSpan.innerHTML = `<i class="fa-solid fa-dice"></i> -`;
-        systemVersionSpan.innerHTML = `<i class="fa-solid fa-gear"></i> -`;
-        usersSpan.innerHTML = `<i class="fa-solid fa-person"></i> -`;
+        systemVersionSpan.innerHTML = `<i class="fa-solid fa-screwdriver-wrench"></i> -`;
+        usersSpan.innerHTML = `<i class="fa-solid fa-users"></i> -`;
         return;
     }
 
@@ -649,8 +649,8 @@ async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
 
     versionSpan.innerHTML = `<i class="fa-solid fa-dice-d20"></i> v${serverInfo.version ?? "-"}`;
     systemSpan.innerHTML = `<i class="fa-solid fa-dice"></i> ${serverInfo.system?.toUpperCase() ?? "-"}`;
-    systemVersionSpan.innerHTML = `<i class="fa-solid fa-gear"></i> ${serverInfo.systemVersion ?? "-"}`;
-    usersSpan.innerHTML = `<i class="fa-solid fa-person"></i> ${serverInfo.users ?? "0"}`;
+    systemVersionSpan.innerHTML = `<i class="fa-solid fa-screwdriver-wrench"></i> ${serverInfo.systemVersion ?? "-"}`;
+    usersSpan.innerHTML = `<i class="fa-solid fa-users"></i> ${serverInfo.users ?? "0"}`;
 }
 
 async function refreshAllServerInfos() {
