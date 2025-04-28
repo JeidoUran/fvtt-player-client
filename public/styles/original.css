@@ -469,7 +469,7 @@ select#theme-selector {
     flex-grow: 1;
     border: none;
     cursor: pointer;
-    padding: 0.25rem 0;
+    padding: 0.25rem 0 0.5rem;
 }
 
 .server-infos {
