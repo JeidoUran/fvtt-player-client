@@ -347,7 +347,7 @@ function toggleConfigureGame(event: MouseEvent) {
 }
 
     document.addEventListener("click", (event) => {
-        const target = (event.target as HTMLElement).closest(".configure-game") as HTMLButtonElement | null;
+        const target = (event.target as HTMLElement).closest(".config-main-button") as HTMLButtonElement | null;
         if (target) {
             toggleConfigureGame(event as MouseEvent);
         }
