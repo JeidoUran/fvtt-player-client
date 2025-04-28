@@ -64,7 +64,7 @@ document.querySelector("#copy-button").addEventListener("click", async () => {
     const config = await window.api.localAppConfig();
     const text = JSON.stringify(config, null, 4);
     navigator.clipboard.writeText(text);
-    showNotification("Text copied");
+    showNotification("Settings copied");
 });
 
 
@@ -452,25 +452,7 @@ async function createGameItem(game: GameConfig) {
     });
     gameItemList.appendChild(li);
     await updateServerInfos(li, game);
-    // Attach tooltip listeners dynamically
-    li.querySelectorAll(".tooltip-wrapper").forEach(wrapper => {
-        const tooltip = wrapper.querySelector(".tooltip") as HTMLElement;
-        wrapper.addEventListener("mouseenter", (e) => {
-            const rect = wrapper.getBoundingClientRect();
-            const clonedTooltip = tooltip.cloneNode(true) as HTMLElement;
-            clonedTooltip.style.display = "block";
-            clonedTooltip.style.position = "fixed";
-            clonedTooltip.style.left = `${rect.left + rect.width/2}px`;
-            clonedTooltip.style.top = `${rect.bottom + 5}px`;
-            clonedTooltip.style.transform = "translateX(-50%)";
-            clonedTooltip.style.pointerEvents = "none";
-            clonedTooltip.classList.add("active-tooltip");
-            document.getElementById("tooltip-layer")?.appendChild(clonedTooltip);
-        });
-        wrapper.addEventListener("mouseleave", (e) => {
-            document.querySelectorAll("#tooltip-layer .active-tooltip").forEach(t => t.remove());
-        });
-    });
+    renderTooltips()
     const userConfiguration = li.querySelector("div.user-configuration") as HTMLDivElement;
     userConfiguration.querySelector(".delete-game")?.addEventListener("click", async () => {
         const confirmed = await safePrompt("Are you sure you want to delete this game?");
@@ -618,6 +600,28 @@ async function getServerInfo(game: GameConfig): Promise<ServerStatusData | null>
         console.error(`Error fetching server info for ${game.name}:`, error);
         return null;
     }
+}
+
+function renderTooltips() {
+    // Attach tooltip listeners dynamically
+    document.querySelectorAll(".tooltip-wrapper").forEach(wrapper => {
+        const tooltip = wrapper.querySelector(".tooltip") as HTMLElement;
+        wrapper.addEventListener("mouseenter", (e) => {
+            const rect = wrapper.getBoundingClientRect();
+            const clonedTooltip = tooltip.cloneNode(true) as HTMLElement;
+            clonedTooltip.style.display = "block";
+            clonedTooltip.style.position = "fixed";
+            clonedTooltip.style.left = `${rect.left + rect.width/2}px`;
+            clonedTooltip.style.top = `${rect.bottom + 5}px`;
+            clonedTooltip.style.transform = "translateX(-50%)";
+            clonedTooltip.style.pointerEvents = "none";
+            clonedTooltip.classList.add("active-tooltip");
+            document.getElementById("tooltip-layer")?.appendChild(clonedTooltip);
+        });
+        wrapper.addEventListener("mouseleave", (e) => {
+            document.querySelectorAll("#tooltip-layer .active-tooltip").forEach(t => t.remove());
+        });
+    });
 }
 
 async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
