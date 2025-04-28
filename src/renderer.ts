@@ -165,6 +165,22 @@ document.querySelector("#clear-cache").addEventListener("click", async () => {
     showNotification("Cache cleared");
 });
 
+document.addEventListener("click", (event) => {
+    const target = (event.target as HTMLElement).closest(".toggle-password") as HTMLButtonElement | null;
+    if (!target) return;
+
+    const input = target.closest(".password-field")?.querySelector("input") as HTMLInputElement;
+    if (!input) return;
+
+    if (input.type === "password") {
+        input.type = "text";
+        target.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+        input.type = "password";
+        target.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
     const themeStylesheet = document.getElementById("theme-stylesheet") as HTMLLinkElement;
     const themeSelector = document.getElementById("theme-selector") as HTMLSelectElement;

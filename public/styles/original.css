@@ -494,7 +494,7 @@ select#theme-selector {
     gap: 0.5rem;
     font-size: 0.9rem;
     color: var(--color-text-primary);
-    opacity: 0.8;
+    opacity: 0.9;
     align-self: center;
 }
 
@@ -532,4 +532,49 @@ select#theme-selector {
     height: 100%;
     pointer-events: none;
     z-index: 9999;
+}
+.password-field {
+    align-items: stretch;
+    display: flex;
+    width: 100%;
+}
+
+.password-field input {
+    flex-grow: 1;
+}
+
+.password-field .toggle-password {
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0;
+    margin: 0 1rem 0 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+}
+
+.password-main-button {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+}
+
+.password-button-wrapper {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    cursor: pointer;
+}
+
+.toggle-password i {
+    display: inline-block;
+    width: 1.5em;
 }

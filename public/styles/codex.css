@@ -133,7 +133,7 @@ button:not(.game-button) {
     transition: all 0.3s ease;
 }
 
-button:not(.game-button):not(.configure-game):hover {
+button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     background: rgba(40, 40, 60, 0.95);
     box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
     text-shadow: 0 0 4px var(--color-accent);
@@ -148,8 +148,8 @@ button:not(.game-button):not(.configure-game):hover {
     padding: 0.7rem 1rem;
     margin: 0;
     cursor: pointer;
-    color: inherit; /* hérite bien la couleur */
-    text-shadow: inherit; /* hérite bien le text-shadow du parent */
+    color: inherit;
+    text-shadow: inherit;
     font-family: 'Cinzel', serif;
     font-size: 18px;
     flex-grow: 1;
@@ -430,10 +430,6 @@ a {
     z-index: 1;
 }
 
-/*.game-title-bar .config-main-button::before {
-    left: 0;
-}*/
-
 .game-title-bar .config-main-button::after {
     left: auto;
     right: 0;
@@ -704,4 +700,60 @@ select#theme-selector option {
     height: 100%;
     pointer-events: none;
     z-index: 9999;
+}
+
+.password-field {
+    align-items: stretch;
+    display: flex;
+    width: 100%;
+}
+
+.password-field input {
+    flex-grow: 1;
+}
+
+.password-field .toggle-password {
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0;
+    margin: 0 1rem 0 1rem;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+}
+
+.password-main-button {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+}
+
+.password-button-wrapper {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease-in-out;
+}
+
+.toggle-password:hover {
+    box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
+    text-shadow: 0 0 4px var(--color-accent);
+    text-decoration: none;
+    cursor: pointer;
+    transform: scale(1.15);
+}
+
+.toggle-password i {
+    display: inline-block;
+    width: 1.5em;
+}
+.input-large.user-password,
+.input-large.admin-password {
+    margin-right: 0;
 }
