@@ -12,120 +12,12 @@
 </head>
 <body>
 <canvas id="particles"></canvas>
-<script>
-    function toggleConfigureGame(e) {
-        e.target.closest('.game-item').querySelector('.user-configuration').classList.toggle('hidden');
-    }
 
-    function toggleConfigureApp() {
-    const appConfigMenu = document.querySelector('.app-configuration');
-    if (!appConfigMenu) return;
-
-    if (appConfigMenu.classList.contains('hidden2')) {
-        appConfigMenu.classList.add('flex-display');
-        void appConfigMenu.offsetWidth;
-        appConfigMenu.classList.remove('hidden2');
-        appConfigMenu.classList.remove('hidden-display');
-        appConfigMenu.classList.add('show');
-    } else if (appConfigMenu.classList.contains('show')) {
-        appConfigMenu.classList.add('hidden2');
-
-        const computedStyle = window.getComputedStyle(appConfigMenu);
-        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
-
-        if (transitionDuration > 0) {
-            appConfigMenu.addEventListener('transitionend', function handler(e) {
-                if (e.propertyName === 'opacity') {
-                    appConfigMenu.classList.remove('show');
-                    appConfigMenu.classList.remove('flex-display');
-                    appConfigMenu.classList.add('hidden-display');
-                    appConfigMenu.removeEventListener('transitionend', handler);
-                }
-            });
-        } else {
-            appConfigMenu.classList.remove('show');
-            appConfigMenu.classList.remove('flex-display');
-            appConfigMenu.classList.add('hidden-display');
-        }
-    }
-}
-
-    function toggleHelp() {
-        const helpMenu = document.querySelector('.help');
-        if (!helpMenu) return;
-
-        if (helpMenu.classList.contains('hidden2')) {
-            helpMenu.classList.add('flex-display');
-        void helpMenu.offsetWidth;
-        helpMenu.classList.remove('hidden2');
-        helpMenu.classList.remove('hidden-display');
-        helpMenu.classList.add('show');
-    } else if (helpMenu.classList.contains('show')) {
-        helpMenu.classList.add('hidden2');
-
-        const computedStyle = window.getComputedStyle(helpMenu);
-        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
-
-        if (transitionDuration > 0) {
-            helpMenu.addEventListener('transitionend', function handler(e) {
-                if (e.propertyName === 'opacity') {
-                    helpMenu.classList.remove('show');
-                    helpMenu.classList.remove('flex-display');
-                    helpMenu.classList.add('hidden-display');
-                    helpMenu.removeEventListener('transitionend', handler);
-                }
-            });
-        } else {
-            helpMenu.classList.remove('show');
-            helpMenu.classList.remove('flex-display');
-            helpMenu.classList.add('hidden-display');
-        }
-    }
-}
-
-    async function toggleExportConfig() {
-        const exportContainer = document.querySelector('.config-export');
-        if (!exportContainer) return;
-
-        if (exportContainer.classList.contains('hidden2')) {
-            exportContainer.classList.add('flex-display');
-        void exportContainer.offsetWidth;
-        exportContainer.classList.remove('hidden2');
-        exportContainer.classList.remove('hidden-display');
-        exportContainer.classList.add('show');
-        const code = document.getElementById("export-text");
-        const config = await window.api.localAppConfig();
-        const text = JSON.stringify(config, null, 4);
-        code.textContent = text;
-    } else if (exportContainer.classList.contains('show')) {
-        exportContainer.classList.add('hidden2');
-
-        const computedStyle = window.getComputedStyle(exportContainer);
-        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
-
-        if (transitionDuration > 0) {
-            exportContainer.addEventListener('transitionend', function handler(e) {
-                if (e.propertyName === 'opacity') {
-                    exportContainer.classList.remove('show');
-                    exportContainer.classList.remove('flex-display');
-                    exportContainer.classList.add('hidden-display');
-                    exportContainer.removeEventListener('transitionend', handler);
-                }
-            });
-        } else {
-            exportContainer.classList.remove('show');
-            exportContainer.classList.remove('flex-display');
-            exportContainer.classList.add('hidden-display');
-        }
-    }
-    }
-
-</script>
 <div class="content">
     <div class="button-controls">
-        <button class="config-button" onclick="toggleConfigureApp()"><i class="fa-solid fa-gear"></i></button>
-        <button class="config-button" onclick="toggleHelp()"><i class="fa-solid fa-question-circle"></i></button>
-        <button class="config-button" onclick="toggleExportConfig()"><i class="fa-solid fa-file-export"></i></button>
+        <button class="config-button" id="open-config"><i class="fa-solid fa-gear"></i></button>
+        <button class="config-button" id="open-help"><i class="fa-solid fa-question-circle"></i></button>
+        <button class="config-button" id="open-export"><i class="fa-solid fa-file-export"></i></button>        
     </div>
 
     <div class="update-available hidden2">
@@ -224,7 +116,7 @@
             <h3>Put this in your <code>config.json</code> file to include it installation-wide:</h3>
             <pre><code id="export-text"></code></pre>
             <button id="copy-button">Copy</button>
-            <button onclick="toggleExportConfig()">Close</button>
+            <button id="close-export">Close</button>
         </div>
     </section>
 
@@ -233,8 +125,7 @@
             <li class="game-item">
                 <div class="game-title-bar">
                     <button class="game-button"><a>GameName</a></button>
-                    <button class="configure-game" onclick="toggleConfigureGame(event)"><i
-                            class="fa-solid fa-gear"></i></button>
+                    <button class="configure-game"><i class="fa-solid fa-gear"></i></button>
                 </div>
                 <div class="user-configuration hidden">
                     <div class="game-name-field field-large">
@@ -266,6 +157,17 @@
         <input id="game-url" name="" placeholder="URL" type="text">
         <button id="add-game">Add Game</button>
     </div>
+
+    <div id="custom-confirm" class="hidden2 hidden-display">
+        <div class="confirm-box">
+            <p id="confirm-text"></p>
+            <div class="confirm-buttons">
+                <button class="confirm-button" id="confirm-yes">Yes</button>
+                <button class="confirm-button" id="confirm-no">No</button>
+            </div>
+        </div>
+    </div>    
+
     <div id="notification-area"></div>
     <div id="info">Node.js <span id="node-version"></span>,
         Chromium <span id="chrome-version"></span>,

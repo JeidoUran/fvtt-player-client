@@ -549,3 +549,49 @@ select#theme-selector option {
     transition: opacity 0.3s ease;
     pointer-events: none;
 }
+
+#custom-confirm {
+    transform: scale(0.98);
+    transition: all 0.3s ease-in-out;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+#custom-confirm.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+#custom-confirm.hidden2 {
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.confirm-box {
+    background: var(--color-background);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    font-family: 'Sorts Mill Goudy', serif;
+    font-size: 1.35rem;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+}
+
+.confirm-buttons {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-around;
+}
+
+.confirm-button {
+    padding: 0.75rem 2.25rem;
+}

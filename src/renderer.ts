@@ -45,7 +45,10 @@ document.querySelector("#add-game").addEventListener("click", async () => {
     const gameNameField = document.querySelector("#game-name") as HTMLInputElement;
     const gameUrl = gameUrlField.value;
     const gameName = gameNameField.value;
-    if (!gameUrl || !gameName) return alert("Please enter a game name and URL");
+    if (!gameUrl || !gameName) {
+        await safePrompt("Please enter a game name and URL", { mode: 'alert' });
+        return;
+    }
     const newGameItem = {name: gameName, url: gameUrl, id: Math.round(Math.random() * 1000000)} as GameConfig;
     await updateGameList((appConfig) => {
         appConfig.games = appConfig?.games ?? [];
@@ -155,7 +158,9 @@ if (cancelButton) {
     });
 }
 
-document.querySelector("#clear-cache").addEventListener("click", () => {
+document.querySelector("#clear-cache").addEventListener("click", async () => {
+    const confirmed = await safePrompt("Are you sure you want to clear the cache?");
+    if (!confirmed) return;
     window.api.clearCache();
     showNotification("Cache cleared");
 });
@@ -198,7 +203,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (resetAppearanceButton) {
     resetAppearanceButton.addEventListener("click", async () => {
-        const confirmed = window.confirm("Are you sure you want to reset the appearance settings? This will erase your custom colors and backgrounds.");
+        const confirmed = await safePrompt("Are you sure you want to reset the appearance settings? This will erase your custom colors and backgrounds.");
         if (!confirmed) return;
 
         appConfig.background = "";
@@ -217,7 +222,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (resetAllButton) {
     resetAllButton.addEventListener("click", async () => {
-        const confirmed = window.confirm("Are you sure you want to reset all settings? This will erase your background, custom CSS, and revert your theme to Codex (games are not affected).");
+        const confirmed = await safePrompt("Are you sure you want to reset all settings? This will erase your background, custom CSS, and revert your theme to Codex (games are not affected).");
         if (!confirmed) return;
 
         appConfig.background = "";
@@ -241,8 +246,193 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  const transitioningMenus: Map<string, boolean> = new Map();
+
+  async function toggleMenu(selector: string, onOpen?: () => Promise<void> | void) {
+    const menu = document.querySelector(selector) as HTMLDivElement;
+    if (!menu) return;
+
+    const currentTransition = transitioningMenus.get(selector) ?? false;
+    if (currentTransition) {
+        console.log(`[FVTT Client] Transition already in progress for ${selector}, abort toggle.`);
+        return;
+    }
+
+    if (menu.classList.contains('hidden2')) {
+        transitioningMenus.set(selector, true);
+    
+        menu.classList.add('flex-display');
+        void menu.offsetWidth;
+        menu.classList.remove('hidden2');
+        menu.classList.remove('hidden-display');
+        menu.classList.add('show');
+    
+        if (onOpen) {
+            await onOpen();
+        }
+    
+        const computedStyle = window.getComputedStyle(menu);
+        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+    
+        if (transitionDuration > 0) {
+            menu.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'opacity') {
+                    transitioningMenus.set(selector, false);
+                    menu.removeEventListener('transitionend', handler);
+                }
+            });
+        } else {
+            transitioningMenus.set(selector, false);
+        }
+    } else if (menu.classList.contains('show')) {
+        transitioningMenus.set(selector, true);
+
+        menu.classList.add('hidden2');
+
+        const computedStyle = window.getComputedStyle(menu);
+        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+
+        if (transitionDuration > 0) {
+            menu.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'opacity') {
+                    menu.classList.remove('show');
+                    menu.classList.remove('flex-display');
+                    menu.classList.add('hidden-display');
+                    transitioningMenus.set(selector, false);
+                    menu.removeEventListener('transitionend', handler);
+                }
+            });
+        } else {
+            menu.classList.remove('show');
+            menu.classList.remove('flex-display');
+            menu.classList.add('hidden-display');
+            transitioningMenus.set(selector, false);
+        }
+    }
+}
+
+function toggleConfigureGame(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const gameItem = target.closest('.game-item') as HTMLDivElement;
+    if (!gameItem) return;
+
+    const userConfig = gameItem.querySelector('.user-configuration') as HTMLDivElement;
+    if (!userConfig) return;
+
+    const allUserConfigs = document.querySelectorAll('.user-configuration');
+
+    allUserConfigs.forEach(config => {
+        if (config !== userConfig) {
+            config.classList.add('hidden');
+        }
+    });
+
+    if (userConfig.classList.contains('hidden')) {
+        userConfig.classList.remove('hidden');
+        userConfig.style.height = "0px"; // Start collapsed but visible
+
+        requestAnimationFrame(() => {
+            const scrollHeight = userConfig.scrollHeight;
+            userConfig.style.height = `${scrollHeight + 15}px`; // Animate expansion
+        });
+    } else {
+        userConfig.style.height = "0px"; // Collapse
+        userConfig.addEventListener('transitionend', function handler(e) {
+            if (e.propertyName === 'height') {
+                userConfig.classList.add('hidden');
+                userConfig.removeEventListener('transitionend', handler);
+            }
+        });
+    }
+}
+
+    document.addEventListener("click", (event) => {
+        const target = (event.target as HTMLElement).closest(".configure-game") as HTMLButtonElement | null;
+        if (target) {
+            toggleConfigureGame(event as MouseEvent);
+        }
+    });
+
+    document.getElementById("open-config")?.addEventListener("click", () => toggleMenu(".app-configuration"));
+    document.getElementById("open-help")?.addEventListener("click", () => toggleMenu(".help"));
+    document.getElementById("open-export")?.addEventListener("click", async () => {
+        await toggleMenu(".config-export", async () => {
+            const code = document.getElementById("export-text");
+            const config = await window.api.localAppConfig();
+            const text = JSON.stringify(config, null, 4);
+            if (code) code.textContent = text;
+        });
+    });
+    document.getElementById("close-export")?.addEventListener("click", () => toggleMenu(".config-export"));
+
 });
   
+function safePrompt(message: string, options?: { mode?: 'confirm' | 'alert' }): Promise<boolean> {
+    return new Promise((resolve) => {
+        const confirmBox = document.getElementById("custom-confirm") as HTMLDivElement;
+        const confirmText = document.getElementById("confirm-text")!;
+        const yesButton = document.getElementById("confirm-yes")!;
+        const noButton = document.getElementById("confirm-no")!;
+
+        const mode = options?.mode ?? 'confirm';
+
+        confirmText.textContent = message;
+        confirmBox.classList.add('flex-display');
+        void confirmBox.offsetWidth;
+        confirmBox.classList.remove('hidden2');
+        confirmBox.classList.remove('hidden-display');
+        confirmBox.classList.add('show');
+
+        if (mode === 'alert') {
+            noButton.classList.add('hidden2');
+            noButton.classList.add('hidden-display');
+            yesButton.textContent = "OK";
+        } else {
+            noButton.classList.remove('hidden2');
+            noButton.classList.remove('hidden-display');
+            yesButton.textContent = "Yes";
+        }
+
+        function cleanup() {
+
+            confirmBox.classList.add('hidden2');
+
+            const computedStyle = window.getComputedStyle(confirmBox);
+            const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+
+            if (transitionDuration > 0) {
+                confirmBox.addEventListener('transitionend', function handler(e) {
+                    if (e.propertyName === 'opacity') {
+                        confirmBox.classList.remove('show');
+                        confirmBox.classList.remove('flex-display');
+                        confirmBox.classList.add('hidden-display');
+                        confirmBox.removeEventListener('transitionend', handler);
+                    }
+                });
+            } else {
+                confirmBox.classList.remove('show');
+                confirmBox.classList.remove('flex-display');
+                confirmBox.classList.add('hidden-display');
+            }
+            yesButton.removeEventListener('click', onYes);
+            noButton.removeEventListener('click', onNo);
+        }
+
+        function onYes() {
+            cleanup();
+            resolve(true);
+        }
+
+        function onNo() {
+            cleanup();
+            resolve(false);
+        }
+
+        yesButton.addEventListener('click', onYes);
+        noButton.addEventListener('click', onNo);
+    });
+}
+
 async function createGameItem(game: GameConfig) {
     const li = document.importNode(gameItemTemplate, true);
     const loginData = await window.api.userData(game.id ?? game.name) as GameUserDataDecrypted;
@@ -261,15 +451,14 @@ async function createGameItem(game: GameConfig) {
     });
     gameItemList.appendChild(li);
     const userConfiguration = li.querySelector("div.user-configuration") as HTMLDivElement;
-    userConfiguration.style.height = `${userConfiguration.scrollHeight + 11}px`;
     userConfiguration.querySelector(".delete-game")?.addEventListener("click", async () => {
-        const confirmed = window.confirm("Are you sure you want to delete this game?");
+        const confirmed = await safePrompt("Are you sure you want to delete this game?");
         if (!confirmed) return;
         await updateGameList((appConfig) => {
             appConfig.games = appConfig.games.filter((g) => g.id !== game.id);
         });
         await createGameList();
-        showNotification("Game deleted.")
+        showNotification("Game deleted")
     });
     const gameId = game.id ?? game.name;
     const saveButton = userConfiguration.querySelector(".save-user-data") as HTMLButtonElement;
