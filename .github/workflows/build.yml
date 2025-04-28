@@ -6,7 +6,7 @@ on:
       - created
       - published
 env:
-  node_version: 18
+  node_version: 22
 jobs:
   build-linux:
     runs-on: ubuntu-latest
