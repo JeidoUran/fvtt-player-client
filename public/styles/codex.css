@@ -382,7 +382,7 @@ a {
     font-size: 1rem;
     font-weight: 700;
     padding: 0.2rem;
-    margin: 0 0.5rem 0 1rem;
+    margin: 2rem 0.5rem 2rem 1rem;
     transition: all 0.3s ease-in-out;
     cursor: pointer;
 }
@@ -582,7 +582,7 @@ select#theme-selector option {
     border: none;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
-    padding: 0.25rem 0;
+    padding: 0.25rem 0 0.5rem;
 }
 
 .game-main-button:hover {
