@@ -161,7 +161,7 @@ function createWindow(): BrowserWindow {
         if (url.endsWith("/setup")) {
             window.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
-                    const serverSelectButton = $('<button type="button" data-action="returnServerSelect" id="server-button" data-tooltip="Return to Server Select"><i class="fas fa-server"></i></button>');
+                    const serverSelectButton = $('<button type="button" class="icon" data-action="returnServerSelect" id="server-button" data-tooltip="Return to Server Select"><i class="fas fa-server"></i></button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
                     setTimeout(() => {
                         $('div#setup-menu-buttons').append(serverSelectButton)
