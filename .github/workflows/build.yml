@@ -3,7 +3,6 @@ name: Build and Release
 on:
   release:
     types:
-      - created
       - published
 env:
   node_version: 22
