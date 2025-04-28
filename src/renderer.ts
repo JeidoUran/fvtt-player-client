@@ -508,7 +508,7 @@ async function createGameItem(game: GameConfig) {
         });
     
         window.api.saveUserData({gameId, user, password, adminPassword} as SaveUserData);
-        showNotification("Game data saved");
+        showNotification("Game settings saved");
     });    
 }
 
