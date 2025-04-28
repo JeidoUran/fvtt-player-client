@@ -263,10 +263,13 @@ async function createGameItem(game: GameConfig) {
     const userConfiguration = li.querySelector("div.user-configuration") as HTMLDivElement;
     userConfiguration.style.height = `${userConfiguration.scrollHeight + 11}px`;
     userConfiguration.querySelector(".delete-game")?.addEventListener("click", async () => {
+        const confirmed = window.confirm("Are you sure you want to delete this game?");
+        if (!confirmed) return;
         await updateGameList((appConfig) => {
             appConfig.games = appConfig.games.filter((g) => g.id !== game.id);
         });
         await createGameList();
+        showNotification("Game deleted.")
     });
     const gameId = game.id ?? game.name;
     const saveButton = userConfiguration.querySelector(".save-user-data") as HTMLButtonElement;
