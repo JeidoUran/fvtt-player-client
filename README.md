@@ -2,13 +2,16 @@
 
 wiki https://wiki.theripper93.com/free/vtt-desktop-client
 
-## Differences between this and theripper93's player client
+## Differences between this, omegarogue's and theripper93's player client
 
-| Feature                                      | [theripper93](https://github.com/theripper93/fvtt-player-client) | omegarogue |
-|----------------------------------------------|:----------------------------------------------------------------:|:----------:|
-| Back to server select button in setup screen |                                ✔️                                |     ✔️     |
-| Back to server select button in login screen |                             ✔️    ️                              |     ✔️     |
-| Back to server select button in game         |                                ❌                                 |     ✔️     |
+| Feature                                      | [theripper93](https://github.com/theripper93/fvtt-player-client) | [omegarogue](https://github.com/OmegaRogue/fvtt-player-client) | jeidouran |
+|----------------------------------------------|:----------------------------------------------------------------:|:--------------------------------------------------------------:|:---------:|
+| Back to server select button in setup screen |                                ✔️                                |                               ✔️                              |    ✔️    |
+| Back to server select button in login screen |                                ✔️                                |                               ✔️                              |    ✔️    |
+| Back to server select button in game         |                                ❌                                |                               ✔️                              |    ✔️    |
+| Foundry v13 Compatibility                    |                                ❌                                |                               ❌                              |    ✔️    |
+| Server status in game buttons                |                                ❌                                |                               ❌                              |    ✔️    |
+| Theme switcher                               |                                ❌                                |                               ❌                              |    ✔️    |
 
 ## Customization
 
