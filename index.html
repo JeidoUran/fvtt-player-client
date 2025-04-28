@@ -15,9 +15,12 @@
 
 <div class="content">
     <div class="button-controls">
-        <button class="config-button" id="open-config"><i class="fa-solid fa-gear"></i></button>
-        <button class="config-button" id="open-help"><i class="fa-solid fa-question-circle"></i></button>
-        <button class="config-button" id="open-export"><i class="fa-solid fa-file-export"></i></button>        
+        <div class="tooltip-wrapper"><button class="config-button" id="open-config"><i class="fa-solid fa-gear"></i></button>
+        <div class="tooltip">Client Settings</div></div>
+        <div class="tooltip-wrapper"><button class="config-button" id="open-help"><i class="fa-solid fa-question-circle"></i></button>
+        <div class="tooltip">Help</div></div>
+        <div class="tooltip-wrapper"><button class="config-button" id="open-export"><i class="fa-solid fa-file-export"></i></button>
+        <div class="tooltip">Export Settings</div></div>      
     </div>
 
     <div class="update-available hidden2">
@@ -124,8 +127,25 @@
         <template id="game-item-template">
             <li class="game-item">
                 <div class="game-title-bar">
+                    <div class="game-main-button">
                     <button class="game-button"><a>GameName</a></button>
-                    <button class="configure-game"><i class="fa-solid fa-gear"></i></button>
+                    <div class="server-infos">
+                        <div class="tooltip-wrapper"><span class="status"> </span>
+                        <div class="tooltip">Server Status</div></div>
+                        <div class="tooltip-wrapper"><span class="version"><i class="fa-solid fa-dice-d20"></i> </span>
+                        <div class="tooltip">Foundry Version</div></div>
+                        <div class="tooltip-wrapper"><span class="system"><i class="fa-solid fa-dice"></i> </span>
+                        <div class="tooltip">Game System</div></div>
+                        <div class="tooltip-wrapper"><span class="systemVersion"><i class="fa-solid fa-screwdriver-wrench"></i> </span>
+                        <div class="tooltip">Game System Version</div></div>
+                        <div class="tooltip-wrapper"><span class="users"><i class="fa-solid fa-users"></i> </span>
+                        <div class="tooltip">Online Players</div></div>
+                    </div>
+                    </div>
+                    <div class="config-main-button">
+                    <div class="config-button-wrapper tooltip-wrapper"><button class="configure-game"><i class="fa-solid fa-gear"></i></button>
+                    <div class="tooltip">Game Settings</div></div>
+                </div>
                 </div>
                 <div class="user-configuration hidden">
                     <div class="game-name-field field-large">
@@ -137,11 +157,21 @@
                     <div class="user-name-field field-large">
                         <input class="user-name input-large" placeholder="User Name" type="text" value="">
                     </div>
-                    <div class="user-password-field field-large">
+                    <div class="user-password-field password-field field-large">
                         <input class="user-password input-large" placeholder="Password" type="password" value="">
+                        <div class="password-main-button">
+                        <div class="password-button-wrapper">
+                        <button type="button" class="toggle-password">
+                        <i class="fa-solid fa-eye"></i></div></div>
+                    </button>
                     </div>
-                    <div class="admin-password-field field-large">
+                    <div class="admin-password-field password-field field-large">
                         <input class="admin-password input-large" placeholder="Admin Password" type="password" value="">
+                        <div class="password-main-button">
+                        <div class="password-button-wrapper">
+                        <button type="button" class="toggle-password">
+                        <i class="fa-solid fa-eye"></i></div></div>
+                    </button>
                     </div>
                 
                     <div class="button-group">
@@ -173,6 +203,7 @@
         Chromium <span id="chrome-version"></span>,
         Electron <span id="electron-version"></span></div>
 </div>
+<div id="tooltip-layer"></div>
 <script src="/src/renderer.ts" type="module"></script>
 </body>
 </html>

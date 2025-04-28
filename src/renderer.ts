@@ -1,9 +1,9 @@
 // noinspection JSIgnoredPromiseFromCall
-
 import './particles';
 
 let appVersion: string;
 let preventMenuClose = false;
+let games: GameConfig[] = [];
 
 function compareSemver(a: string, b: string): number {
     const splitA = a.split(".");
@@ -64,7 +64,7 @@ document.querySelector("#copy-button").addEventListener("click", async () => {
     const config = await window.api.localAppConfig();
     const text = JSON.stringify(config, null, 4);
     navigator.clipboard.writeText(text);
-    showNotification("Text copied");
+    showNotification("Settings copied");
 });
 
 
@@ -163,6 +163,22 @@ document.querySelector("#clear-cache").addEventListener("click", async () => {
     if (!confirmed) return;
     window.api.clearCache();
     showNotification("Cache cleared");
+});
+
+document.addEventListener("click", (event) => {
+    const target = (event.target as HTMLElement).closest(".toggle-password") as HTMLButtonElement | null;
+    if (!target) return;
+
+    const input = target.closest(".password-field")?.querySelector("input") as HTMLInputElement;
+    if (!input) return;
+
+    if (input.type === "password") {
+        input.type = "text";
+        target.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+        input.type = "password";
+        target.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -347,7 +363,7 @@ function toggleConfigureGame(event: MouseEvent) {
 }
 
     document.addEventListener("click", (event) => {
-        const target = (event.target as HTMLElement).closest(".configure-game") as HTMLButtonElement | null;
+        const target = (event.target as HTMLElement).closest(".config-main-button") as HTMLButtonElement | null;
         if (target) {
             toggleConfigureGame(event as MouseEvent);
         }
@@ -438,6 +454,7 @@ async function createGameItem(game: GameConfig) {
     const loginData = await window.api.userData(game.id ?? game.name) as GameUserDataDecrypted;
 
     li.id = game.cssId;
+    li.setAttribute("data-game-id", String(game.id ?? game.name));
 
     (li.querySelector(".user-name") as HTMLInputElement).value = loginData.user;
     (li.querySelector(".user-password") as HTMLInputElement).value = loginData.password;
@@ -450,6 +467,8 @@ async function createGameItem(game: GameConfig) {
         window.location.href = game.url;
     });
     gameItemList.appendChild(li);
+    await updateServerInfos(li, game);
+    renderTooltips()
     const userConfiguration = li.querySelector("div.user-configuration") as HTMLDivElement;
     userConfiguration.querySelector(".delete-game")?.addEventListener("click", async () => {
         const confirmed = await safePrompt("Are you sure you want to delete this game?");
@@ -553,11 +572,132 @@ async function migrateConfig() {
     window.api.saveAppConfig(localAppConfig);
 }
 
+function cleanBaseUrl(inputUrl: string): string {
+    try {
+        const url = new URL(inputUrl);
+
+        let baseUrl = `${url.protocol}//${url.hostname}`;
+        if (url.port) {
+            baseUrl += `:${url.port}`;
+        }
+        return baseUrl;
+    } catch (error) {
+        console.error("Invalid URL provided:", inputUrl);
+        return inputUrl;
+    }
+}
+
+async function getServerInfo(game: GameConfig): Promise<ServerStatusData | null> {
+    try {
+        const gameUrl = cleanBaseUrl(game.url);
+        const response = await fetch(`${gameUrl}/api/status`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"
+            }
+        });
+
+        if (!response.ok) {
+            console.warn(`Failed to fetch server info for ${game.name}`);
+            return null;
+        }
+
+        const data = await response.json();
+        return {
+            active: data.active,
+            version: data.version,
+            world: data.world,
+            system: data.system,
+            systemVersion: data.systemVersion,
+            users: data.users,
+            uptime: data.uptime
+        };
+    } catch (error) {
+        console.error(`Error fetching server info for ${game.name}:`, error);
+        return null;
+    }
+}
+
+function renderTooltips() {
+    // Attach tooltip listeners dynamically
+    document.querySelectorAll(".tooltip-wrapper").forEach(wrapper => {
+        const tooltip = wrapper.querySelector(".tooltip") as HTMLElement;
+        wrapper.addEventListener("mouseenter", (e) => {
+            const rect = wrapper.getBoundingClientRect();
+            const clonedTooltip = tooltip.cloneNode(true) as HTMLElement;
+            clonedTooltip.style.display = "block";
+            clonedTooltip.style.position = "fixed";
+            clonedTooltip.style.left = `${rect.left + rect.width/2}px`;
+            clonedTooltip.style.top = `${rect.bottom + 5}px`;
+            clonedTooltip.style.transform = "translateX(-50%)";
+            clonedTooltip.style.pointerEvents = "none";
+            clonedTooltip.classList.add("active-tooltip");
+            document.getElementById("tooltip-layer")?.appendChild(clonedTooltip);
+        });
+        wrapper.addEventListener("mouseleave", (e) => {
+            document.querySelectorAll("#tooltip-layer .active-tooltip").forEach(t => t.remove());
+        });
+    });
+}
+
+async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
+    const serverInfo = await getServerInfo(game);
+
+    const serverInfos = gameItem.querySelector(".server-infos");
+    if (!serverInfos) return;
+
+    const statusSpan = serverInfos.querySelector(".status") as HTMLSpanElement;
+    const versionSpan = serverInfos.querySelector(".version") as HTMLSpanElement;
+    const systemSpan = serverInfos.querySelector(".system") as HTMLSpanElement;
+    const systemVersionSpan = serverInfos.querySelector(".systemVersion") as HTMLSpanElement;
+    const usersSpan = serverInfos.querySelector(".users") as HTMLSpanElement;
+
+    if (!serverInfo) {
+        statusSpan.innerHTML = `<i class="fa-solid fa-xmark"></i> Offline`;
+        versionSpan.innerHTML = `<i class="fa-solid fa-dice-d20"></i> -`;
+        systemSpan.innerHTML = `<i class="fa-solid fa-dice"></i> -`;
+        systemVersionSpan.innerHTML = `<i class="fa-solid fa-screwdriver-wrench"></i> -`;
+        usersSpan.innerHTML = `<i class="fa-solid fa-users"></i> -`;
+        return;
+    }
+
+    if (serverInfo.version) {
+        statusSpan.innerHTML = `<i class="fa-solid fa-signal"></i> Online`;
+    } else {
+        statusSpan.innerHTML = `<i class="fa-solid fa-xmark"></i> Offline`;
+    }
+
+    versionSpan.innerHTML = `<i class="fa-solid fa-dice-d20"></i> v${serverInfo.version ?? "-"}`;
+    systemSpan.innerHTML = `<i class="fa-solid fa-dice"></i> ${serverInfo.system?.toUpperCase() ?? "-"}`;
+    systemVersionSpan.innerHTML = `<i class="fa-solid fa-screwdriver-wrench"></i> ${serverInfo.systemVersion ?? "-"}`;
+    usersSpan.innerHTML = `<i class="fa-solid fa-users"></i> ${serverInfo.users ?? "0"}`;
+}
+
+async function refreshAllServerInfos() {
+
+    const gameItems = document.querySelectorAll(".game-item");
+    
+    for (const item of gameItems) {
+        const gameId = Number(item.getAttribute("data-game-id"));
+        if (!gameId) continue;
+        
+        const game = games.find(g => g.id === gameId);
+        if (!game) continue; 
+    
+      try {
+        await updateServerInfos(item as HTMLElement, game);
+      } catch (err) {
+        console.error("Error in updateServerInfos:", err);
+      }
+    }
+}
+
 async function createGameList() {
     await migrateConfig();
     let config: AppConfig;
     try {
         config = await window.api.appConfig();
+        games = config.games;
     } catch (e) {
         console.log("Failed to load config.json");
     }
@@ -598,7 +738,5 @@ async function createGameList() {
     config.games.forEach(createGameItem);
 }
 
-while (!window) {
-    //
-}
-createGameList();
+await createGameList();
+setInterval(refreshAllServerInfos, 30000);
