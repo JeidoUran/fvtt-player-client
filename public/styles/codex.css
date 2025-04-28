@@ -453,10 +453,7 @@ a {
     align-items: center;
     justify-content: space-around;
     gap: 0.5rem;
-}
-
-.user-configuration .input-large {
-    width: 405px;
+    margin-top: 0.3rem;
 }
 
 .background-image-field,
@@ -651,7 +648,7 @@ select#theme-selector option {
 	top: 0;
 	left: 50%;
 	width: 0;
-	height: 3px;
+	height: 4px;
 	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
 	transition: width 0.3s ease, left 0.3s ease;
 }
@@ -662,7 +659,7 @@ select#theme-selector option {
 	bottom: 0;
 	left: 50%;
 	width: 0;
-	height: 3px;
+	height: 4px;
 	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
 	transition: width 0.3s ease, left 0.3s ease;
 }

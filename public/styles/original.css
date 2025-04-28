@@ -367,9 +367,12 @@ a {
 }
 
 .configure-game {
-    aspect-ratio: 1;
+    height: 100%;
+    width: 100%;
     opacity: 0.3;
     border: none;
+    align-items: center;
+    justify-content: center;
     color: var(--color-text-primary);
     font-size: 1rem;
     font-weight: 700;
@@ -470,6 +473,19 @@ select#theme-selector {
     border: none;
     cursor: pointer;
     padding: 0.25rem 0 0.5rem;
+}
+
+.config-main-button {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+}
+
+.config-button-wrapper {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .server-infos {
