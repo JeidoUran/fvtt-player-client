@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.node_version }}
 
@@ -43,7 +43,7 @@ jobs:
           mv out/make/rpm/x64/vtt-desktop-client-${tag//-/.}-1.x86_64.rpm ./vtt-desktop-client-${{ github.event.release.tag_name }}-1.x86_64.rpm
           mv out/make/zip/linux/x64/vtt-desktop-client-linux-x64-${{ github.event.release.tag_name }}.zip ./vtt-desktop-client-linux-x64-${{ github.event.release.tag_name }}.zip
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linux-outputs
           path: |
@@ -65,7 +65,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.node_version }}
 
@@ -86,7 +86,7 @@ jobs:
           mv out/make/vtt-desktop-client-${{ github.event.release.tag_name }}-arm64.dmg ./vtt-desktop-client-${{ github.event.release.tag_name }}-x64.dmg
 
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: macos-outputs
           path: |
@@ -97,7 +97,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.node_version }}
 
@@ -117,7 +117,7 @@ jobs:
           Move-Item -Path "out\make\squirrel.windows\x64\vtt-desktop-client-${{ github.event.release.tag_name }} Setup.exe" -Destination ".\vtt-desktop-client-windows-x64-${{ github.event.release.tag_name }}-setup.exe"
           Move-Item -Path "out\make\zip\win32\x64\vtt-desktop-client-win32-x64-${{ github.event.release.tag_name }}.zip" -Destination ".\vtt-desktop-client-windows-x64-portable-${{ github.event.release.tag_name }}.zip"
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: windows-outputs
           path: |
@@ -131,19 +131,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download linux production artifacts for publication
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: linux-outputs
           path: linux-outputs
 
       - name: Download windows production artifacts for publication
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: windows-outputs
           path: windows-outputs
 
       - name: Download macos production artifacts for publication
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: macos-outputs
           path: macos-outputs
