@@ -458,7 +458,7 @@ async function createGameItem(game: GameConfig) {
             appConfig.games = appConfig.games.filter((g) => g.id !== game.id);
         });
         await createGameList();
-        showNotification("Game deleted")
+        showNotification("Game deleted");
     });
     const gameId = game.id ?? game.name;
     const saveButton = userConfiguration.querySelector(".save-user-data") as HTMLButtonElement;
@@ -489,6 +489,7 @@ async function createGameItem(game: GameConfig) {
         });
     
         window.api.saveUserData({gameId, user, password, adminPassword} as SaveUserData);
+        showNotification("Game data saved");
     });    
 }
 
