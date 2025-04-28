@@ -1,0 +1,551 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy&display=swap');
+
+:root {
+    --color-background: #0e1a23ff;
+    --color-accent: #98e4f7ff;
+    --color-text-primary: #88c0a9ff;
+}
+
+#particles {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 1;
+}
+
+body {
+    background: var(--color-background);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    min-width: 100vw;
+    margin: 0;
+    padding: 0;
+}
+
+body::after {
+	content: "";
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 20%, transparent 80%);
+	animation: rippleLight 12s infinite linear;
+	z-index: 0;
+	pointer-events: none;
+}
+
+@keyframes rippleLight {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+
+	50% {
+		transform: translate(2%, -2%) scale(1.02);
+	}
+
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+}
+
+.content {
+    user-select: none;
+    position: absolute;
+
+    color: var(--color-text-primary);
+    font-family: "Open Sans", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+}
+
+input:not([type=color], [type=checkbox]) {
+    background-color: transparent;
+    backdrop-filter: blur(5px);
+    border: none;
+    border-bottom: 1px solid var(--color-text-primary);
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 0.5rem;
+    margin: 0.5rem;
+    outline: none;
+    transition: all 0.3s ease-in-out;
+    font-family: 'Sorts Mill Goudy', serif;
+}
+
+label {
+    background-color: transparent;
+    backdrop-filter: blur(5px);
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+input[type=color] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    background-color: transparent;
+    cursor: pointer;
+    border: 1px solid var(--color-text-primary);
+    border-radius: 4px;
+}
+
+input[type=color]::-webkit-color-swatch {
+    border: none;
+}
+
+input[type=color]::-moz-color-swatch {
+    border: none;
+}
+
+input:focus {
+    border-bottom: 1px solid var(--color-accent);
+}
+
+button {
+    text-decoration: none;
+	color: var(--color-text-primary);
+	overflow: hidden;
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	border-radius: 8px;
+    background-color: rgba(20, 20, 30, 0.65);
+	padding: 0.7rem 1rem;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: rgba(40, 40, 60, 0.95);
+    box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
+    text-shadow: 0 0 4px var(--color-accent);
+    text-decoration: none;
+    cursor: pointer;
+    transform: scale(1.01);
+}
+
+.app-configuration button {
+	padding: 0.7rem 0.5rem;
+}
+
+#info {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin-right: 0.1rem;
+}
+
+#game-list {
+    list-style: none;
+    margin: 0;
+    padding: 1rem;
+    transition: all 0.3s ease-in-out;
+}
+
+.game-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0.5rem 0;
+    background-color: transparent;
+    color: var(--color-text-primary);
+    width: 100%;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+    backdrop-filter: blur(5px);
+    text-shadow: 0 0 5px black;
+    box-shadow: 0 0 5px black;
+    border-radius: 8px;
+    background-color: rgba(20, 20, 30, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.hidden {
+    height: 0 !important;
+}
+
+.hidden2 {
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.show {
+    display: flex;
+    transform: scale(1);
+    opacity: 1;
+}
+
+.user-configuration {
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease-in-out;
+    width: 100%;
+}
+
+table, th, td {
+    border: 1px solid;
+    border-collapse: collapse;
+}
+
+.menu-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 100;
+    pointer-events: none;
+    gap: 1rem;
+}
+
+.field {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Sorts Mill Goudy', serif;
+    padding: 0.5rem;
+}
+
+.help {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    background: var(--color-background);
+    transform: scale(0.98);
+    pointer-events: all;
+    box-shadow: 0 0 5px black;
+    display: none;
+    border-radius: 8px;
+}
+
+.help td {
+    padding: 0.3rem 0.5rem;
+}
+
+.button-controls {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+}
+
+.app-configuration {
+    box-shadow: 0 0 5px black;
+    transform: scale(0.98);
+    flex-direction: column;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    padding: 0.5rem;
+    background: var(--color-background);
+    pointer-events: all;
+    border-radius: 12px;
+}
+
+.app-configuration.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.app-configuration.hidden2 {
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.config-export.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.config-export.hidden2 {
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.help.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.help.hidden2 {
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.hidden-display {
+    display: none;
+}
+
+.flex-display {
+    display: flex;
+}
+
+.block-display {
+    display: block;
+}
+
+.config-export {
+    box-shadow: 0 0 5px black;
+    transform: scale(0.98);
+    flex-direction: column;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    padding: 0.5rem;
+    background: var(--color-background);
+    pointer-events: all;
+    border-radius: 12px;
+}
+
+.config-export code {
+    user-select: text;
+}
+
+.update-available {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.version-normal {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.update-available a {
+    font-size: 1rem;
+    color: var(--color-accent);
+}
+
+a {
+    text-decoration: none;
+    cursor: pointer;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: all 0.3s ease-in-out;
+}
+
+.game-item a {
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+    transition: all 0.3s ease-in-out;
+}
+
+.game-button {
+    cursor: pointer;
+    flex-grow: 1;
+    text-align: left;
+    border: none;
+    padding: 0.5rem;
+    margin: 0;
+    padding: 0.7rem 1rem;
+}
+
+.game-title-bar .game-button:hover {
+    transform: scale(1.03);
+	background: rgba(40, 40, 60, 0.95);
+	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
+	text-shadow: 0 0 4px var(--color-accent);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.game-title-bar .game-button::before {
+    content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 0;
+	height: 3px;
+	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+	transition: width 0.3s ease, left 0.3s ease;
+}
+
+.game-title-bar .game-button::after {
+    content: "";
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	width: 0;
+	height: 3px;
+	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+	transition: width 0.3s ease, left 0.3s ease;
+}
+
+.game-title-bar .game-button:hover::before,
+.game-title-bar .game-button:hover::after {
+	width: 100%;
+	left: 0;
+}
+
+.game-title-bar {
+    display: flex;
+    width: 100%;
+}
+
+.configure-game {
+    aspect-ratio: 1;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.2rem;
+    margin: 0 0.5rem 0 auto;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+.configure-game:hover {
+    transform: scale(1.15);
+    border: none;
+    background: none;
+	box-shadow: none;
+	text-shadow: 0 0 4px var(--color-accent);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.button-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0.5rem;
+}
+
+.user-configuration .input-large {
+    width: 405px;
+}
+
+.background-image-field,
+.cache-path-field {
+    display: flex;
+    width: 100%;
+}
+
+.background-image-field input[type="text"],
+.cache-path-field input[type="text"] {
+    flex: 1 1 auto;
+    width: 100%;
+    padding: 0.5rem;
+}
+
+.field-large {
+    display: flex;
+    width: 100%;
+}
+
+.user-configuration .input-large {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0.5rem 2rem;
+}
+
+select#theme-selector {
+    font-family: 'Cinzel', serif;
+    background: rgba(0, 0, 0, 0.3);
+    color: #e8ddc5;
+    border: 1px solid #88c0a9;
+    padding: 0.25rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+}
+
+select#theme-selector option {
+	background-color: #121c24;
+	color: #e8ddc5;
+	padding: 0.5rem;
+	line-height: 1.8;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    user-select: none;
+  }
+  
+  .checkbox-wrapper input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    right: 7.5px;
+    height: 26px;
+    width: 26px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  
+  .checkbox-wrapper .custom-checkbox {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    width: 26px;
+    background-color: #111;
+    border: 2px solid var(--accent-color, #aaa);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    z-index: 0;
+  }
+
+  .checkbox-wrapper .custom-checkbox:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--accent-color);
+  }
+  
+  .checkbox-wrapper input[type="checkbox"]:checked ~ .custom-checkbox {
+    background-color: var(--accent-color, #65c3ba);
+    border-color: var(--accent-color, #65c3ba);
+  }
+  
+  .checkbox-wrapper .custom-checkbox::after {
+    content: "";
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    display: none;
+  }
+  
+  .checkbox-wrapper input[type="checkbox"]:checked ~ .custom-checkbox::after {
+    display: block;
+  }
+  
+  #notification-area {
+    position: fixed;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}

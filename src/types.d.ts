@@ -24,6 +24,7 @@ type AppConfig = {
     autoCacheClear?: boolean;
     customCSS?: string;
     ignoreCertificateErrors?: boolean;
+    theme?: string;
 }
 
 

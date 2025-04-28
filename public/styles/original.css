@@ -4,6 +4,10 @@
     --color-text-primary: #eae2b7ff;
 }
 
+#particles {
+    display: none;
+}
+
 body {
     background-color: var(--color-background);
     background-size: cover;
@@ -48,10 +52,25 @@ input:not([type=color], [type=checkbox]) {
     transition: all 0.3s ease-in-out;
 }
 
-input[type=checkbox] {
-    cursor: pointer;
-    width: 30px;
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    user-select: none;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    position: absolute;
+    right: 7.5px;
     height: 30px;
+    width: 30px;
+    cursor: pointer;
+    z-index: 1;
+}
+  
+.checkbox-wrapper .custom-checkbox {
+    opacity: 0;
 }
 
 input[type=checkbox]:checked:before {
@@ -109,6 +128,7 @@ input[type=color] {
     height: 3em;
     background-color: transparent;
     cursor: pointer;
+    border: 1px solid var(--color-text-primary);
 }
 
 input[type=color]::-webkit-color-swatch {
@@ -179,7 +199,12 @@ button:hover {
 }
 
 .hidden2 {
-    display: none !important;
+    opacity: 0;
+}
+
+.show {
+    display: flex;
+    opacity: 1;
 }
 
 .user-configuration {
@@ -214,6 +239,7 @@ table, th, td {
     background: var(--color-background);
     pointer-events: all;
     box-shadow: 0 0 5px black;
+    display: none;
 }
 
 .help td {
@@ -228,20 +254,48 @@ table, th, td {
 
 .app-configuration {
     box-shadow: 0 0 5px black;
-    display: flex;
     flex-direction: column;
-    transition: all 0.3s ease-in-out;
     border: 2px solid var(--color-text-primary);
     padding: 0.5rem;
     background: var(--color-background);
     pointer-events: all;
 }
 
+.app-configuration.show {
+    opacity: 1;
+}
+
+.app-configuration.hidden2 {
+    opacity: 0;
+}
+
+.config-export.show {
+    opacity: 1;
+}
+
+.config-export.hidden2 {
+    opacity: 0;
+}
+
+.help.show {
+    opacity: 1;
+}
+
+.help.hidden2 {
+    opacity: 0;
+}
+
+.hidden-display {
+    display: none;
+}
+
+.flex-display {
+    display: flex;
+}
+
 .config-export {
     box-shadow: 0 0 5px black;
-    display: flex;
     flex-direction: column;
-    transition: all 0.3s ease-in-out;
     border: 2px solid var(--color-text-primary);
     padding: 0.5rem;
     background: var(--color-background);
@@ -256,6 +310,14 @@ table, th, td {
     position: absolute;
     bottom: 0;
     left: 0;
+    z-index: 1;
+}
+
+.version-normal {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
 }
 
 .update-available a {
@@ -327,4 +389,36 @@ a {
     display: flex;
     align-items: center;
     justify-content: space-around;
+}
+
+.background-image-field,
+.cache-path-field {
+    display: flex;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.background-image-field input[type="text"],
+.cache-path-field input[type="text"] {
+    flex: 1 1 auto;
+    width: 100%;
+    padding: 0.5rem;
+}
+
+select#theme-selector {
+    width: 150px;
+}
+
+#notification-area {
+    position: fixed;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }

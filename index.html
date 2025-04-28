@@ -7,35 +7,117 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <title>VTT Desktop Client</title>
     <script crossorigin="anonymous" src="https://kit.fontawesome.com/d9351ab632.js"></script>
+    <link id="theme-stylesheet" rel="stylesheet" href="styles/codex.css">
     <!--    <link rel="stylesheet" href="src/style.css">-->
 </head>
 <body>
+<canvas id="particles"></canvas>
 <script>
     function toggleConfigureGame(e) {
         e.target.closest('.game-item').querySelector('.user-configuration').classList.toggle('hidden');
     }
 
     function toggleConfigureApp() {
-        document.querySelector('.app-configuration').classList.toggle('hidden2');
+    const appConfigMenu = document.querySelector('.app-configuration');
+    if (!appConfigMenu) return;
+
+    if (appConfigMenu.classList.contains('hidden2')) {
+        appConfigMenu.classList.add('flex-display');
+        void appConfigMenu.offsetWidth;
+        appConfigMenu.classList.remove('hidden2');
+        appConfigMenu.classList.remove('hidden-display');
+        appConfigMenu.classList.add('show');
+    } else if (appConfigMenu.classList.contains('show')) {
+        appConfigMenu.classList.add('hidden2');
+
+        const computedStyle = window.getComputedStyle(appConfigMenu);
+        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+
+        if (transitionDuration > 0) {
+            appConfigMenu.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'opacity') {
+                    appConfigMenu.classList.remove('show');
+                    appConfigMenu.classList.remove('flex-display');
+                    appConfigMenu.classList.add('hidden-display');
+                    appConfigMenu.removeEventListener('transitionend', handler);
+                }
+            });
+        } else {
+            appConfigMenu.classList.remove('show');
+            appConfigMenu.classList.remove('flex-display');
+            appConfigMenu.classList.add('hidden-display');
+        }
     }
+}
 
     function toggleHelp() {
-        document.querySelector('.help').classList.toggle('hidden2');
-    }
+        const helpMenu = document.querySelector('.help');
+        if (!helpMenu) return;
 
-    function toggleExportConfig() {
-        (async () => {
-            let config = await window.api.localAppConfig();
-            let code = document.getElementById("export-text");
-            let text = JSON.stringify(config, null, 4);
-            let txt = document.createTextNode(text);
-            code.appendChild(txt);
-        })();
-        document.querySelector('.config-export').classList.toggle('hidden2');
-    }
+        if (helpMenu.classList.contains('hidden2')) {
+            helpMenu.classList.add('flex-display');
+        void helpMenu.offsetWidth;
+        helpMenu.classList.remove('hidden2');
+        helpMenu.classList.remove('hidden-display');
+        helpMenu.classList.add('show');
+    } else if (helpMenu.classList.contains('show')) {
+        helpMenu.classList.add('hidden2');
 
-    function copyText() {
-        navigator.clipboard.writeText(text);
+        const computedStyle = window.getComputedStyle(helpMenu);
+        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+
+        if (transitionDuration > 0) {
+            helpMenu.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'opacity') {
+                    helpMenu.classList.remove('show');
+                    helpMenu.classList.remove('flex-display');
+                    helpMenu.classList.add('hidden-display');
+                    helpMenu.removeEventListener('transitionend', handler);
+                }
+            });
+        } else {
+            helpMenu.classList.remove('show');
+            helpMenu.classList.remove('flex-display');
+            helpMenu.classList.add('hidden-display');
+        }
+    }
+}
+
+    async function toggleExportConfig() {
+        const exportContainer = document.querySelector('.config-export');
+        if (!exportContainer) return;
+
+        if (exportContainer.classList.contains('hidden2')) {
+            exportContainer.classList.add('flex-display');
+        void exportContainer.offsetWidth;
+        exportContainer.classList.remove('hidden2');
+        exportContainer.classList.remove('hidden-display');
+        exportContainer.classList.add('show');
+        const code = document.getElementById("export-text");
+        const config = await window.api.localAppConfig();
+        const text = JSON.stringify(config, null, 4);
+        code.textContent = text;
+    } else if (exportContainer.classList.contains('show')) {
+        exportContainer.classList.add('hidden2');
+
+        const computedStyle = window.getComputedStyle(exportContainer);
+        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+
+        if (transitionDuration > 0) {
+            exportContainer.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'opacity') {
+                    exportContainer.classList.remove('show');
+                    exportContainer.classList.remove('flex-display');
+                    exportContainer.classList.add('hidden-display');
+                    exportContainer.removeEventListener('transitionend', handler);
+                }
+            });
+        } else {
+            exportContainer.classList.remove('show');
+            exportContainer.classList.remove('flex-display');
+            exportContainer.classList.add('hidden-display');
+        }
+    }
     }
 
 </script>
@@ -47,12 +129,16 @@
     </div>
 
     <div class="update-available hidden2">
-        <a href="https://github.com/OmegaRogue/fvtt-player-client/releases/latest" id="download-new" target="">Update
-            Available!</a><span id="current-version"></span> → <span id="latest-version"></span>
+        <a href="https://github.com/JeidoUran/fvtt-player-client/releases/latest" id="download-new" target="">Update
+            Available!</a><span class="current-version"></span> <i class="fa-solid fa-arrow-right"></i> <span id="latest-version"></span>
+    </div>
+
+    <div id="current-version-display" class="version-normal">
+        VTT Client <span class="current-version"></span>
     </div>
 
     <section class="menu-container">
-        <div class="help hidden2">
+        <div class="help hidden2 hidden-display">
             <table>
                 <tr>
                     <th>Control</th>
@@ -89,7 +175,7 @@
             </table>
         </div>
 
-        <div class="app-configuration hidden2">
+        <div class="app-configuration hidden2 hidden-display">
             <div class="background-color-field field">
                 <label for="background-color">Background Color</label>
                 <input id="background-color" type="color">
@@ -108,24 +194,36 @@
             <div class="cache-path-field">
                 <input id="cache-path" placeholder="Cache Path" type="text" value="">
             </div>
-            <div class="clear-cache-on-close-field field">
-                <label for="clear-cache-on-close">Clear Cache on close</label>
-                <input class="no-text" id="clear-cache-on-close" type="checkbox">
+            <div class="clear-cache-on-close-field field checkbox-wrapper">
+                <label for="clear-cache-on-close">Clear Cache on Close</label>
+                <input id="clear-cache-on-close" type="checkbox" class="no-text">
+                <span class="custom-checkbox"></span>                  
             </div>
-            <div class="insecure-ssl-field field">
+            <div class="insecure-ssl-field field checkbox-wrapper">
                 <label for="insecure-ssl">Ignore Certificate errors</label>
-                <input class="no-text" id="insecure-ssl" type="checkbox">
+                <input id="insecure-ssl" type="checkbox" class="no-text">
+                <span class="custom-checkbox"></span>
+            </div>
+            <div class="theme-selector-field field">
+                <label for="theme-selector">Theme</label>
+                <select id="theme-selector">
+                    <option value="codex">Codex</option>
+                    <option value="original">Original</option>
+                </select>
             </div>
             <div class="button-group">
-                <button id="clear-cache">Clear Cache</button>
                 <button id="save-app-config">Save</button>
+                <button id="cancel-app-config">Cancel</button>
+                <button id="reset-appearance">Reset Appearance</button>
+                <button id="reset-all">Reset Settings</button>
+                <button id="clear-cache">Clear Cache</button>
             </div>
         </div>
 
-        <div class="config-export hidden2">
+        <div class="config-export hidden2 hidden-display">
             <h3>Put this in your <code>config.json</code> file to include it installation-wide:</h3>
             <pre><code id="export-text"></code></pre>
-            <button onclick="copyText()">Copy</button>
+            <button id="copy-button">Copy</button>
             <button onclick="toggleExportConfig()">Close</button>
         </div>
     </section>
@@ -139,27 +237,27 @@
                             class="fa-solid fa-gear"></i></button>
                 </div>
                 <div class="user-configuration hidden">
-                    <div class="game-name-field"> 
-                        <input class="game-name-edit" placeholder="Game Name" type="text" value=""> 
-                    </div> 
-                    <div class="game-url-field"> 
-                        <input class="game-url-edit" placeholder="URL" type="text" value=""> 
-                    </div> 
-                    <div class="user-name-field">
-                        <input class="user-name" placeholder="User Name" type="text" value="">
+                    <div class="game-name-field field-large">
+                        <input class="game-name-edit input-large" placeholder="Game Name" type="text" value="">
                     </div>
-                    <div class="user-password-field">
-                        <input class="user-password" placeholder="Password" type="password" value="">
+                    <div class="game-url-field field-large">
+                        <input class="game-url-edit input-large" placeholder="URL" type="text" value="">
                     </div>
-                    <div class="admin-password-field">
-                        <input class="admin-password" placeholder="Admin Password" type="password" value="">
+                    <div class="user-name-field field-large">
+                        <input class="user-name input-large" placeholder="User Name" type="text" value="">
                     </div>
-
+                    <div class="user-password-field field-large">
+                        <input class="user-password input-large" placeholder="Password" type="password" value="">
+                    </div>
+                    <div class="admin-password-field field-large">
+                        <input class="admin-password input-large" placeholder="Admin Password" type="password" value="">
+                    </div>
+                
                     <div class="button-group">
                         <button class="save-user-data">Save</button>
                         <button class="delete-game">Delete</button>
                     </div>
-                </div>
+                </div>                
             </li>
         </template>
     </ul>
@@ -168,6 +266,7 @@
         <input id="game-url" name="" placeholder="URL" type="text">
         <button id="add-game">Add Game</button>
     </div>
+    <div id="notification-area"></div>
     <div id="info">Node.js <span id="node-version"></span>,
         Chromium <span id="chrome-version"></span>,
         Electron <span id="electron-version"></span></div>
