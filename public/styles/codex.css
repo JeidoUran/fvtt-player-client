@@ -2,9 +2,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy&display=swap');
 
 :root {
-    --color-background: #0e1a23;
-    --color-accent: #98e4f7;
-    --color-text-primary: #88c0a9;
+    --color-background: #0e1a23ff;
+    --color-accent: #98e4f7ff;
+    --color-text-primary: #88c0a9ff;
+}
+
+#particles {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 1;
 }
 
 body {
@@ -79,45 +89,6 @@ input:not([type=color], [type=checkbox]) {
     font-family: 'Sorts Mill Goudy', serif;
 }
 
-input[type=checkbox] {
-    cursor: pointer;
-    width: 30px;
-    height: 30px;
-}
-
-input[type=checkbox]:checked:before {
-    display: block;
-    width: 34px;
-    height: 34px;
-    border: 4px solid #FFCB9A;
-    background-color: #445768;
-}
-
-
-input[type=checkbox]:before {
-    display: block;
-    width: 34px;
-    height: 34px;
-    border: 4px solid #FFCB9A;
-    background-color: #445768;
-}
-
-
-input[type=checkbox]:after {
-    display: block;
-    width: 30px;
-    height: 30px;
-    border: 0 solid #FFCB9A;
-}
-
-input[type=checkbox]:checked:after {
-    display: block;
-    width: 12px;
-    height: 21px;
-    border: solid #FFCB9A;
-    border-width: 0 5px 5px 0;
-}
-
 label {
     background-color: transparent;
     backdrop-filter: blur(5px);
@@ -126,20 +97,16 @@ label {
     font-weight: 700;
 }
 
-/*input[type=color] {*/
-/*    border-bottom: none !important;*/
-/*    background-color: transparent;*/
-/*    outline: none;*/
-/*    background: none;*/
-/*}*/
 input[type=color] {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    width: 3em;
-    height: 3em;
+    width: 26px;
+    height: 26px;
     background-color: transparent;
     cursor: pointer;
+    border: 1px solid var(--color-text-primary);
+    border-radius: 4px;
 }
 
 input[type=color]::-webkit-color-swatch {
@@ -155,19 +122,6 @@ input:focus {
 }
 
 button {
-    /*background-color: transparent;
-    font-family: 'Sorts Mill Goudy', serif;
-    font-family: 'Cinzel', serif;
-    backdrop-filter: blur(5px);
-    border: 2px solid var(--color-text-primary);
-    color: var(--color-text-primary);
-    font-size: 1.5rem;
-    font-weight: 700;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    outline: none;
-    transition: all 0.3s ease-in-out;
-    cursor: pointer;*/
     text-decoration: none;
 	color: var(--color-text-primary);
 	overflow: hidden;
@@ -177,16 +131,20 @@ button {
 	border-radius: 8px;
     background-color: rgba(20, 20, 30, 0.65);
 	padding: 0.7rem 1rem;
-	transition: transform 0.3s ease, background 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 button:hover {
-    /*border: 2px solid var(--color-accent);*/
-	background: rgba(40, 40, 60, 0.95);
-	box-shadow: 0 0 15px rgba(136, 192, 169, 0.5);
-	text-shadow: 0 0 4px var(--color-accent);
-	text-decoration: none;
-	cursor: pointer;
+    background: rgba(40, 40, 60, 0.95);
+    box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
+    text-shadow: 0 0 4px var(--color-accent);
+    text-decoration: none;
+    cursor: pointer;
+    transform: scale(1.01);
+}
+
+.app-configuration button {
+	padding: 0.7rem 0.5rem;
 }
 
 #info {
@@ -210,9 +168,7 @@ button:hover {
     justify-content: center;
     align-items: center;
     margin: 0.5rem 0;
-    /*padding: 0.5rem;*/
     background-color: transparent;
-    /*border: 2px solid var(--color-text-primary);*/
     color: var(--color-text-primary);
     width: 100%;
     overflow: hidden;
@@ -230,13 +186,21 @@ button:hover {
 }
 
 .hidden2 {
-    display: none !important;
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.show {
+    display: flex;
+    transform: scale(1);
+    opacity: 1;
 }
 
 .user-configuration {
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease-in-out;
+    width: 100%;
 }
 
 table, th, td {
@@ -264,9 +228,13 @@ table, th, td {
 }
 
 .help {
+    transition: opacity 0.3s ease, transform 0.3s ease;
     background: var(--color-background);
+    transform: scale(0.98);
     pointer-events: all;
     box-shadow: 0 0 5px black;
+    display: none;
+    border-radius: 8px;
 }
 
 .help td {
@@ -281,9 +249,9 @@ table, th, td {
 
 .app-configuration {
     box-shadow: 0 0 5px black;
-    display: flex;
+    transform: scale(0.98);
     flex-direction: column;
-    transition: all 0.3s ease-in-out;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     border: 2px solid rgba(255, 255, 255, 0.15);
     padding: 0.5rem;
     background: var(--color-background);
@@ -291,11 +259,53 @@ table, th, td {
     border-radius: 12px;
 }
 
+.app-configuration.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.app-configuration.hidden2 {
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.config-export.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.config-export.hidden2 {
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.help.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.help.hidden2 {
+    transform: scale(0.98);
+    opacity: 0;
+}
+
+.hidden-display {
+    display: none;
+}
+
+.flex-display {
+    display: flex;
+}
+
+.block-display {
+    display: block;
+}
+
 .config-export {
     box-shadow: 0 0 5px black;
-    display: flex;
+    transform: scale(0.98);
     flex-direction: column;
-    transition: all 0.3s ease-in-out;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     border: 2px solid rgba(255, 255, 255, 0.15);
     padding: 0.5rem;
     background: var(--color-background);
@@ -311,16 +321,20 @@ table, th, td {
     position: absolute;
     bottom: 0;
     left: 0;
+    z-index: 1;
+}
+
+.version-normal {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
 }
 
 .update-available a {
     font-size: 1rem;
     color: var(--color-accent);
 }
-
-/*.game-item:hover {
-    border: 2px solid var(--color-accent);
-}*/
 
 a {
     text-decoration: none;
@@ -334,7 +348,6 @@ a {
 .game-item a {
     text-decoration: none;
     cursor: pointer;
-    /*color: var(--color-text-primary);*/
     font-size: 1.5rem;
     font-weight: 700;
     margin-left: 0.5rem;
@@ -352,7 +365,6 @@ a {
 }
 
 .game-title-bar .game-button:hover {
-    /*border: none;*/
     transform: scale(1.03);
 	background: rgba(40, 40, 60, 0.95);
 	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
@@ -396,7 +408,6 @@ a {
 
 .configure-game {
     aspect-ratio: 1;
-    /*opacity: 0.3;*/
     border: none;
     color: var(--color-text-primary);
     font-size: 1rem;
@@ -421,18 +432,120 @@ a {
     display: flex;
     align-items: center;
     justify-content: space-around;
-}
-
-#particles {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
-	z-index: 1;
+    gap: 0.5rem;
 }
 
 .user-configuration .input-large {
     width: 405px;
+}
+
+.background-image-field,
+.cache-path-field {
+    display: flex;
+    width: 100%;
+}
+
+.background-image-field input[type="text"],
+.cache-path-field input[type="text"] {
+    flex: 1 1 auto;
+    width: 100%;
+    padding: 0.5rem;
+}
+
+.field-large {
+    display: flex;
+    width: 100%;
+}
+
+.user-configuration .input-large {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0.5rem 2rem;
+}
+
+select#theme-selector {
+    font-family: 'Cinzel', serif;
+    background: rgba(0, 0, 0, 0.3);
+    color: #e8ddc5;
+    border: 1px solid #88c0a9;
+    padding: 0.25rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+}
+
+select#theme-selector option {
+	background-color: #121c24;
+	color: #e8ddc5;
+	padding: 0.5rem;
+	line-height: 1.8;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    user-select: none;
+  }
+  
+  .checkbox-wrapper input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    right: 7.5px;
+    height: 26px;
+    width: 26px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  
+  .checkbox-wrapper .custom-checkbox {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    width: 26px;
+    background-color: #111;
+    border: 2px solid var(--accent-color, #aaa);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    z-index: 0;
+  }
+
+  .checkbox-wrapper .custom-checkbox:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--accent-color);
+  }
+  
+  .checkbox-wrapper input[type="checkbox"]:checked ~ .custom-checkbox {
+    background-color: var(--accent-color, #65c3ba);
+    border-color: var(--accent-color, #65c3ba);
+  }
+  
+  .checkbox-wrapper .custom-checkbox::after {
+    content: "";
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    display: none;
+  }
+  
+  .checkbox-wrapper input[type="checkbox"]:checked ~ .custom-checkbox::after {
+    display: block;
+  }
+  
+  #notification-area {
+    position: fixed;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }

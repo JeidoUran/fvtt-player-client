@@ -1,10 +1,9 @@
 // noinspection JSIgnoredPromiseFromCall
 
-import './style.css';
 import './particles';
 
 let appVersion: string;
-
+let preventMenuClose = false;
 
 function compareSemver(a: string, b: string): number {
     const splitA = a.split(".");
@@ -29,13 +28,24 @@ async function updateGameList(task: (appConfig: AppConfig) => void) {
     window.api.saveAppConfig(appConfig);
 }
 
+function showNotification(message: string) {
+    const notificationArea = document.getElementById("notification-area");
+    if (!notificationArea) return;
+  
+    notificationArea.textContent = message;
+    notificationArea.style.opacity = "1";
+  
+    setTimeout(() => {
+      notificationArea.style.opacity = "0";
+    }, 3000);
+}
 
 document.querySelector("#add-game").addEventListener("click", async () => {
     const gameUrlField = document.querySelector("#game-url") as HTMLInputElement;
     const gameNameField = document.querySelector("#game-name") as HTMLInputElement;
     const gameUrl = gameUrlField.value;
     const gameName = gameNameField.value;
-    if (!gameUrl || !gameName) return alert("Please enter a game name and url");
+    if (!gameUrl || !gameName) return alert("Please enter a game name and URL");
     const newGameItem = {name: gameName, url: gameUrl, id: Math.round(Math.random() * 1000000)} as GameConfig;
     await updateGameList((appConfig) => {
         appConfig.games = appConfig?.games ?? [];
@@ -44,6 +54,14 @@ document.querySelector("#add-game").addEventListener("click", async () => {
     gameUrlField.value = "";
     gameNameField.value = "";
     await createGameItem(newGameItem);
+    showNotification("Game added");
+});
+
+document.querySelector("#copy-button").addEventListener("click", async () => {
+    const config = await window.api.localAppConfig();
+    const text = JSON.stringify(config, null, 4);
+    navigator.clipboard.writeText(text);
+    showNotification("Text copied");
 });
 
 
@@ -54,7 +72,33 @@ const gameItemTemplate = document.querySelector("template").content.querySelecto
 document.querySelector("#save-app-config").addEventListener("click", (e) => {
     if (!(e.target instanceof Element))
         return;
-    e.target.closest(".app-configuration").classList.add("hidden2");
+    
+    const appConfigMenu = document.querySelector(".app-configuration") as HTMLDivElement;
+    
+    if (appConfigMenu && !preventMenuClose) {
+        appConfigMenu.classList.add('hidden2');
+
+        const computedStyle = window.getComputedStyle(appConfigMenu);
+        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+
+        if (transitionDuration > 0) {
+            appConfigMenu.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'opacity') {
+                    appConfigMenu.classList.remove('show');
+                    appConfigMenu.classList.remove('flex-display');
+                    appConfigMenu.classList.add('hidden-display');
+                    appConfigMenu.removeEventListener('transitionend', handler);
+                }
+            });
+        } else {
+            appConfigMenu.classList.remove('show');
+            appConfigMenu.classList.remove('flex-display');
+            appConfigMenu.classList.add('hidden-display');
+        }
+    }
+
+    preventMenuClose = false;
+
     const closeUserConfig = e.target.closest(".app-configuration") as HTMLDivElement;
     const background = (closeUserConfig.querySelector("#background-image") as HTMLInputElement).value;
     const accentColor = (closeUserConfig.querySelector("#accent-color") as HTMLInputElement).value;
@@ -75,12 +119,130 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
     console.log(config);
     window.api.saveAppConfig(config);
     applyAppConfig(config);
+    showNotification("Changes saved");
 });
+
+const cancelButton = document.querySelector("#cancel-app-config") as HTMLButtonElement;
+
+if (cancelButton) {
+    cancelButton.addEventListener("click", async () => {
+        const appConfig = await window.api.localAppConfig();
+        applyAppConfig(appConfig);
+        showNotification("Changes canceled");
+    
+        const appConfigMenu = document.querySelector(".app-configuration") as HTMLDivElement;
+        if (appConfigMenu) {
+            appConfigMenu.classList.add('hidden2');
+
+            const computedStyle = window.getComputedStyle(appConfigMenu);
+            const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+    
+            if (transitionDuration > 0) {
+                appConfigMenu.addEventListener('transitionend', function handler(e) {
+                    if (e.propertyName === 'opacity') {
+                        appConfigMenu.classList.remove('show');
+                        appConfigMenu.classList.remove('flex-display');
+                        appConfigMenu.classList.add('hidden-display');
+                        appConfigMenu.removeEventListener('transitionend', handler);
+                    }
+                });
+            } else {
+                appConfigMenu.classList.remove('show');
+                appConfigMenu.classList.remove('flex-display');
+                appConfigMenu.classList.add('hidden-display');
+            }
+        }
+    });
+}
 
 document.querySelector("#clear-cache").addEventListener("click", () => {
     window.api.clearCache();
+    showNotification("Cache cleared");
 });
 
+document.addEventListener("DOMContentLoaded", async () => {
+    const themeStylesheet = document.getElementById("theme-stylesheet") as HTMLLinkElement;
+    const themeSelector = document.getElementById("theme-selector") as HTMLSelectElement;
+  
+    if (!themeStylesheet || !themeSelector) {
+      console.error("Theme selector or stylesheet not found.");
+      return;
+    }
+  
+    const appConfig: AppConfig = await window.api.localAppConfig();
+  
+    const selectedTheme = appConfig.theme ?? "codex";
+    themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
+    themeSelector.value = selectedTheme;
+  
+    themeSelector.addEventListener("change", async () => {
+      const newTheme = themeSelector.value;
+      themeStylesheet.setAttribute("href", `styles/${newTheme}.css`);
+      const appConfigMenu = document.querySelector('.app-configuration') as HTMLDivElement;
+        if (appConfigMenu) {
+            appConfigMenu.classList.add('flex-display');
+            appConfigMenu.classList.remove('hidden2');
+            appConfigMenu.classList.remove('hidden-display');
+            appConfigMenu.classList.add('show');
+        }
+
+      appConfig.theme = newTheme;
+      preventMenuClose = true;
+      await window.api.saveAppConfig(appConfig);
+      showNotification("Theme changed");
+      preventMenuClose = false;
+    });
+
+    const resetAppearanceButton = document.getElementById("reset-appearance") as HTMLButtonElement;
+    const resetAllButton = document.getElementById("reset-all") as HTMLButtonElement;
+
+    if (resetAppearanceButton) {
+    resetAppearanceButton.addEventListener("click", async () => {
+        const confirmed = window.confirm("Are you sure you want to reset the appearance settings? This will erase your custom colors and backgrounds.");
+        if (!confirmed) return;
+
+        appConfig.background = "";
+        appConfig.backgrounds = [];
+        appConfig.backgroundColor = "#0e1a23ff";
+        appConfig.textColor = "#88c0a9ff";
+        appConfig.accentColor = "#98e4f7ff";
+
+        document.body.style.backgroundColor = "";
+        applyAppConfig(appConfig);
+
+        await window.api.saveAppConfig(appConfig);
+        showNotification("Appearance settings reset");
+    });
+    }
+
+    if (resetAllButton) {
+    resetAllButton.addEventListener("click", async () => {
+        const confirmed = window.confirm("Are you sure you want to reset all settings? This will erase your background, custom CSS, and revert your theme to Codex (games are not affected).");
+        if (!confirmed) return;
+
+        appConfig.background = "";
+        appConfig.backgrounds = [];
+        appConfig.backgroundColor = "#0e1a23ff";
+        appConfig.textColor = "#88c0a9ff";
+        appConfig.accentColor = "#98e4f7ff";
+        appConfig.cachePath = undefined;
+        appConfig.autoCacheClear = undefined;
+        appConfig.customCSS = undefined;
+        appConfig.ignoreCertificateErrors = undefined;
+        appConfig.theme = "codex";
+
+        themeStylesheet.setAttribute("href", "styles/codex.css");
+        themeSelector.value = "codex";
+        document.body.style.backgroundColor = "";
+        applyAppConfig(appConfig);
+
+        await window.api.saveAppConfig(appConfig);
+        showNotification("All settings reset");
+    });
+  }
+
+});
+  
 async function createGameItem(game: GameConfig) {
     const li = document.importNode(gameItemTemplate, true);
     const loginData = await window.api.userData(game.id ?? game.name) as GameUserDataDecrypted;
@@ -123,7 +285,7 @@ async function createGameItem(game: GameConfig) {
     
         game.name = newGameName;
         game.url = newGameUrl;
-    
+
         (li.querySelector("a") as HTMLAnchorElement).innerText = newGameName;
     
         await updateGameList((appConfig) => {
@@ -139,9 +301,9 @@ async function createGameItem(game: GameConfig) {
 }
 
 function applyAppConfig(config: AppConfig) {
-    (document.querySelector("#accent-color") as HTMLInputElement).value = "#f77f00";
-    (document.querySelector("#background-color") as HTMLInputElement).value = "#003049";
-    (document.querySelector("#text-color") as HTMLInputElement).value = "#eae2b7";
+    (document.querySelector("#accent-color") as HTMLInputElement).value = "#98e4f7";
+    (document.querySelector("#background-color") as HTMLInputElement).value = "#0e1a23";
+    (document.querySelector("#text-color") as HTMLInputElement).value = "#88c0a9";
     if (config.background) {
         document.body.style.backgroundImage = `url(${config.background})`;
         (document.querySelector("#background-image") as HTMLInputElement).value = config.background;
@@ -210,12 +372,30 @@ async function createGameList() {
     addStyle(config.customCSS ?? "");
 
     appVersion = await window.api.appVersion();
-    document.querySelector("#current-version").textContent = appVersion;
+    document.querySelectorAll(".current-version").forEach(el => {
+        el.textContent = appVersion;
+    });
 
-    const latestVersion: string = (await (await fetch("https://api.github.com/repos/OmegaRogue/fvtt-player-client/releases/latest", {mode: "cors"})).json())["tag_name"];
+    let latestVersion: string = "Unknown";
+
+    try {
+        const response = await fetch("https://api.github.com/repos/JeidoUran/fvtt-player-client/releases/latest", { mode: "cors" });
+        if (response.ok) {
+            const data = await response.json();
+            latestVersion = data["tag_name"];
+        } else {
+            showNotification("Failed to fetch latest version number");
+            console.warn("[FVTT Client] GitHub release fetch failed:", response.status);
+        }
+    } catch (e) {
+        console.error("[FVTT Client] Failed to fetch latest version:", e);
+    }
     document.querySelector("#latest-version").textContent = latestVersion;
     if (compareSemver(appVersion, latestVersion) < 0) {
+        showNotification("An update is available !")
         document.querySelector(".update-available").classList.remove("hidden2");
+        document.querySelector(".version-normal").classList.add("hidden2");
+
     }
 
     applyAppConfig(config);

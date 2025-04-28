@@ -1,18 +1,10 @@
 // Particles.ts
 
-interface Particle {
-    x: number;
-    y: number;
-    size: number;
-    speedX: number;
-    speedY: number;
-}
-
 const canvas = document.getElementById('particles') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 let w: number, h: number, particles: {
-    x: number; y: number; radius: number; speedY: number; offset: number; // décalage unique par bulle
-    amp: number; // amplitude du mouvement horizontal
+    x: number; y: number; radius: number; speedY: number; offset: number;
+    amp: number;
 }[] = [];
 let time = 0;
 
@@ -29,21 +21,20 @@ for (let i = 0; i < 100; i++) {
         y: Math.random() * h,
         radius: Math.random() * 2 + 1,
         speedY: Math.random() * 0.3 + 0.1,
-        offset: Math.random() * 1000,        // décalage unique par bulle
-        amp: Math.random() * 10 + 5          // amplitude du mouvement horizontal
+        offset: Math.random() * 1000,
+        amp: Math.random() * 10 + 5
     });
 }
 
 function animate(): void {
     ctx.clearRect(0, 0, w, h);
-    time += 0.01; // petite incrémentation continue
+    time += 0.01;
 
     ctx.fillStyle = 'rgba(99, 176, 196, 0.15)';
 
     particles.forEach(p => {
         p.y -= p.speedY;
 
-        // Oscillation horizontale
         let xOffset = Math.sin(time + p.offset) * p.amp;
         let x = p.x + xOffset;
 

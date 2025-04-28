@@ -114,6 +114,46 @@ function createWindow(): BrowserWindow {
             event.preventDefault();
         }
     });
+    
+    // Inject Server button on /game page
+    window.webContents.on("did-start-navigation", (e) => {
+        if (e.isSameDocument) return;
+        if (e.url.startsWith("about")) return;
+    
+        if (e.url.endsWith("/game")) {
+            console.log("[FVTT Client] Navigation detected: /game");
+    
+            window.webContents.executeJavaScript(`
+                console.log("[FVTT Client] Injecting script for /game...");
+    
+                async function waitForFoundryReady() {
+                    const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+                    while (typeof Hooks === "undefined" || typeof ui === "undefined") {
+                        console.log("[FVTT Client] Waiting for Foundry...");
+                        await wait(100);
+                    }
+    
+                    console.log("[FVTT Client] Foundry ready, setting up Return button.");
+    
+                        Hooks.on('renderSettings', (settings, html) => {
+                            if (html.find('#server-button').length > 0) return;
+    
+                            const serverSelectButton = $(\`
+                                <button id="server-button" data-action="home">
+                                    <i class="fas fa-server"></i> Return to Server Select
+                                </button>
+                            \`);
+                            serverSelectButton.on('click', () => window.api.returnToServerSelect());
+                            html.find('#settings-access').append(serverSelectButton);
+                        });
+                }
+    
+                waitForFoundryReady();
+            `);
+        }
+    });
+    
+    
     window.webContents.on("did-finish-load", () => {
         const url = window.webContents.getURL();
         if (!url.endsWith("/join") && !url.endsWith("/auth") && !url.endsWith("/setup"))
@@ -151,6 +191,7 @@ function createWindow(): BrowserWindow {
                 }
             `);
         }
+
         if (!url.endsWith("/join") && !url.endsWith("/auth"))
             return;
         const userData = getLoginDetails(windowsData[window.webContents.id].gameId);
@@ -194,22 +235,6 @@ function createWindow(): BrowserWindow {
 
         `);
         windowsData[window.webContents.id].autoLogin = false;
-
-        window.webContents.on("did-start-navigation", async (e) => {
-            if (e.isSameDocument) return;
-            if (e.url.startsWith("about")) return;
-            if (e.url.endsWith("/game")) {
-                window.webContents.executeJavaScript(`
-                    // Add back button
-                    Hooks.on('renderSettings', function (settings, html) {
-                        if (html.find('#server-button').length > 0) return;
-                        const serverSelectButton = $(\`<button id="server-button" data-action="home"><i class="fas fa-server"></i>Return to Server Select</button>\`);
-                        serverSelectButton.on('click', () => window.api.returnToServerSelect());
-                        html.find('#settings-access').append(serverSelectButton);
-                    });
-                `);
-            }
-        })
 
     });
 
