@@ -4,6 +4,7 @@ on:
   release:
     types:
       - created
+      - published
 env:
   node_version: 18
 jobs:
