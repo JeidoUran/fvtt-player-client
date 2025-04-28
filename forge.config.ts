@@ -10,17 +10,15 @@ import {VitePlugin} from '@electron-forge/plugin-vite';
 
 const config: ForgeConfig = {
     packagerConfig: {
-        asar: true,
-        prune: true, // enlève les devDependencies dans le package final
+        prune: true,
         ignore: [
-            /^\/src/,               // ignore le code source
-            /^\/out/,               // si jamais il existe
-            /^\/\.vscode/,          // ignore les fichiers d'éditeur
-            /^\/\.git/,             // ignore Git
-            /^\/forge\.config\.ts/, // ignore ce fichier lui-même
-            /^\/tsconfig\.json/,    // ignore config TypeScript
-            /^\/vite\..*\.ts/       // ignore les configs Vite
-            // ⚡ NE PAS exclure node_modules/electron-squirrel-startup !
+            /^\/src/,
+            /^\/out/,
+            /^\/\.vscode/,
+            /^\/\.git/,
+            /^\/forge\.config\.ts/,
+            /^\/tsconfig\.json/,
+            /^\/vite\..*\.ts/
         ],
     },
     rebuildConfig: {},
