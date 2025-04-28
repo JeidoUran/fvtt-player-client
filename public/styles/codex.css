@@ -133,7 +133,7 @@ button:not(.game-button) {
     transition: all 0.3s ease;
 }
 
-button:not(.game-button):hover {
+button:not(.game-button):not(.configure-game):hover {
     background: rgba(40, 40, 60, 0.95);
     box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
     text-shadow: 0 0 4px var(--color-accent);
@@ -370,31 +370,82 @@ a {
 }
 
 .game-title-bar {
-    align-items: center;
+    align-items: stretch;
     display: flex;
     width: 100%;
 }
 
 .game-title-bar .configure-game {
-    aspect-ratio: 1;
+    height: 100%;
+    width: 100%;
     border: none;
     color: var(--color-text-primary);
     font-size: 1rem;
     font-weight: 700;
-    padding: 0.2rem;
-    margin: 2rem 0.5rem 2rem 1rem;
+    padding: 0;
+    margin: 0 1rem 0 1rem;
     transition: all 0.3s ease-in-out;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
 }
 
-.game-title-bar .configure-game:hover {
-    transform: scale(1.15);
-    border: none;
-    background: none;
-	box-shadow: none;
+.game-title-bar .config-button-wrapper {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease-in-out;
+}
+
+.game-title-bar .config-button-wrapper:hover {
+	background: rgba(40, 40, 60, 0.95);
+	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
 	text-shadow: 0 0 4px var(--color-accent);
 	text-decoration: none;
 	cursor: pointer;
+}
+
+.game-title-bar .config-main-button {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+}
+
+.game-title-bar .config-main-button::before,
+.game-title-bar .config-main-button::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--color-accent), transparent);
+    transform: scaleY(0);
+    transform-origin: center center;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/*.game-title-bar .config-main-button::before {
+    left: 0;
+}*/
+
+.game-title-bar .config-main-button::after {
+    left: auto;
+    right: 0;
+}
+
+.game-title-bar .config-main-button:hover::before,
+.game-title-bar .config-main-button:hover::after {
+    transform: scaleY(1);
+}
+
+.game-title-bar .config-main-button:hover .configure-game {
+    transform: scale(1.25);
 }
 
 .button-group {
