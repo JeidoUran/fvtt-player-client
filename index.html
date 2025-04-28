@@ -124,8 +124,23 @@
         <template id="game-item-template">
             <li class="game-item">
                 <div class="game-title-bar">
+                    <div class="game-main-button">
                     <button class="game-button"><a>GameName</a></button>
-                    <button class="configure-game"><i class="fa-solid fa-gear"></i></button>
+                    <div class="server-infos">
+                        <div class="tooltip-wrapper"><span class="status"> </span>
+                        <div class="tooltip">Server Status</div></div>
+                        <div class="tooltip-wrapper"><span class="version"><i class="fa-solid fa-dice-d20"></i> </span>
+                        <div class="tooltip">Foundry Version</div></div>
+                        <div class="tooltip-wrapper"><span class="system"><i class="fa-solid fa-dice"></i> </span>
+                        <div class="tooltip">Game System</div></div>
+                        <div class="tooltip-wrapper"><span class="systemVersion"><i class="fa-solid fa-gear"></i> </span>
+                        <div class="tooltip">Game System Version</div></div>
+                        <div class="tooltip-wrapper"><span class="users"><i class="fa-solid fa-person"></i> </span>
+                        <div class="tooltip">Online Players</div></div>
+                    </div>
+                    </div>
+                    <div class="tooltip-wrapper"><button class="configure-game"><i class="fa-solid fa-gear"></i></button>
+                    <div class="tooltip">Game Settings</div></div>
                 </div>
                 <div class="user-configuration hidden">
                     <div class="game-name-field field-large">
@@ -173,6 +188,7 @@
         Chromium <span id="chrome-version"></span>,
         Electron <span id="electron-version"></span></div>
 </div>
+<div id="tooltip-layer"></div>
 <script src="/src/renderer.ts" type="module"></script>
 </body>
 </html>

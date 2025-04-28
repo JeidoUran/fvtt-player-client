@@ -76,7 +76,6 @@ body::after {
 
 input:not([type=color], [type=checkbox]) {
     background-color: transparent;
-    backdrop-filter: blur(5px);
     border: none;
     border-bottom: 1px solid var(--color-text-primary);
     color: var(--color-text-primary);
@@ -121,7 +120,7 @@ input:focus {
     border-bottom: 1px solid var(--color-accent);
 }
 
-button {
+button:not(.game-button) {
     text-decoration: none;
 	color: var(--color-text-primary);
 	overflow: hidden;
@@ -134,13 +133,32 @@ button {
     transition: all 0.3s ease;
 }
 
-button:hover {
+button:not(.game-button):hover {
     background: rgba(40, 40, 60, 0.95);
     box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
     text-shadow: 0 0 4px var(--color-accent);
     text-decoration: none;
     cursor: pointer;
     transform: scale(1.01);
+}
+
+.game-button {
+    background-color: transparent;
+    border: none;
+    padding: 0.7rem 1rem;
+    margin: 0;
+    cursor: pointer;
+    color: inherit; /* hérite bien la couleur */
+    text-shadow: inherit; /* hérite bien le text-shadow du parent */
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    flex-grow: 1;
+    text-align: left;
+}
+
+.game-button:hover {
+    background-color: transparent;
+    text-decoration: none;
 }
 
 .app-configuration button {
@@ -168,7 +186,6 @@ button:hover {
     justify-content: center;
     align-items: center;
     margin: 0.5rem 0;
-    background-color: transparent;
     color: var(--color-text-primary);
     width: 100%;
     overflow: hidden;
@@ -177,8 +194,8 @@ button:hover {
     text-shadow: 0 0 5px black;
     box-shadow: 0 0 5px black;
     border-radius: 8px;
-    background-color: rgba(20, 20, 30, 0.65);
     border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(20, 20, 30, 0.65);
 }
 
 .hidden {
@@ -342,7 +359,6 @@ a {
     color: var(--color-text-primary);
     font-size: 1.5rem;
     font-weight: 700;
-    transition: all 0.3s ease-in-out;
 }
 
 .game-item a {
@@ -351,74 +367,27 @@ a {
     font-size: 1.5rem;
     font-weight: 700;
     margin-left: 0.5rem;
-    transition: all 0.3s ease-in-out;
-}
-
-.game-button {
-    cursor: pointer;
-    flex-grow: 1;
-    text-align: left;
-    border: none;
-    padding: 0.5rem;
-    margin: 0;
-    padding: 0.7rem 1rem;
-}
-
-.game-title-bar .game-button:hover {
-    transform: scale(1.03);
-	background: rgba(40, 40, 60, 0.95);
-	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
-	text-shadow: 0 0 4px var(--color-accent);
-	text-decoration: none;
-	cursor: pointer;
-}
-
-.game-title-bar .game-button::before {
-    content: "";
-	position: absolute;
-	top: 0;
-	left: 50%;
-	width: 0;
-	height: 3px;
-	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-	transition: width 0.3s ease, left 0.3s ease;
-}
-
-.game-title-bar .game-button::after {
-    content: "";
-	position: absolute;
-	bottom: 0;
-	left: 50%;
-	width: 0;
-	height: 3px;
-	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-	transition: width 0.3s ease, left 0.3s ease;
-}
-
-.game-title-bar .game-button:hover::before,
-.game-title-bar .game-button:hover::after {
-	width: 100%;
-	left: 0;
 }
 
 .game-title-bar {
+    align-items: center;
     display: flex;
     width: 100%;
 }
 
-.configure-game {
+.game-title-bar .configure-game {
     aspect-ratio: 1;
     border: none;
     color: var(--color-text-primary);
     font-size: 1rem;
     font-weight: 700;
     padding: 0.2rem;
-    margin: 0 0.5rem 0 auto;
+    margin: 0 0.5rem 0 1rem;
     transition: all 0.3s ease-in-out;
     cursor: pointer;
 }
 
-.configure-game:hover {
+.game-title-bar .configure-game:hover {
     transform: scale(1.15);
     border: none;
     background: none;
@@ -594,4 +563,97 @@ select#theme-selector option {
 
 .confirm-button {
     padding: 0.75rem 2.25rem;
+}
+
+.server-infos {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    opacity: 0.8;
+    align-self: center;
+}
+
+.game-main-button {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    padding: 0.25rem 0;
+}
+
+.game-main-button:hover {
+    transform: scale(1.03);
+	background: rgba(40, 40, 60, 0.95);
+	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
+	text-shadow: 0 0 4px var(--color-accent);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.game-main-button::before {
+    content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 0;
+	height: 3px;
+	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+	transition: width 0.3s ease, left 0.3s ease;
+}
+
+.game-main-button::after {
+    content: "";
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	width: 0;
+	height: 3px;
+	background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+	transition: width 0.3s ease, left 0.3s ease;
+}
+
+.game-main-button:hover::before,
+.game-main-button:hover::after {
+	width: 100%;
+	left: 0;
+}
+
+.tooltip-wrapper {
+	position: relative;
+	display: inline-block;
+}
+  
+.tooltip-wrapper .tooltip {
+    display: none;
+}
+  
+.tooltip.active-tooltip {
+    position: fixed;
+    bottom: auto;
+    top: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 1.05rem;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 9999;
+    font-family: 'Sorts Mill Goudy', serif;
+}
+
+#tooltip-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
 }

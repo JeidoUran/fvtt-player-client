@@ -55,3 +55,13 @@ type WindowData = {
 type WindowsData = {
     [index: number]: WindowData;
 }
+
+interface ServerStatusData {
+    active: boolean;
+    version: string;
+    world: string;
+    system: string;
+    systemVersion: string;
+    users: number;
+    uptime: number;
+}
