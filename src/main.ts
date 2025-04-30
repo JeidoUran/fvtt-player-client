@@ -1,6 +1,7 @@
 // noinspection ES6MissingAwait,JSIgnoredPromiseFromCall
 
 import {app, BrowserWindow, ipcMain, safeStorage, session} from 'electron';
+import { nativeImage } from 'electron';
 import path from 'path';
 import fs from 'fs';
 
@@ -68,6 +69,22 @@ function createWindow(): BrowserWindow {
             session: localSession
         },
 
+    });
+
+    window.webContents.on('page-favicon-updated', (_event, favicons) => {
+        if (favicons.length > 0) {
+            const faviconUrl = favicons[0];
+    
+            fetch(faviconUrl)
+                .then(res => res.arrayBuffer())
+                .then(buf => {
+                    const icon = nativeImage.createFromBuffer(Buffer.from(buf));
+                    if (!icon.isEmpty()) {
+                        window.setIcon(icon);
+                    }
+                })
+                .catch(err => console.warn("[Favicon] Error fetching:", err));
+        }
     });
 
     // Fix Popouts
