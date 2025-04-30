@@ -90,7 +90,7 @@ input:not([type=color], [type=checkbox]) {
 
 label {
     background-color: transparent;
-    backdrop-filter: blur(5px);
+    /* backdrop-filter: blur(5px); */
     color: var(--color-text-primary);
     font-size: 1.5rem;
     font-weight: 700;
@@ -772,3 +772,36 @@ select#theme-selector option {
 .input-large.admin-password {
     margin-right: 0;
 }
+
+.user-configuration .checkbox-wrapper label {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0.5rem 2rem;
+    background-color: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 0.5rem;
+    transition: all 0.3s ease-in-out;
+    font-family: 'Sorts Mill Goudy', serif;
+}
+
+.user-configuration .checkbox-wrapper .custom-checkbox {
+    position: absolute;
+    right: 12.5px;
+    height: 26px;
+    width: 26px;
+    cursor: pointer;
+}
+
+.user-configuration .checkbox-wrapper input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    right: 12.5px;
+    height: 26px;
+    width: 26px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  
