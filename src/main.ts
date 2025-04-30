@@ -2,7 +2,9 @@
 
 import {app, BrowserWindow, ipcMain, safeStorage, session} from 'electron';
 import { nativeImage } from 'electron';
-import { enableRichPresenceForWindow } from './richPresenceControl';
+import { enableRichPresence } from './richPresenceControl';
+import { disableRichPresence } from './richPresenceControl';
+import { startRichPresenceSocket } from './richPresenceSocket';
 import path from 'path';
 import fs from 'fs';
 
@@ -274,7 +276,8 @@ app.whenReady().then(() => {
 });
 
 ipcMain.on("enable-discord-rpc", (event) => {
-    enableRichPresenceForWindow(event.sender.id);
+    startRichPresenceSocket();
+    enableRichPresence(event.sender.id);
 }); 
 
 ipcMain.on("open-game", (e, gId) => windowsData[e.sender.id].gameId = gId);
@@ -340,6 +343,7 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
 
 ipcMain.on("return-select", (e) => {
     windowsData[e.sender.id].autoLogin = true;
+    disableRichPresence();
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
         e.sender.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {

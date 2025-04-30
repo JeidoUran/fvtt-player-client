@@ -15,6 +15,7 @@ export default defineConfig({
     minify: 'esbuild',
     emptyOutDir: false,
     rollupOptions: {
+      external: ['ws'], // <-- dit à Vite de NE PAS inclure ws dans le bundle
       output: {
         compact: true
       }

@@ -14,6 +14,7 @@ export default defineConfig({
     emptyOutDir: false,
     cssCodeSplit: false,
     rollupOptions: {
+      external: ['ws'], // <-- dit à Vite de NE PAS inclure ws dans le bundle
       output: {
         compact: true,
         manualChunks: undefined
