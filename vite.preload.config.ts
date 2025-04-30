@@ -9,7 +9,7 @@ export default defineConfig({
     target: 'es2022',
     minify: 'esbuild',
     sourcemap: false,
-    emptyOutDir: false, // pour ne pas effacer ce que main a mis
+    emptyOutDir: false,
     rollupOptions: {
       output: {
         compact: true
@@ -17,7 +17,7 @@ export default defineConfig({
     }
   },
   esbuild: {
-    drop: ['console', 'debugger']
+    //drop: ['console', 'debugger']
   }
 });
 

@@ -46,7 +46,8 @@
   },
   "scripts": {
     "start": "electron-forge start",
-    "package": "electron-forge package",
+    "prepackage": "node scripts/prepackage.cjs",
+    "package": "yarn prepackage && electron-forge package",
     "make": "electron-forge make",
     "build": "electron-forge make",
     "make:linux": "electron-forge make --platform linux",
@@ -60,6 +61,7 @@
     "build-renderer": "vite build --config vite.renderer.config.ts"
   },
   "dependencies": {
+    "discord-rpc": "^4.0.1",
     "electron-squirrel-startup": "^1.0.1"
   }
 }

@@ -463,10 +463,17 @@ async function createGameItem(game: GameConfig) {
     (li.querySelector(".game-name-edit") as HTMLInputElement).value = game.name;
     (li.querySelector(".game-url-edit") as HTMLInputElement).value = game.url;
     li.querySelector("a").innerText = game.name;
-    li.querySelector(".game-button").addEventListener("click", () => {
+    li.querySelector(".game-button").addEventListener("click", async () => {
         window.api.openGame(game.id ?? game.name);
+      
+        if (game.discordRP) {
+            if (window.richPresence?.enable) {
+                window.richPresence.enable();
+              }
+        }
+      
         window.location.href = game.url;
-    });
+      });
     gameItemList.appendChild(li);
     await updateServerInfos(li, game);
     renderTooltips()

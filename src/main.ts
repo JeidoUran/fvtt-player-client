@@ -2,6 +2,7 @@
 
 import {app, BrowserWindow, ipcMain, safeStorage, session} from 'electron';
 import { nativeImage } from 'electron';
+import { enableRichPresenceForWindow } from './richPresenceControl';
 import path from 'path';
 import fs from 'fs';
 
@@ -268,7 +269,14 @@ function createWindow(): BrowserWindow {
     return window;
 }
 
-app.whenReady().then(() => createWindow());
+app.whenReady().then(() => {
+    createWindow();
+});
+
+ipcMain.on("enable-discord-rpc", (event) => {
+    enableRichPresenceForWindow(event.sender.id);
+}); 
+
 ipcMain.on("open-game", (e, gId) => windowsData[e.sender.id].gameId = gId);
 ipcMain.on("clear-cache", async (event) => event.sender.session.clearCache());
 

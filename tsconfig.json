@@ -13,5 +13,5 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src"]
+  "include": ["src", "native/discord-rpc.d.ts"]
 }
