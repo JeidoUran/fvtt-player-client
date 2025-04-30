@@ -11,6 +11,7 @@ type GameConfig = {
     url: string;
     id?: GameId;
     cssId?: string;
+    discordRP?: boolean;
 }
 
 type AppConfig = {
@@ -45,7 +46,7 @@ type GameUserDataDecrypted = {
     adminPassword?: string;
 }
 
-type SaveUserData = { gameId: GameId; password: string; user: string; adminPassword: string };
+type SaveUserData = { gameId: GameId; password: string; user: string; adminPassword: string; };
 
 type WindowData = {
     gameId: GameId;

@@ -452,6 +452,7 @@ function safePrompt(message: string, options?: { mode?: 'confirm' | 'alert' }): 
 async function createGameItem(game: GameConfig) {
     const li = document.importNode(gameItemTemplate, true);
     const loginData = await window.api.userData(game.id ?? game.name) as GameUserDataDecrypted;
+    let discordRP = !!game.discordRP;
 
     li.id = game.cssId;
     li.setAttribute("data-game-id", String(game.id ?? game.name));
@@ -470,6 +471,14 @@ async function createGameItem(game: GameConfig) {
     await updateServerInfos(li, game);
     renderTooltips()
     const userConfiguration = li.querySelector("div.user-configuration") as HTMLDivElement;
+    const discordRPCheckbox = userConfiguration.querySelector(".discord-rp-toggle") as HTMLInputElement;
+    discordRPCheckbox.checked = discordRP;
+
+    discordRPCheckbox.addEventListener("change", () => {
+        discordRP = discordRPCheckbox.checked;
+        game.discordRP = discordRP;
+    });
+
     userConfiguration.querySelector(".delete-game")?.addEventListener("click", async () => {
         const confirmed = await safePrompt("Are you sure you want to delete this game?");
         if (!confirmed) return;
@@ -491,7 +500,7 @@ async function createGameItem(game: GameConfig) {
         const adminPassword = (closeUserConfig.querySelector(".admin-password") as HTMLInputElement).value;
         const newGameName = (closeUserConfig.querySelector(".game-name-edit") as HTMLInputElement).value;
         const newGameUrl = (closeUserConfig.querySelector(".game-url-edit") as HTMLInputElement).value;
-    
+
         console.log({gameId, user, password, adminPassword, newGameName, newGameUrl});
     
         game.name = newGameName;
@@ -504,6 +513,7 @@ async function createGameItem(game: GameConfig) {
             if (gameToUpdate) {
                 gameToUpdate.name = newGameName;
                 gameToUpdate.url = newGameUrl;
+                gameToUpdate.discordRP = discordRP;
             }
         });
     
