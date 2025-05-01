@@ -11,7 +11,7 @@ export default defineConfig({
     sourcemap: false,
     emptyOutDir: false,
     rollupOptions: {
-      external: ['ws'], // <-- dit à Vite de NE PAS inclure ws dans le bundle
+      external: ['ws'],
       output: {
         compact: true
       }
