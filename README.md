@@ -45,3 +45,7 @@ JSON.stringify({
     games: JSON.parse(window.localStorage.getItem("gameList") || "[]")
 })
 ```
+
+## Attribution
+
+RichPresence icons designed by Freepik.
