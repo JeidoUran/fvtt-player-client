@@ -788,7 +788,6 @@ select#theme-selector option {
 }
 
 .user-configuration .checkbox-wrapper .custom-checkbox {
-    position: absolute;
     right: 12.5px;
     height: 26px;
     width: 26px;
