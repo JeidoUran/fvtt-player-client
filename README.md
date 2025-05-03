@@ -10,7 +10,8 @@ wiki https://wiki.theripper93.com/free/vtt-desktop-client
 | Back to server select button in login screen |                                ✔️                                |                               ✔️                              |    ✔️    |
 | Back to server select button in game         |                                ❌                                |                               ✔️                              |    ✔️    |
 | Foundry v13 Compatibility                    |                                ❌                                |                               ❌                              |    ✔️    |
-| Server status in game buttons                |                                ❌                                |                               ❌                              |    ✔️    |
+| Discord RichPresence                         |                                ❌                                |                               ❌                              |    ✔️    |
+| Server status on game buttons                |                                ❌                                |                               ❌                              |    ✔️    |
 | Theme switcher                               |                                ❌                                |                               ❌                              |    ✔️    |
 
 ## Customization
