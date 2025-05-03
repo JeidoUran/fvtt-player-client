@@ -18,9 +18,17 @@ export function startRichPresenceSocket() {
         updateActivity({
           actorName: data.actorName ?? null,
           hp: data.hp ?? null,
-          scene: data.scene ?? "Inconnu",
-          inCombat: data.inCombat ?? false
-        });
+          scene: data.scene ?? "Unknown",
+          inCombat: data.inCombat ?? false,
+          onlineUsers: data.onlineUsers,
+          totalUsers: data.totalUsers,
+          isGM: data.isGM,
+          worldName: data.worldName,
+          className: data.className,
+          classLevel: data.classLevel,
+          worldId: data.worldId,
+          sceneId: data.sceneId
+        });        
       } catch (err) {
         console.warn('[WS] Erreur traitement message RichPresence :', err);
       }

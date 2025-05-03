@@ -21,16 +21,14 @@ export async function enableRichPresence(windowId: number) {
 
   if (!rpcInitialized) {
     try {
-      await rpc.login(); // 👈 simple appel, pas besoin de passer clientId ici
+      await rpc.login();
       console.log('✅ Discord RPC connecté.');
   
       rpc.user?.setActivity({
-        details: 'Level ? Imperial',
-        state: 'In Armoroad',
+        details: 'Browsing Game Worlds',
+        state: 'In Setup Page',
         largeImageKey: 'logo_fvtt_rp',
         largeImageText: 'Foundry VTT Client',
-        partySize: 1,
-        partyMax: 99,
         startTimestamp: new Date(),
         instance: false
       });
@@ -47,21 +45,38 @@ export async function updateActivity(data: {
   hp?: { value: number; max: number };
   scene: string;
   inCombat: boolean;
+  onlineUsers: number;
+  totalUsers: number;
+  isGM: boolean;
+  worldName: string;
+  className: string;
+  classLevel: number;
+  worldId: string;
+  sceneId: string;
 }) {
   if (!rpcInitialized || !rpc || !rpc.user) return;
 
   if (!rpcStartTime) rpcStartTime = new Date();
 
   rpc.user.setActivity({
-    details: data.actorName
-      ? `${data.actorName} ${data.hp ? `(${data.hp.value}/${data.hp.max})` : ""}`
-      : "Spectateur",
-    state: data.scene,
+    details: data.isGM
+      ? "Game Master" : `${data.actorName ? `${data.actorName}` : "Spectator"} ${data.hp ? ` - HP ${data.hp.value}/${data.hp.max}` : ""}`,
+      state: data.inCombat
+        ? `In Battle`
+        : `Exploring`,    
     largeImageKey: 'logo_fvtt_rp',
-    largeImageText: 'Foundry VTT Client',
-    smallImageKey: data.inCombat ? 'crossed_swords' : 'shield',
-    smallImageText: data.inCombat ? 'En combat' : 'Exploration',
+    largeImageText: data.worldName,
+    partyId: data.worldId ?? data.sceneId ?? "unknown-session",
+    partySize: data.onlineUsers,
+    partyMax: data.totalUsers,
+    smallImageKey: data.inCombat ? 'in_battle' : 'exploring',
+    smallImageText: data.isGM
+    ? "Game Master - Level ??"
+    : data.className
+      ? `${data.className}${data.classLevel ? ` - Level ${data.classLevel}` : ""}`
+      : "Spectator",
     startTimestamp: rpcStartTime,
+    instance: true
   });
 }
 
