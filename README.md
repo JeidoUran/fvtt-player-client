@@ -49,4 +49,4 @@ JSON.stringify({
 
 ## Attribution
 
-RichPresence icons designed by Freepik.
+Client and RichPresence icons designed by Freepik.
