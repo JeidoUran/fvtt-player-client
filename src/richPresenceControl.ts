@@ -16,10 +16,10 @@ export async function enableRichPresence(windowId: number) {
   if (!rpcInitialized) {
     try {
       await rpc.login();
-      console.log('✅ Discord RPC connecté.');
+      console.log('✅ Discord RPC connected.');
       rpcInitialized = true;
     } catch (err) {
-      console.warn('[RPC] Échec de connexion Discord :', err);
+      console.warn('[RPC] Could not connect to Discord :', err);
     }
   }
 }
@@ -75,9 +75,9 @@ export async function disableRichPresence() {
       try {
         rpc.user?.setActivity(undefined);
         await rpc.destroy();
-        console.log(`[RPC] Rich Presence désactivé`);
+        console.log(`[RPC] Rich Presence disabled`);
       } catch (err) {
-        console.warn(`[RPC] Échec désactivation RPC :`, err);
+        console.warn(`[RPC] Could not disable RPC :`, err);
       } finally {
         rpcStartTime = null;
         rpc = null;
