@@ -3,7 +3,7 @@
   "packageManager": "yarn@1.22.22",
   "version": "1.8.0",
   "license": "MIT",
-  "description": "VTT Desktop Client",
+  "description": "FVTT Desktop Client",
   "main": ".vite/build/main.js",
   "author": "theripper93",
   "contributors": [
