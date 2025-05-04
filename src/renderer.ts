@@ -465,7 +465,7 @@ async function createGameItem(game: GameConfig) {
     (li.querySelector(".game-name-edit") as HTMLInputElement).value = game.name;
     (li.querySelector(".game-url-edit") as HTMLInputElement).value = game.url;
     li.querySelector("a").innerText = game.name;
-    li.querySelector(".game-button").addEventListener("click", async () => {
+    li.querySelector(".game-main-button").addEventListener("click", async () => {
         window.api.openGame(game.id ?? game.name);
         const appConfig: AppConfig = await window.api.localAppConfig();
         if (appConfig.discordRP) {
