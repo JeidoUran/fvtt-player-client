@@ -35,7 +35,6 @@ export function startRichPresenceSocket() {
       updateActivity({
         actorName:   data.actorName   ?? null,
         hp:          data.hp          ?? null,
-        scene:       data.scene       ?? 'Unknown',
         inCombat:    data.inCombat    ?? false,
         onlineUsers: data.onlineUsers ?? 0,
         totalUsers:  data.totalUsers  ?? 0,

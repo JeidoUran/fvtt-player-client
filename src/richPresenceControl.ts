@@ -28,7 +28,6 @@ export async function enableRichPresence(windowId: number) {
 export async function updateActivity(data: {
   actorName: string;
   hp?: { value: number; max: number };
-  scene: string;
   inCombat: boolean;
   onlineUsers: number;
   totalUsers: number;
