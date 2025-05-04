@@ -629,3 +629,14 @@ select#theme-selector {
     width: 100%;
     margin: 0.5rem 2rem;
 }
+
+.download-link,
+.download-link a {
+  font-size: 1rem;
+}
+
+.download-link a {
+  color: #3ae7e7;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}

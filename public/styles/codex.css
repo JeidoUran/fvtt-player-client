@@ -803,3 +803,20 @@ select#theme-selector option {
     z-index: 1;
   }
   
+  .download-link,
+  .download-link a {
+    font-size: 1rem;
+    font-family: 'Sorts Mill Goudy', serif;
+  }
+
+  .download-link a {
+    color: #3ae7e7;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .download-link a:hover {
+    text-shadow: 0 0 4px #98e4f7;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
