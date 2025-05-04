@@ -1,6 +1,7 @@
 // src/main/richPresenceSocket.ts
+
 import WebSocket, { WebSocketServer } from 'ws';
-import { updateActivity } from './richPresenceControl';
+import { disableRichPresence, updateActivity } from './richPresenceControl';
 
 export function startRichPresenceSocket() {
     if (process.type !== 'browser') {
@@ -36,6 +37,7 @@ export function startRichPresenceSocket() {
 
     ws.on('close', () => {
       console.log('[WS] Déconnexion du module Foundry');
+      disableRichPresence();
     });
   });
 }
