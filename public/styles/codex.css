@@ -805,8 +805,13 @@ select#theme-selector option {
   
   .download-link,
   .download-link a {
+    margin-top: -0.25rem;
     font-size: 1rem;
     font-family: 'Sorts Mill Goudy', serif;
+  }
+
+  .download-link {
+    padding-left: 0.5rem;
   }
 
   .download-link a {
