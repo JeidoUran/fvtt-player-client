@@ -54,3 +54,27 @@ export function startRichPresenceSocket() {
     });
   });
 }
+
+/**
+ * Closes the Server and stops RichPresence
+ */
+export function closeRichPresenceSocket() {
+  if (!wss) return;
+
+  // Closes every client connection
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) client.close();
+  });
+
+  // Closes server itself
+  wss.close(() => {
+    console.log('[WS] RichPresence socket fermée par l’utilisateur');
+  });
+
+  // Disables RichPresence
+  disableRichPresence();
+
+  // Reset to allow restarting again
+  wss = undefined;
+}
+

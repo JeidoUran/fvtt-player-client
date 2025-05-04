@@ -4,7 +4,7 @@ import {app, BrowserWindow, ipcMain, safeStorage, session} from 'electron';
 import { nativeImage } from 'electron';
 import { enableRichPresence } from './richPresenceControl';
 import { disableRichPresence } from './richPresenceControl';
-import { startRichPresenceSocket } from './richPresenceSocket';
+import { startRichPresenceSocket, closeRichPresenceSocket } from './richPresenceSocket';
 import path from 'path';
 import fs from 'fs';
 
@@ -344,6 +344,7 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
 ipcMain.on("return-select", (e) => {
     windowsData[e.sender.id].autoLogin = true;
     disableRichPresence();
+    closeRichPresenceSocket();
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
         e.sender.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {
