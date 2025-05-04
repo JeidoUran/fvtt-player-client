@@ -11,7 +11,6 @@ type GameConfig = {
     url: string;
     id?: GameId;
     cssId?: string;
-    discordRP?: boolean;
 }
 
 type AppConfig = {
@@ -25,6 +24,7 @@ type AppConfig = {
     autoCacheClear?: boolean;
     customCSS?: string;
     ignoreCertificateErrors?: boolean;
+    discordRP?: boolean;
     theme?: string;
 }
 

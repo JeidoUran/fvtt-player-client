@@ -110,6 +110,7 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
     const cachePath = (closeUserConfig.querySelector("#cache-path") as HTMLInputElement).value;
     const autoCacheClear = (closeUserConfig.querySelector("#clear-cache-on-close") as HTMLInputElement).checked;
     const ignoreCertificateErrors = (closeUserConfig.querySelector("#insecure-ssl") as HTMLInputElement).checked;
+    const discordRP = (closeUserConfig.querySelector("#discord-rp") as HTMLInputElement).checked;
     const config = {
         accentColor,
         backgroundColor,
@@ -117,7 +118,8 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
         textColor,
         cachePath,
         autoCacheClear,
-        ignoreCertificateErrors
+        ignoreCertificateErrors,
+        discordRP
     } as AppConfig;
     console.log(config);
     window.api.saveAppConfig(config);
@@ -250,6 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         appConfig.autoCacheClear = undefined;
         appConfig.customCSS = undefined;
         appConfig.ignoreCertificateErrors = undefined;
+        appConfig.discordRP = false;
         appConfig.theme = "codex";
 
         themeStylesheet.setAttribute("href", "styles/codex.css");
@@ -452,7 +455,6 @@ function safePrompt(message: string, options?: { mode?: 'confirm' | 'alert' }): 
 async function createGameItem(game: GameConfig) {
     const li = document.importNode(gameItemTemplate, true);
     const loginData = await window.api.userData(game.id ?? game.name) as GameUserDataDecrypted;
-    let discordRP = !!game.discordRP;
 
     li.id = game.cssId;
     li.setAttribute("data-game-id", String(game.id ?? game.name));
@@ -465,26 +467,18 @@ async function createGameItem(game: GameConfig) {
     li.querySelector("a").innerText = game.name;
     li.querySelector(".game-button").addEventListener("click", async () => {
         window.api.openGame(game.id ?? game.name);
-      
-        if (game.discordRP) {
+        const appConfig: AppConfig = await window.api.localAppConfig();
+        if (appConfig.discordRP) {
             if (window.richPresence?.enable) {
                 window.richPresence.enable();
-              }
+            }
         }
-      
         window.location.href = game.url;
       });
     gameItemList.appendChild(li);
     await updateServerInfos(li, game);
     renderTooltips()
     const userConfiguration = li.querySelector("div.user-configuration") as HTMLDivElement;
-    const discordRPCheckbox = userConfiguration.querySelector(".discord-rp-toggle") as HTMLInputElement;
-    discordRPCheckbox.checked = discordRP;
-
-    discordRPCheckbox.addEventListener("change", () => {
-        discordRP = discordRPCheckbox.checked;
-        game.discordRP = discordRP;
-    });
 
     userConfiguration.querySelector(".delete-game")?.addEventListener("click", async () => {
         const confirmed = await safePrompt("Are you sure you want to delete this game?");
@@ -520,7 +514,6 @@ async function createGameItem(game: GameConfig) {
             if (gameToUpdate) {
                 gameToUpdate.name = newGameName;
                 gameToUpdate.url = newGameUrl;
-                gameToUpdate.discordRP = discordRP;
             }
         });
     
@@ -562,6 +555,9 @@ function applyAppConfig(config: AppConfig) {
     }
     if (config.autoCacheClear) {
         (document.querySelector("#clear-cache-on-close") as HTMLInputElement).checked = config.autoCacheClear;
+    }
+    if (config.discordRP) {
+        (document.querySelector("#discord-rp") as HTMLInputElement).checked = config.discordRP;
     }
 }
 

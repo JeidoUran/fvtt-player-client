@@ -511,7 +511,6 @@ select#theme-selector {
   }
   
   .checkbox-wrapper .tooltip-wrapper input[type="checkbox"] {
-    position: static; /* ou retirer la règle existante */
     height: 30px;
     width: 30px;
     cursor: pointer;

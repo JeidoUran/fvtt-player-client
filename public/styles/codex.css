@@ -671,7 +671,6 @@ select#theme-selector option {
 }
 
 .tooltip-wrapper {
-	position: relative;
 	display: inline-block;
 }
   

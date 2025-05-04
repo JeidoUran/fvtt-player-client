@@ -99,6 +99,12 @@
                 <input id="insecure-ssl" type="checkbox" class="no-text">
                 <span class="custom-checkbox"></span>
             </div>
+            <div class="discord-rp-field field checkbox-wrapper">
+                <label for="discord-rp"><i class="fa-brands fa-discord"></i> Enable Discord Rich Presence</label>
+                <div class="tooltip-wrapper"><input id="discord-rp" type="checkbox" class="no-text">
+                <span class="custom-checkbox"></span>
+                <div class="tooltip">Requires Foundry VTT Rich Presence module installed per server<br>Turning this option off disables Discord Rich Presence globally, regardless of each server's module settings</div></div>
+            </div>
             <div class="theme-selector-field field">
                 <label for="theme-selector">Theme</label>
                 <select id="theme-selector">
@@ -172,12 +178,6 @@
                         <button type="button" class="toggle-password">
                         <i class="fa-solid fa-eye"></i></div></div>
                     </button>
-                    </div>
-                    <div class="discord-rp-field field-large checkbox-wrapper">
-                        <label for="discord-rp"><i class="fa-brands fa-discord"></i> Enable Discord Rich Presence</label>
-                        <div class="tooltip-wrapper"><input id="discord-rp" type="checkbox" class="no-text discord-rp-toggle">
-                        <span class="custom-checkbox"></span>
-                        <div class="tooltip">Requires Foundry VTT Rich Presence module installed on server</div></div>
                     </div>
                     <div class="button-group">
                         <button class="save-user-data">Save</button>
