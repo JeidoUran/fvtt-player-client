@@ -47,25 +47,23 @@ export async function updateActivity(data: {
   if (!rpcStartTime) rpcStartTime = new Date();
 
   rpc.user.setActivity({
-    details: data.isGM
-      ? "Game Master"
-      : `${data.actorName ? `${data.actorName}` : "Spectator"} ${data.hp ? ` - HP ${data.hp.value}/${data.hp.max}` : ""}`,
-      state: data.inCombat
-        ? `In Battle`
-        : `Exploring`,    
-    largeImageKey: 'logo_fvtt_rp',
-    largeImageText: data.worldName,
-    partyId: data.worldId ?? data.sceneId ?? "unknown-session",
-    partySize: data.onlineUsers,
-    partyMax: data.totalUsers,
-    smallImageKey: data.inCombat ? 'in_battle' : 'exploring',
-    smallImageText: data.isGM
-    ? "Game Master - Level ??"
-    : data.className
-      ? `${data.className}${data.classLevel ? ` - Level ${data.classLevel}` : ""}`
-      : "Spectator",
-    startTimestamp: rpcStartTime,
-    instance: true
+      details: data.isGM
+        ? "Game Master"
+        : `${data.actorName ? data.actorName : "Spectator"}${data.hp ? ` - HP ${data.hp.value}/${data.hp.max}` : ""}`,
+      state:  data.inCombat ? "In Battle" : "Exploring",
+      largeImageKey:  'logo_fvtt_rp',
+      largeImageText: data.worldName,
+      partyId:        data.worldId ?? data.sceneId ?? "unknown-session",
+      partySize:      data.onlineUsers,
+      partyMax:       data.totalUsers,
+      smallImageKey:  data.inCombat ? 'in_battle' : 'exploring',
+      smallImageText: data.isGM
+        ? "Game Master Level ??"
+        : data.className
+          ? data.className
+          : "Spectator",
+      startTimestamp: rpcStartTime,
+      instance:       true
   });
 }
 
