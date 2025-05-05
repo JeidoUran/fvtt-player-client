@@ -58,7 +58,7 @@ export async function updateActivity(data: {
       partyMax:       data.totalUsers,
       smallImageKey:  data.inCombat ? 'in_battle' : 'exploring',
       smallImageText: data.isGM
-        ? "Game Master Level ??"
+        ? "Game Master - Level ??"
         : data.className
           ? data.className
           : "Spectator",
