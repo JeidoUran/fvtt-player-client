@@ -8,6 +8,8 @@ let w: number, h: number, particles: {
 }[] = [];
 let time = 0;
 
+let animationId: number;
+
 function resize(): void {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
@@ -50,4 +52,13 @@ function animate(): void {
     requestAnimationFrame(animate);
 }
 
-animate();
+export function startParticles(): void {
+    resize();
+    animationId = requestAnimationFrame(function loop() {
+        animate();
+    });
+}
+
+export function stopParticles(): void {
+    cancelAnimationFrame(animationId);
+}

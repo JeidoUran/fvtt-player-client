@@ -1,5 +1,5 @@
 // noinspection JSIgnoredPromiseFromCall
-import './particles';
+import * as particles from './particles';
 
 let appVersion: string;
 let preventMenuClose = false;
@@ -198,6 +198,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
     themeSelector.value = selectedTheme;
   
+    if (selectedTheme === 'codex') {
+        particles.startParticles();
+    } else {
+        particles.stopParticles();
+    }
+
     themeSelector.addEventListener("change", async () => {
       const newTheme = themeSelector.value;
       themeStylesheet.setAttribute("href", `styles/${newTheme}.css`);
@@ -214,6 +220,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       await window.api.saveAppConfig(appConfig);
       showNotification("Theme changed");
       preventMenuClose = false;
+
+      if (newTheme === 'codex') {
+          particles.startParticles();
+      } else {
+          particles.stopParticles();
+      }
+
     });
 
     const resetAppearanceButton = document.getElementById("reset-appearance") as HTMLButtonElement;
