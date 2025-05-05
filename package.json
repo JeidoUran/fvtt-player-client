@@ -1,5 +1,5 @@
 {
-  "name": "vtt-desktop-client",
+  "name": "fvtt-desktop-client",
   "packageManager": "yarn@1.22.22",
   "version": "1.9.0",
   "license": "MIT",
