@@ -688,7 +688,7 @@ select#theme-selector option {
     color: white;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 1.05rem;
+    font-size: 1.10rem;
     white-space: nowrap;
     pointer-events: none;
     z-index: 9999;

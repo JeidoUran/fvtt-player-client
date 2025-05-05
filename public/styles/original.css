@@ -530,7 +530,7 @@ select#theme-selector {
     color: white;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     white-space: nowrap;
     pointer-events: none;
     z-index: 9999;
