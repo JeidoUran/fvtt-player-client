@@ -54,7 +54,7 @@ Example config:
     "cachePath": "",
     "autoCacheClear": false,
     "ignoreCertificateErrors": false,
-    "discordRP": true,
+    "discordRP": false,
     "particlesEnabled": true
 }
 ```
