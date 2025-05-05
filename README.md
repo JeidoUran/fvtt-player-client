@@ -73,7 +73,7 @@ Special thanks to theripper93 and OmegaRogue for creating this client. I am no d
 
 Rich Presence implemented thanks to @xhayper and their excellent [discord-rpc](https://www.npmjs.com/package/@xhayper/discord-rpc?activeTab=readme).
 
-Client and RichPresence icons designed by [Freepik](http://www.freepik.com/).
+Client and Rich Presence icons designed by [Freepik](http://www.freepik.com/).
 
 ## Disclaimer
 
