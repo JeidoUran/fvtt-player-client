@@ -90,7 +90,7 @@ input:not([type=color], [type=checkbox]) {
 
 label {
     background-color: transparent;
-    backdrop-filter: blur(5px);
+    /* backdrop-filter: blur(5px); */
     color: var(--color-text-primary);
     font-size: 1.5rem;
     font-weight: 700;
@@ -221,8 +221,8 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
 }
 
 table, th, td {
-    border: 1px solid;
-    border-collapse: collapse;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
 }
 
 .menu-container {
@@ -671,7 +671,6 @@ select#theme-selector option {
 }
 
 .tooltip-wrapper {
-	position: relative;
 	display: inline-block;
 }
   
@@ -689,7 +688,7 @@ select#theme-selector option {
     color: white;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 1.05rem;
+    font-size: 1.10rem;
     white-space: nowrap;
     pointer-events: none;
     z-index: 9999;
@@ -772,3 +771,57 @@ select#theme-selector option {
 .input-large.admin-password {
     margin-right: 0;
 }
+
+.user-configuration .checkbox-wrapper label {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0.5rem 2rem;
+    background-color: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 0.5rem;
+    transition: all 0.3s ease-in-out;
+    font-family: 'Sorts Mill Goudy', serif;
+}
+
+.user-configuration .checkbox-wrapper .custom-checkbox {
+    right: 12.5px;
+    height: 26px;
+    width: 26px;
+    cursor: pointer;
+}
+
+.user-configuration .checkbox-wrapper input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    right: 12.5px;
+    height: 26px;
+    width: 26px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  
+  .download-link,
+  .download-link a {
+    margin-top: -0.25rem;
+    font-size: 1rem;
+    font-family: 'Sorts Mill Goudy', serif;
+  }
+
+  .download-link {
+    padding-left: 0.5rem;
+  }
+
+  .download-link a {
+    color: #3ae7e7;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .download-link a:hover {
+    text-shadow: 0 0 4px #98e4f7;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }

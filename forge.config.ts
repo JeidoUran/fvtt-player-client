@@ -20,13 +20,22 @@ const config: ForgeConfig = {
             /^\/tsconfig\.json/,
             /^\/vite\..*\.ts/
         ],
+        name: 'FVTT Desktop Client',
+        icon: 'src/icons/win/icon.ico',
     },
     rebuildConfig: {},
     makers: [
-        new MakerSquirrel({}),
+        new MakerSquirrel({
+            setupIcon: 'src/icons/win/icon.ico'
+        }),
         new MakerZIP({}),
         new MakerRpm({}),
-        new MakerDeb({}),
+        new MakerDeb({
+            options: {
+                icon: 'src/icons/png/512x512.png'
+            }
+        
+        }),
         // new MakerFlatpak({
         //     options: {
         //         categories: ['Game', 'Network'],
@@ -36,7 +45,9 @@ const config: ForgeConfig = {
         //         files: []
         //     }
         // }),
-        new MakerDMG({}),
+        new MakerDMG({
+            icon: 'src/icons/mac/icon.icns'
+        }),
     ],
     plugins: [
         new VitePlugin({

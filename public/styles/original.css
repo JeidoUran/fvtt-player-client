@@ -5,7 +5,13 @@
 }
 
 #particles {
-    display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 1;
 }
 
 body {
@@ -502,6 +508,19 @@ select#theme-selector {
 	position: relative;
 	display: inline-block;
 }
+
+.checkbox-wrapper .tooltip-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative; /* pour le tooltip */
+    margin-left: auto; /* optionnel, pour coller à droite */
+  }
+  
+  .checkbox-wrapper .tooltip-wrapper input[type="checkbox"] {
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+  }
   
 .tooltip-wrapper .tooltip {
     display: none;
@@ -517,7 +536,7 @@ select#theme-selector {
     color: white;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     white-space: nowrap;
     pointer-events: none;
     z-index: 9999;
@@ -577,4 +596,53 @@ select#theme-selector {
 .toggle-password i {
     display: inline-block;
     width: 1.5em;
+}
+
+.user-configuration .checkbox-wrapper label {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0.5rem 2rem 0.5rem 0;
+    background-color: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 0.5rem;
+}
+
+.user-configuration .checkbox-wrapper .custom-checkbox {
+    right: 8.5px;
+    height: 26px;
+    width: 26px;
+    cursor: pointer;
+}
+
+.user-configuration .checkbox-wrapper input[type="checkbox"] {
+    position: absolute;
+    right: 12.5px;
+    height: 26px;
+    width: 26px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  
+  .field-large {
+    display: flex;
+  }
+
+  .user-configuration .input-large {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0.5rem 2rem;
+}
+
+.download-link,
+.download-link a {
+  font-size: 0.95rem;
+}
+
+.download-link a {
+  color: #3ae7e7;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }

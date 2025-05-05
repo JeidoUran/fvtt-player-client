@@ -5,7 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <title>VTT Desktop Client</title>
+    <title>FVTT Desktop Client</title>
+    <link rel="icon" href="/src/icons/icon.ico" type="image/vnd.microsoft.icon">
     <script crossorigin="anonymous" src="https://kit.fontawesome.com/d9351ab632.js"></script>
     <link id="theme-stylesheet" rel="stylesheet" href="styles/codex.css">
     <!--    <link rel="stylesheet" href="src/style.css">-->
@@ -29,7 +30,7 @@
     </div>
 
     <div id="current-version-display" class="version-normal">
-        VTT Desktop Client <span class="current-version"></span>
+        FVTT Desktop Client <span class="current-version"></span>
     </div>
 
     <section class="menu-container">
@@ -99,12 +100,24 @@
                 <input id="insecure-ssl" type="checkbox" class="no-text">
                 <span class="custom-checkbox"></span>
             </div>
+            <div class="discord-rp-field field checkbox-wrapper">
+                <label for="discord-rp"><i class="fa-brands fa-discord"></i> Enable Discord Rich Presence</label>
+                <div class="tooltip-wrapper"><input id="discord-rp" type="checkbox" class="no-text">
+                <span class="custom-checkbox"></span>
+                <div class="tooltip">Requires Foundry VTT Rich Presence module installed per server<br>Turning this option off disables Discord Rich Presence globally, regardless of each server's module settings</div></div>
+            </div>
+            <div class="download-link">Download the required module <a href="https://github.com/JeidoUran/fvtt-rich-presence" target="_blank">here</a>!</div>
             <div class="theme-selector-field field">
                 <label for="theme-selector">Theme</label>
                 <select id="theme-selector">
                     <option value="codex">Codex</option>
                     <option value="original">Original</option>
                 </select>
+            </div>
+            <div class="particles-button-field field checkbox-wrapper">
+                <label for="particles-button">Enable Background Particles</label>
+                <input id="particles-button" type="checkbox" class="no-text">
+                <span class="custom-checkbox"></span>
             </div>
             <div class="button-group">
                 <button id="save-app-config">Save</button>
@@ -173,7 +186,6 @@
                         <i class="fa-solid fa-eye"></i></div></div>
                     </button>
                     </div>
-                
                     <div class="button-group">
                         <button class="save-user-data">Save</button>
                         <button class="delete-game">Delete</button>

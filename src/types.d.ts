@@ -24,7 +24,9 @@ type AppConfig = {
     autoCacheClear?: boolean;
     customCSS?: string;
     ignoreCertificateErrors?: boolean;
+    discordRP?: boolean;
     theme?: string;
+    particlesEnabled?: boolean;
 }
 
 
@@ -45,7 +47,7 @@ type GameUserDataDecrypted = {
     adminPassword?: string;
 }
 
-type SaveUserData = { gameId: GameId; password: string; user: string; adminPassword: string };
+type SaveUserData = { gameId: GameId; password: string; user: string; adminPassword: string; };
 
 type WindowData = {
     gameId: GameId;

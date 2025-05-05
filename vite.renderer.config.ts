@@ -14,6 +14,7 @@ export default defineConfig({
     emptyOutDir: false,
     cssCodeSplit: false,
     rollupOptions: {
+      external: ['ws'],
       output: {
         compact: true,
         manualChunks: undefined

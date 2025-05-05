@@ -88,3 +88,19 @@ const exposedApi: ContextBridgeApi = {
 }
 
 contextBridge.exposeInMainWorld("api", exposedApi);
+
+contextBridge.exposeInMainWorld('richPresence', {
+    update: (payload: {
+      details?: string;
+      state?: string;
+      largeImageKey?: string;
+      largeImageText?: string;
+      smallImageKey?: string;
+      smallImageText?: string;
+    }) => {
+      ipcRenderer.send('update-rich-presence', payload);
+    },
+    enable: () => {
+      ipcRenderer.send('enable-discord-rpc');
+    }
+});

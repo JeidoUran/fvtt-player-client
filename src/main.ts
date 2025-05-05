@@ -1,8 +1,11 @@
 // noinspection ES6MissingAwait,JSIgnoredPromiseFromCall
 
-import {app, BrowserWindow, ipcMain, safeStorage, session} from 'electron';
+import { app, BrowserWindow, ipcMain, safeStorage, session, nativeImage } from 'electron';
+import { enableRichPresence, disableRichPresence } from './richPresenceControl';
+import { startRichPresenceSocket, closeRichPresenceSocket } from './richPresenceSocket';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -70,6 +73,39 @@ function createWindow(): BrowserWindow {
 
     });
 
+    window.webContents.on('page-favicon-updated', (_event, favicons) => {
+        if (!favicons.length) return;
+        const faviconUrl = favicons[0];
+    
+        if (faviconUrl.startsWith('file://')) {
+          // Convertit file://… en chemin Windows décodé
+          try {
+            const filePath = fileURLToPath(faviconUrl);
+            const icon = nativeImage.createFromPath(filePath);
+            if (!icon.isEmpty()) {
+              window.setIcon(icon);
+              console.log('[Favicon] Restaurée depuis fichier local :', filePath);
+            } else {
+              console.warn('[Favicon] nativeImage vide pour:', filePath);
+            }
+          } catch (err) {
+            console.warn('[Favicon] Impossible de traiter URL locale:', faviconUrl, err);
+          }
+        } else {
+          // Pour les URL externes, on conserve le fetch
+          fetch(faviconUrl)
+            .then(res => res.arrayBuffer())
+            .then(buf => {
+              const icon = nativeImage.createFromBuffer(Buffer.from(buf));
+              if (!icon.isEmpty()) {
+                window.setIcon(icon);
+                console.log('[Favicon] Restaurée depuis URL externe :', faviconUrl);
+              }
+            })
+            .catch(err => console.warn('[Favicon] Erreur de fetch :', err));
+        }
+      });
+
     // Fix Popouts
     window.webContents.setUserAgent(window.webContents.getUserAgent().replace("Electron", ""));
     window.webContents.on('did-start-loading', () => {
@@ -134,8 +170,20 @@ function createWindow(): BrowserWindow {
                     }
     
                     console.log("[FVTT Client] Foundry ready, setting up Return button.");
-    
-                        Hooks.on('renderSettings', (settings, html) => {
+                        Hooks.on('renderSettings', (settings, htmlElement) => {
+                            const html = $(htmlElement);
+                            const majorVersion = Number(game.version?.split(".")[0] ?? 0);
+  
+                            if (majorVersion >= 13) {
+                                const serverSelectButton = $(\`
+                                <a class="button">
+                                <i class="fas fa-server" inert></i> Return to Server Select</a>
+                                \`);
+                                serverSelectButton.on('click', () => window.api.returnToServerSelect());
+                                html.find("section.access.flexcol").append(serverSelectButton);
+                                
+                            } else {
+
                             if (html.find('#server-button').length > 0) return;
     
                             const serverSelectButton = $(\`
@@ -145,9 +193,9 @@ function createWindow(): BrowserWindow {
                             \`);
                             serverSelectButton.on('click', () => window.api.returnToServerSelect());
                             html.find('#settings-access').append(serverSelectButton);
+                            }
                         });
-                }
-    
+                    }  
                 waitForFoundryReady();
             `);
         }
@@ -251,7 +299,15 @@ function createWindow(): BrowserWindow {
     return window;
 }
 
-app.whenReady().then(() => createWindow());
+app.whenReady().then(() => {
+    createWindow();
+});
+
+ipcMain.on("enable-discord-rpc", (event) => {
+    startRichPresenceSocket();
+    enableRichPresence(event.sender.id);
+}); 
+
 ipcMain.on("open-game", (e, gId) => windowsData[e.sender.id].gameId = gId);
 ipcMain.on("clear-cache", async (event) => event.sender.session.clearCache());
 
@@ -315,6 +371,9 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
 
 ipcMain.on("return-select", (e) => {
     windowsData[e.sender.id].autoLogin = true;
+    disableRichPresence();
+    closeRichPresenceSocket();
+
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
         e.sender.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {

@@ -1,9 +1,9 @@
 {
   "name": "vtt-desktop-client",
   "packageManager": "yarn@1.22.22",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "license": "MIT",
-  "description": "VTT Desktop Client",
+  "description": "FVTT Desktop Client",
   "main": ".vite/build/main.js",
   "author": "theripper93",
   "contributors": [
@@ -34,6 +34,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.8.0",
     "@electron-forge/plugin-vite": "7.8.0",
     "@types/node": "^22.15.2",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
     "electron": "^35.2.1",
@@ -46,7 +47,8 @@
   },
   "scripts": {
     "start": "electron-forge start",
-    "package": "electron-forge package",
+    "prepackage": "node scripts/prepackage.cjs",
+    "package": "yarn prepackage && electron-forge package",
     "make": "electron-forge make",
     "build": "electron-forge make",
     "make:linux": "electron-forge make --platform linux",
@@ -60,6 +62,8 @@
     "build-renderer": "vite build --config vite.renderer.config.ts"
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1"
+    "@xhayper/discord-rpc": "^1.2.1",
+    "electron-squirrel-startup": "^1.0.1",
+    "ws": "^8.18.1"
   }
 }

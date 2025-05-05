@@ -5,22 +5,22 @@ import path from 'path';
 
 export default defineConfig({
   resolve: {
-    // Précise à Vite de prioriser les modules Node.js
     mainFields: ['module', 'jsnext:main', 'jsnext'],
   },
   build: {
-    target: 'node18', // Electron 35 tourne sur Node 18
+    target: 'node22',
     outDir: path.resolve(__dirname, '.vite/build'),
     sourcemap: false,
-    minify: 'esbuild', // plus rapide que terser
-    emptyOutDir: true,
+    minify: 'esbuild',
+    emptyOutDir: false,
     rollupOptions: {
+      external: ['ws'],
       output: {
         compact: true
       }
     }
   },
   esbuild: {
-    drop: ['console', 'debugger'] // supprime console.log et debugger en prod
+    drop: ['console', 'debugger']
   }
 });

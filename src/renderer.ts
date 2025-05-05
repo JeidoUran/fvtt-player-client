@@ -1,5 +1,5 @@
 // noinspection JSIgnoredPromiseFromCall
-import './particles';
+import * as particles from './particles';
 
 let appVersion: string;
 let preventMenuClose = false;
@@ -110,6 +110,8 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
     const cachePath = (closeUserConfig.querySelector("#cache-path") as HTMLInputElement).value;
     const autoCacheClear = (closeUserConfig.querySelector("#clear-cache-on-close") as HTMLInputElement).checked;
     const ignoreCertificateErrors = (closeUserConfig.querySelector("#insecure-ssl") as HTMLInputElement).checked;
+    const discordRP = (closeUserConfig.querySelector("#discord-rp") as HTMLInputElement).checked;
+    const particlesEnabled = (closeUserConfig.querySelector("#particles-button") as HTMLInputElement).checked;
     const config = {
         accentColor,
         backgroundColor,
@@ -117,8 +119,11 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
         textColor,
         cachePath,
         autoCacheClear,
-        ignoreCertificateErrors
+        ignoreCertificateErrors,
+        discordRP,
+        particlesEnabled
     } as AppConfig;
+
     console.log(config);
     window.api.saveAppConfig(config);
     applyAppConfig(config);
@@ -191,11 +196,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   
     const appConfig: AppConfig = await window.api.localAppConfig();
-  
+
     const selectedTheme = appConfig.theme ?? "codex";
     themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
     themeSelector.value = selectedTheme;
-  
+
     themeSelector.addEventListener("change", async () => {
       const newTheme = themeSelector.value;
       themeStylesheet.setAttribute("href", `styles/${newTheme}.css`);
@@ -250,7 +255,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         appConfig.autoCacheClear = undefined;
         appConfig.customCSS = undefined;
         appConfig.ignoreCertificateErrors = undefined;
+        appConfig.discordRP = false;
         appConfig.theme = "codex";
+        appConfig.particlesEnabled = true;
 
         themeStylesheet.setAttribute("href", "styles/codex.css");
         themeSelector.value = "codex";
@@ -462,14 +469,21 @@ async function createGameItem(game: GameConfig) {
     (li.querySelector(".game-name-edit") as HTMLInputElement).value = game.name;
     (li.querySelector(".game-url-edit") as HTMLInputElement).value = game.url;
     li.querySelector("a").innerText = game.name;
-    li.querySelector(".game-button").addEventListener("click", () => {
+    li.querySelector(".game-main-button").addEventListener("click", async () => {
         window.api.openGame(game.id ?? game.name);
+        const appConfig: AppConfig = await window.api.localAppConfig();
+        if (appConfig.discordRP) {
+            if (window.richPresence?.enable) {
+                window.richPresence.enable();
+            }
+        }
         window.location.href = game.url;
-    });
+      });
     gameItemList.appendChild(li);
     await updateServerInfos(li, game);
     renderTooltips()
     const userConfiguration = li.querySelector("div.user-configuration") as HTMLDivElement;
+
     userConfiguration.querySelector(".delete-game")?.addEventListener("click", async () => {
         const confirmed = await safePrompt("Are you sure you want to delete this game?");
         if (!confirmed) return;
@@ -491,7 +505,7 @@ async function createGameItem(game: GameConfig) {
         const adminPassword = (closeUserConfig.querySelector(".admin-password") as HTMLInputElement).value;
         const newGameName = (closeUserConfig.querySelector(".game-name-edit") as HTMLInputElement).value;
         const newGameUrl = (closeUserConfig.querySelector(".game-url-edit") as HTMLInputElement).value;
-    
+
         console.log({gameId, user, password, adminPassword, newGameName, newGameUrl});
     
         game.name = newGameName;
@@ -545,6 +559,17 @@ function applyAppConfig(config: AppConfig) {
     }
     if (config.autoCacheClear) {
         (document.querySelector("#clear-cache-on-close") as HTMLInputElement).checked = config.autoCacheClear;
+    }
+    if (config.discordRP) {
+        (document.querySelector("#discord-rp") as HTMLInputElement).checked = config.discordRP;
+    }
+    const enabled = config.particlesEnabled ?? true;
+    const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
+    checkbox.checked = enabled;
+    if (enabled) {
+        particles.startParticles();
+    } else {
+        particles.stopParticles();
     }
 }
 
