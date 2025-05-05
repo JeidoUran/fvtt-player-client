@@ -20,8 +20,8 @@ const config: ForgeConfig = {
             /^\/tsconfig\.json/,
             /^\/vite\..*\.ts/
         ],
-        name: 'FVTT Desktop Client',
-        executableName: 'vtt-desktop-client',
+        // name: 'FVTT Desktop Client',
+        // executableName: 'vtt-desktop-client',
         icon: 'src/icons/win/icon.ico',
     },
     rebuildConfig: {},
