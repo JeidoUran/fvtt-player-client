@@ -26,7 +26,7 @@ In order to enable and use Rich Presence, you also need to have the module [Foun
 
 ## Theme Switcher
 
-A new theme, "Codex", has been added. It was made after my campaign's website, while keeping general usability in mind. That being said, users who prefer the original theme can find it in the **Client Configuration**, under **Theme**. I made sure to keep it as simple and lightweight as possible while integrating the new features. You may also disable the particles floating in the background. For now, "Codex" and "Original" are the only themes available, but I am considering adding more ways to customise them on top of what's already available.
+A new theme, "Codex", has been added. It was made after my campaign's website, while keeping general usability in mind. That being said, users who prefer the original theme can find it in the **Client Configuration**, under **Theme**. I made sure to keep it as simple and lightweight as possible while integrating the new features. You may also disable the particles floating in the background. For now, "Codex" and "Original" are the only themes available, but I am considering adding more ways to customise them on top of what's currently available.
 
 ## Customization
 
