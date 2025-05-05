@@ -176,8 +176,8 @@ function createWindow(): BrowserWindow {
   
                             if (majorVersion >= 13) {
                                 const serverSelectButton = $(\`
-                                <button type="button">
-                                <i class="fas fa-server" inert></i> Return to Server Select</button>
+                                <a class="button">
+                                <i class="fas fa-server" inert></i> Return to Server Select</a>
                                 \`);
                                 serverSelectButton.on('click', () => window.api.returnToServerSelect());
                                 html.find("section.access.flexcol").append(serverSelectButton);
