@@ -9,6 +9,7 @@ let w: number, h: number, particles: {
 let time = 0;
 
 let animationId: number;
+let isRunning = false;
 
 function resize(): void {
     w = canvas.width = window.innerWidth;
@@ -28,7 +29,7 @@ for (let i = 0; i < 100; i++) {
     });
 }
 
-function animate(): void {
+function animateFrame(): void {
     ctx.clearRect(0, 0, w, h);
     time += 0.01;
 
@@ -49,16 +50,25 @@ function animate(): void {
         ctx.arc(x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
     });
-    requestAnimationFrame(animate);
 }
 
+function loop(): void {
+        animateFrame();
+        animationId = requestAnimationFrame(loop);
+    }
+    
 export function startParticles(): void {
-    resize();
-    animationId = requestAnimationFrame(function loop() {
-        animate();
-    });
+        if (isRunning) return;
+        isRunning = true;
+        canvas.style.display = 'block';
+        resize();
+        loop();
 }
 
 export function stopParticles(): void {
+    if (!isRunning) return;
     cancelAnimationFrame(animationId);
+    isRunning = false;
+    ctx.clearRect(0, 0, w, h);
+    canvas.style.display = 'none';
 }

@@ -111,6 +111,7 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
     const autoCacheClear = (closeUserConfig.querySelector("#clear-cache-on-close") as HTMLInputElement).checked;
     const ignoreCertificateErrors = (closeUserConfig.querySelector("#insecure-ssl") as HTMLInputElement).checked;
     const discordRP = (closeUserConfig.querySelector("#discord-rp") as HTMLInputElement).checked;
+    const particlesEnabled = (closeUserConfig.querySelector("#particles-button") as HTMLInputElement).checked;
     const config = {
         accentColor,
         backgroundColor,
@@ -119,8 +120,10 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
         cachePath,
         autoCacheClear,
         ignoreCertificateErrors,
-        discordRP
+        discordRP,
+        particlesEnabled
     } as AppConfig;
+
     console.log(config);
     window.api.saveAppConfig(config);
     applyAppConfig(config);
@@ -193,16 +196,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   
     const appConfig: AppConfig = await window.api.localAppConfig();
-  
+
     const selectedTheme = appConfig.theme ?? "codex";
     themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
     themeSelector.value = selectedTheme;
-  
-    if (selectedTheme === 'codex') {
-        particles.startParticles();
-    } else {
-        particles.stopParticles();
-    }
 
     themeSelector.addEventListener("change", async () => {
       const newTheme = themeSelector.value;
@@ -220,13 +217,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       await window.api.saveAppConfig(appConfig);
       showNotification("Theme changed");
       preventMenuClose = false;
-
-      if (newTheme === 'codex') {
-          particles.startParticles();
-      } else {
-          particles.stopParticles();
-      }
-
     });
 
     const resetAppearanceButton = document.getElementById("reset-appearance") as HTMLButtonElement;
@@ -267,6 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         appConfig.ignoreCertificateErrors = undefined;
         appConfig.discordRP = false;
         appConfig.theme = "codex";
+        appConfig.particlesEnabled = true;
 
         themeStylesheet.setAttribute("href", "styles/codex.css");
         themeSelector.value = "codex";
@@ -571,6 +562,14 @@ function applyAppConfig(config: AppConfig) {
     }
     if (config.discordRP) {
         (document.querySelector("#discord-rp") as HTMLInputElement).checked = config.discordRP;
+    }
+    const enabled = config.particlesEnabled ?? true;
+    const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
+    checkbox.checked = enabled;
+    if (enabled) {
+        particles.startParticles();
+    } else {
+        particles.stopParticles();
     }
 }
 

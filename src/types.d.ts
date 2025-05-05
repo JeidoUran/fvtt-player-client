@@ -26,6 +26,7 @@ type AppConfig = {
     ignoreCertificateErrors?: boolean;
     discordRP?: boolean;
     theme?: string;
+    particlesEnabled?: boolean;
 }
 
 
