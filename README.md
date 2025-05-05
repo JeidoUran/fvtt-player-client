@@ -20,6 +20,10 @@ In order to enable and use Rich Presence, you also need to have the Module [Foun
 ![image](https://github.com/user-attachments/assets/877fd3c7-f212-4b1e-8d6e-e5bfce7a2ce5)
 ![image](https://github.com/user-attachments/assets/aad94072-6e39-4138-88a0-28fbc687d02c)
 
+## Theme Switcher
+
+A new theme, "Codex", has been added. I made it to match my campaign's website, while keeping usability in mind. That being said, users who prefer the original theme can find it in the **Client Configuration**, under **Theme**. I made sure to keep it as simple and light-weight as possible while integrating the new features. You may also disable the particles floating in the background. For now, "Codex" and "Original" are the only themes available, but I am considering adding more ways to customise them.
+
 ## Customization
 
 You can pre-configure and customize the client by editing the `config.json` file.
@@ -34,13 +38,20 @@ Example config:
   "games": [
     {
       "name": "This is the name of my game",
-      "url": "https://www.nintendo.com/games/detail/the-legend-of-zelda-breath-of-the-wild-switch"
+      "url": "https://atlus.com/etrian5/"
     }
   ],
-  "background": "https://images2.alphacoders.com/123/123862.jpg",
-  "backgroundColor": "#000000",
-  "textColor": "white",
-  "accentColor": "green"
+    "accentColor": "#98e4f7",
+    "backgroundColor": "#0e1a23",
+    "background": "",
+    "textColor": "#88c0a9",
+    "backgrounds": [],
+    "theme": "codex",
+    "cachePath": "",
+    "autoCacheClear": false,
+    "ignoreCertificateErrors": false,
+    "discordRP": true,
+    "particlesEnabled": true
 }
 ```
 
@@ -54,7 +65,7 @@ JSON.stringify({
 ```
 
 ## Acknowledgments and attributions
-Special thanks to theripper93 and OmegaRogue for creating this client. I am no developper and without their amazing work it would have been impossible to start this project.
+Special thanks to theripper93 and OmegaRogue for creating this client. I am no developper and without their amazing work it would have been impossible to start this task.
 
 Client and RichPresence icons designed by [Freepik](http://www.freepik.com/).
 
