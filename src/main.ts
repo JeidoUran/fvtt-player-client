@@ -170,8 +170,20 @@ function createWindow(): BrowserWindow {
                     }
     
                     console.log("[FVTT Client] Foundry ready, setting up Return button.");
-    
-                        Hooks.on('renderSettings', (settings, html) => {
+                        Hooks.on('renderSettings', (settings, htmlElement) => {
+                            const html = $(htmlElement);
+                            const majorVersion = Number(game.version?.split(".")[0] ?? 0);
+  
+                            if (majorVersion >= 13) {
+                                const serverSelectButton = $(\`
+                                <button type="button">
+                                <i class="fas fa-server" inert></i> Return to Server Select</button>
+                                \`);
+                                serverSelectButton.on('click', () => window.api.returnToServerSelect());
+                                html.find("section.access.flexcol").append(serverSelectButton);
+                                
+                            } else {
+
                             if (html.find('#server-button').length > 0) return;
     
                             const serverSelectButton = $(\`
@@ -181,9 +193,9 @@ function createWindow(): BrowserWindow {
                             \`);
                             serverSelectButton.on('click', () => window.api.returnToServerSelect());
                             html.find('#settings-access').append(serverSelectButton);
+                            }
                         });
-                }
-    
+                    }  
                 waitForFoundryReady();
             `);
         }
