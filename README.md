@@ -20,7 +20,7 @@ Original Wiki https://wiki.theripper93.com/free/vtt-desktop-client
 
 ## Discord Rich Presence
 
-In order to enable and use Rich Presence, you also need to have the Module [Foundry VTT Rich Presence](https://github.com/JeidoUran/fvtt-rich-presence) installed and enabled on each World you want to use it with. Furthermore, you need to enable the option **Enable Discord Rich Presence** in both the **Client Configuration** and the **Module Settings**, as it is off by default.
+In order to enable and use Rich Presence, you also need to have the module [Foundry VTT Rich Presence](https://github.com/JeidoUran/fvtt-rich-presence) installed and enabled on each world you want to use it with. Furthermore, you need to enable the option **Enable Discord Rich Presence** in both the **Client Configuration** and the **Module Settings**, as it is off by default.
 ![image](https://github.com/user-attachments/assets/877fd3c7-f212-4b1e-8d6e-e5bfce7a2ce5)
 ![image](https://github.com/user-attachments/assets/aad94072-6e39-4138-88a0-28fbc687d02c)
 
