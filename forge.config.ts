@@ -20,7 +20,8 @@ const config: ForgeConfig = {
             /^\/tsconfig\.json/,
             /^\/vite\..*\.ts/
         ],
-        executableName: process.platform === "linux" ? "fvtt-desktop-client" : "FVTT Desktop Client",
+        name: 'FVTT Desktop Client',
+        executableName: 'vtt-desktop-client',
         icon: 'src/icons/win/icon.ico',
     },
     rebuildConfig: {},
