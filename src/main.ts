@@ -78,7 +78,7 @@ function createWindow(): BrowserWindow {
         const faviconUrl = favicons[0];
     
         if (faviconUrl.startsWith('file://')) {
-          // Convertit file://… en chemin Windows décodé
+
           try {
             const filePath = fileURLToPath(faviconUrl);
             const icon = nativeImage.createFromPath(filePath);
@@ -92,7 +92,7 @@ function createWindow(): BrowserWindow {
             console.warn('[Favicon] Impossible de traiter URL locale:', faviconUrl, err);
           }
         } else {
-          // Pour les URL externes, on conserve le fetch
+
           fetch(faviconUrl)
             .then(res => res.arrayBuffer())
             .then(buf => {
