@@ -5,7 +5,9 @@
     --color-background: #0e1a23ff;
     --color-accent: #98e4f7ff;
     --color-text-primary: #88c0a9ff;
-    --color-button: #14141ea6;
+    --opacity-button: 0.65;
+    --color-button: #14141e;
+    --color-button-rgba: #14141ea6;
 }
 
 #particles {
@@ -105,8 +107,15 @@ input[type=color] {
     height: 26px;
     background-color: transparent;
     cursor: pointer;
+    border: none;
+    /* border: 1px solid var(--color-text-primary);
+    border-radius: 4px; */
+}
+
+.color-wrapper {
     border: 1px solid var(--color-text-primary);
     border-radius: 4px;
+    height: 27px;
 }
 
 input[type=color]::-webkit-color-swatch {
@@ -129,7 +138,7 @@ button:not(.game-button) {
     font-size: 18px;
 	border: 1px solid rgba(255, 255, 255, 0.15);
 	border-radius: 8px;
-    background-color: var(--color-button);
+    background-color: var(--color-button-rgba);
 	padding: 0.7rem 1rem;
     transition: all 0.3s ease;
 }
@@ -197,7 +206,7 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     box-shadow: 0 0 5px black;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    background-color: var(--color-button);
+    background-color: var(--color-button-rgba);
 }
 
 .hidden {
@@ -265,6 +274,17 @@ table, th, td {
     position: absolute;
     top: 2rem;
     right: 2rem;
+    display: flex;
+    gap: 0.5rem;
+    height: 3.5rem;
+}
+
+.button-controls button {
+    flex: 0 0 auto;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    padding: 0;
+    font-size: 22px;
 }
 
 .app-configuration,
@@ -830,4 +850,9 @@ select#theme-selector option {
     text-shadow: 0 0 4px #98e4f7;
     text-decoration: none;
     transition: all 0.3s ease;
+  }
+
+  input[type="range"] {
+    vertical-align: middle;
+    margin-top: 0.3rem;
   }

@@ -28,7 +28,7 @@ type ThemeConfig = {
     backgroundColor: string;
     textColor: string;
     accentColor: string;
-    buttonColorAlpha: string;
+    buttonColorAlpha: number;
     buttonColor: string;
     theme?: string;
     particlesEnabled?: boolean;

@@ -195,7 +195,8 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
     const accentColor = (closeUserConfig.querySelector("#accent-color") as HTMLInputElement).value;
     const backgroundColor = (closeUserConfig.querySelector("#background-color") as HTMLInputElement).value;
     const textColor = (closeUserConfig.querySelector("#text-color") as HTMLInputElement).value;
-    const buttonColorAlpha = (closeUserConfig.querySelector("#button-color-alpha") as HTMLInputElement).value;
+    const buttonColorAlphaInput = closeUserConfig.querySelector("#button-color-alpha") as HTMLInputElement;
+    const buttonColorAlpha = buttonColorAlphaInput.valueAsNumber;
     const buttonColor = (closeUserConfig.querySelector("#button-color") as HTMLInputElement).value;
     const config = {
         accentColor,
@@ -290,17 +291,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       themeConfig.theme = newTheme;
       preventMenuClose = true;
-      await window.api.saveAppConfig(appConfig);
+      await window.api.saveThemeConfig(themeConfig);
       showNotification("Theme changed");
       preventMenuClose = false;
     });
 
     const resetAppearanceButton = document.getElementById("reset-appearance") as HTMLButtonElement;
-    const resetAllButton = document.getElementById("reset-all") as HTMLButtonElement;
+    const resetClientButton = document.getElementById("reset-client") as HTMLButtonElement;
 
     if (resetAppearanceButton) {
     resetAppearanceButton.addEventListener("click", async () => {
-        const confirmed = await safePrompt("Are you sure you want to reset the appearance settings? This will erase your custom colors and backgrounds.");
+        const confirmed = await safePrompt("Are you sure you want to reset the appearance settings? This will erase your custom colors and backgrounds (games and client settings are not affected).");
         if (!confirmed) return;
 
         themeConfig.background = "";
@@ -308,18 +309,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         themeConfig.backgroundColor = "#0e1a23ff";
         themeConfig.textColor = "#88c0a9ff";
         themeConfig.accentColor = "#98e4f7ff";
-
+        themeConfig.buttonColorAlpha = 0.65;
+        themeConfig.buttonColor = "#14141e";
+        themeConfig.accentColor = "#98e4f7ff";
+        
         document.body.style.backgroundColor = "";
         applyThemeConfig(themeConfig);
 
-        await window.api.saveAppConfig(appConfig);
+        await window.api.saveThemeConfig(themeConfig);
         showNotification("Appearance settings reset");
     });
     }
 
-    if (resetAllButton) {
-    resetAllButton.addEventListener("click", async () => {
-        const confirmed = await safePrompt("Are you sure you want to reset all settings? This will erase your background, custom CSS, and revert your theme to Codex (games are not affected).");
+    if (resetClientButton) {
+        resetClientButton.addEventListener("click", async () => {
+        const confirmed = await safePrompt("Are you sure you want to reset the client settings? This will erase your cache, certificate and Discord settings (games and themes are not affected).");
         if (!confirmed) return;
 
         appConfig.cachePath = undefined;
@@ -328,13 +332,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         appConfig.ignoreCertificateErrors = undefined;
         appConfig.discordRP = false;
 
-        themeStylesheet.setAttribute("href", "styles/codex.css");
-        themeSelector.value = "codex";
-        document.body.style.backgroundColor = "";
         applyAppConfig(appConfig);
 
         await window.api.saveAppConfig(appConfig);
-        showNotification("All settings reset");
+        showNotification("Client settings reset"); //TODO: Doesn't seem to be resetting anything
     });
   }
 
@@ -635,6 +636,20 @@ function applyThemeConfig(config: ThemeConfig) {
         document.documentElement.style.setProperty("--color-accent", config.accentColor);
         (document.querySelector("#accent-color") as HTMLInputElement).value = config.accentColor.substring(0, 7);
     }
+    if (config.buttonColorAlpha != null) {  
+        const alphaStr = config.buttonColorAlpha.toString();  
+    
+        document.documentElement.style.setProperty("--opacity-button", alphaStr);  
+        const inputAlpha = document.querySelector("#button-color-alpha") as HTMLInputElement;
+        inputAlpha.valueAsNumber = config.buttonColorAlpha;
+    }
+    if (config.buttonColor) {  
+        document.documentElement.style.setProperty("--color-button", config.buttonColor);  
+        (document.querySelector("#button-color") as HTMLInputElement).value = config.buttonColor;  
+    }  
+    const rgba = hexToRgba(config.buttonColor, config.buttonColorAlpha);
+    document.documentElement.style.setProperty('--color-button-rgba', rgba);
+    
     const enabled = config.particlesEnabled ?? true;
     const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
     checkbox.checked = enabled;
@@ -644,6 +659,19 @@ function applyThemeConfig(config: ThemeConfig) {
         particles.stopParticles();
     }
 }
+
+function hexToRgba(hex: string, alpha: number): string {
+    // removes ‘#’ and handles #RGB
+    let h = hex.replace(/^#/, '');
+    if (h.length === 3) {
+      h = h.split('').map(c => c + c).join('');
+    }
+    const bigint = parseInt(h, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
 
 function addStyle(styleString: string) {
     const style = document.createElement('style');

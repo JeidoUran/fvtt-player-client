@@ -134,7 +134,14 @@ input[type=color] {
     height: 3em;
     background-color: transparent;
     cursor: pointer;
+    border: none;
+    /* border: 1px solid var(--color-text-primary);
+    border-radius: 4px; */
+}
+
+.color-wrapper {
     border: 1px solid var(--color-text-primary);
+    height: 40px;
 }
 
 input[type=color]::-webkit-color-swatch {
@@ -255,6 +262,15 @@ table, th, td {
     position: absolute;
     top: 2rem;
     right: 2rem;
+    display: flex;
+    height: 3.5rem;
+}
+
+.button-controls button {
+    flex: 0 0 auto;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    padding: 0;
 }
 
 .app-configuration,
@@ -418,6 +434,7 @@ a {
 
 select#theme-selector {
     width: 150px;
+    height: 1.75rem;
 }
 
 #notification-area {
