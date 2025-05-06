@@ -69,7 +69,7 @@ JSON.stringify({
 ```
 
 ## Acknowledgments and attributions
-Special thanks to theripper93 and OmegaRogue for creating this client. I am no developper and without their amazing work it would have been impossible to begin this work.
+Special thanks to theripper93 and OmegaRogue for creating this client. I am no developper and without their amazing work it would have been impossible to make those updates.
 
 Rich Presence implemented thanks to @xhayper and their excellent [discord-rpc](https://www.npmjs.com/package/@xhayper/discord-rpc?activeTab=readme).
 
