@@ -470,7 +470,7 @@ async function createGameItem(game: GameConfig) {
     (li.querySelector(".game-url-edit") as HTMLInputElement).value = game.url;
     li.querySelector("a").innerText = game.name;
     li.querySelector(".game-main-button").addEventListener("click", async () => {
-        window.api.openGame(game.id ?? game.name);
+        window.api.openGame(game.id ?? game.name, game.name);
         const appConfig: AppConfig = await window.api.localAppConfig();
         if (appConfig.discordRP) {
             if (window.richPresence?.enable) {

@@ -84,12 +84,12 @@ function createWindow(): BrowserWindow {
             const icon = nativeImage.createFromPath(filePath);
             if (!icon.isEmpty()) {
               window.setIcon(icon);
-              console.log('[Favicon] Restaurée depuis fichier local :', filePath);
+              console.log('[Favicon] Restored from local file :', filePath);
             } else {
-              console.warn('[Favicon] nativeImage vide pour:', filePath);
+              console.warn('[Favicon] nativeImage empty for:', filePath);
             }
           } catch (err) {
-            console.warn('[Favicon] Impossible de traiter URL locale:', faviconUrl, err);
+            console.warn('[Favicon] Could not resolve local URL:', faviconUrl, err);
           }
         } else {
 
@@ -99,26 +99,42 @@ function createWindow(): BrowserWindow {
               const icon = nativeImage.createFromBuffer(Buffer.from(buf));
               if (!icon.isEmpty()) {
                 window.setIcon(icon);
-                console.log('[Favicon] Restaurée depuis URL externe :', faviconUrl);
+                console.log('[Favicon] Restored from external URL :', faviconUrl);
               }
             })
-            .catch(err => console.warn('[Favicon] Erreur de fetch :', err));
+            .catch(err => console.warn('[Favicon] Fetch error :', err));
         }
       });
 
     // Fix Popouts
     window.webContents.setUserAgent(window.webContents.getUserAgent().replace("Electron", ""));
     window.webContents.on('did-start-loading', () => {
-        window.setTitle(window.webContents.getTitle() + ' * Loading ....');
+        const wd = windowsData[window.webContents.id];
+        if (wd?.selectedServerName) {
+            window.setTitle(wd.selectedServerName + ' * Loading...');
+        } else {
+            window.setTitle(window.webContents.getTitle() + ' * Loading...');
+        }
+        
         window.setProgressBar(2, {mode: 'indeterminate'}) // second parameter optional
     });
 
     window.webContents.on('did-finish-load', () => {
-        window.setTitle(window.webContents.getTitle());
+        const wd = windowsData[window.webContents.id];
+        if (wd?.selectedServerName) {
+            window.setTitle(wd.selectedServerName);
+        } else {
+            window.setTitle(window.webContents.getTitle());
+        }
         window.setProgressBar(-1);
     });
     window.webContents.on('did-stop-loading', () => {
-        window.setTitle(window.webContents.getTitle());
+        const wd = windowsData[window.webContents.id];
+        if (wd?.selectedServerName) {
+            window.setTitle(wd.selectedServerName);
+        } else {
+            window.setTitle(window.webContents.getTitle());
+        }
         window.setProgressBar(-1);
     });
     window.webContents.setWindowOpenHandler(() => {
@@ -308,7 +324,10 @@ ipcMain.on("enable-discord-rpc", (event) => {
     enableRichPresence(event.sender.id);
 }); 
 
-ipcMain.on("open-game", (e, gId) => windowsData[e.sender.id].gameId = gId);
+ipcMain.on("open-game", (e, gId, gameName: string) => {
+   windowsData[e.sender.id].gameId = gId;
+   windowsData[e.sender.id].selectedServerName = gameName;
+ });
 ipcMain.on("clear-cache", async (event) => event.sender.session.clearCache());
 
 ipcMain.on("save-user-data", (_e, data: SaveUserData) => {
@@ -371,6 +390,7 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
 
 ipcMain.on("return-select", (e) => {
     windowsData[e.sender.id].autoLogin = true;
+    delete windowsData[e.sender.id].selectedServerName;
     disableRichPresence();
     closeRichPresenceSocket();
 

@@ -52,6 +52,7 @@ type SaveUserData = { gameId: GameId; password: string; user: string; adminPassw
 type WindowData = {
     gameId: GameId;
     autoLogin: boolean;
+    selectedServerName?: string;
 }
 
 type WindowsData = {
