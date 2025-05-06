@@ -2,9 +2,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy&display=swap');
 
 :root {
-    --color-background: #0e1a23ff;
-    --color-accent: #98e4f7ff;
-    --color-text-primary: #88c0a9ff;
+    --color-background: #0e1a23;
+    --color-accent: #98e4f7;
+    --color-text-primary: #88c0a9;
     --opacity-button: 0.65;
     --color-button: #14141e;
     --color-button-rgba: #14141ea6;
@@ -852,7 +852,41 @@ select#theme-selector option {
     transition: all 0.3s ease;
   }
 
-  input[type="range"] {
-    vertical-align: middle;
-    margin-top: 0.3rem;
+/*********** Baseline, reset styles ***********/
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    margin-top: 0.7rem;
+  }
+  
+  /* Removes default focus */
+  input[type="range"]:focus {
+    outline: none;
+    border-bottom: none;
+  }
+  
+  /******** Chrome, Safari, Opera and Edge Chromium styles ********/
+  /* slider track */
+  input[type="range"]::-webkit-slider-runnable-track {
+    background-color: var(--color-text-primary);
+    border-radius: 0.5rem;
+    height: 0.5rem;
+  }
+  
+  /* slider thumb */
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    margin-top: -6px; /* Centers thumb on the track */
+    background-color: var(--color-accent);
+    border-radius: 1rem;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+  
+  input[type="range"]:focus::-webkit-slider-thumb {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0.125rem;
   }

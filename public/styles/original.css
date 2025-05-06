@@ -1,7 +1,10 @@
 :root {
-    --color-background: #003049ff;
-    --color-accent: #f77f00ff;
-    --color-text-primary: #eae2b7ff;
+    --color-background: #003049;
+    --color-accent: #f77f00;
+    --color-text-primary: #eae2b7;
+    --opacity-button: 0.00;
+    --color-button: #000000;
+    --color-button-rgba: #00000000;
 }
 
 #particles {
@@ -157,7 +160,7 @@ input:focus {
 }
 
 button {
-    background-color: transparent;
+    background-color: var(--color-button-rgba);
     backdrop-filter: blur(5px);
     border: 2px solid var(--color-text-primary);
     color: var(--color-text-primary);
@@ -195,14 +198,14 @@ button:hover {
     justify-content: center;
     align-items: center;
     margin: 0.5rem 0;
-    /*padding: 0.5rem;*/
-    background-color: transparent;
+    /* padding: 0.5rem; */
+    background-color: var(--color-button-rgba);
     border: 2px solid var(--color-text-primary);
     color: var(--color-text-primary);
     width: 100%;
     overflow: hidden;
     transition: all 0.3s ease-in-out;
-    backdrop-filter: blur(5px);
+    /* backdrop-filter: blur(5px); */
 }
 
 .hidden {
@@ -373,6 +376,7 @@ a {
 }
 
 .game-button {
+    background-color: transparent;
     cursor: pointer;
     flex-grow: 1;
     text-align: left;
@@ -393,7 +397,6 @@ a {
 .configure-game {
     height: 100%;
     width: 100%;
-    opacity: 0.3;
     border: none;
     align-items: center;
     justify-content: center;
@@ -402,14 +405,21 @@ a {
     font-weight: 700;
     padding: 0.2rem;
     margin: 0 0.5rem 0 auto;
-    transition: all 0.3s ease-in-out;
     cursor: pointer;
+    background-color: transparent;
 }
 
 .configure-game:hover {
     cursor: pointer;
-    opacity: 1;
     border: none;
+}
+
+.configure-game .fa-gear {
+    opacity: 0.3;
+}
+
+.configure-game .fa-gear:hover {
+    opacity: 1;
 }
 
 .button-group {
@@ -665,3 +675,40 @@ select#theme-selector {
   text-decoration: none;
   transition: all 0.3s ease;
 }
+
+/*********** Baseline, reset styles ***********/
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  
+  /* Removes default focus */
+  input[type="range"]:focus {
+    outline: none;
+    border-bottom: none;
+  }
+  
+  /******** Chrome, Safari, Opera and Edge Chromium styles ********/
+  /* slider track */
+  input[type="range"]::-webkit-slider-runnable-track {
+    background-color: var(--color-text-primary);
+    height: 0.5rem;
+  }
+  
+  /* slider thumb */
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    margin-top: -6px; /* Centers thumb on the track */
+    background-color: var(--color-accent);
+    border-radius: 1rem;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+  
+  input[type="range"]:focus::-webkit-slider-thumb {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0.125rem;
+  }
