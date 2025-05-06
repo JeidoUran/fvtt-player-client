@@ -1,4 +1,4 @@
-import WebSocket, { Server as WebSocketServer } from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 import { disableRichPresence, updateActivity } from './richPresenceControl';
 
 // Stores WebSocketInstance to be called later
