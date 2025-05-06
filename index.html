@@ -118,10 +118,18 @@
             <div class="button-color-field field">
                 <label for="button-color">Button Color</label>
                 <div class="tooltip-wrapper">
-                <input type="range" id="button-color-alpha" onchange="updateColorAlpha(this.value);" min="0" max="1" step="0.1" value="1">
+                <input type="range" id="button-color-alpha" onchange="updateColorAlpha(this);" min="0" max="1" step="0.1" value="1">
                 <div class="tooltip">Opacity</div>
                 </div>
                 <div class="color-wrapper"><input class="no-text" id="button-color" type="color"></div>
+            </div>
+            <div class="button-color-hover-field field">
+                <label for="button-color-hover">Button Color (Hover)</label>
+                <div class="tooltip-wrapper">
+                <input type="range" id="button-color-hover-alpha" onchange="updateColorAlpha(this);" min="0" max="1" step="0.1" value="1">
+                <div class="tooltip">Opacity</div>
+                </div>
+                <div class="color-wrapper"><input class="no-text" id="button-color-hover" type="color"></div>
             </div>
             <div class="background-image-field">
                 <input id="background-image" placeholder="Background Image" type="text" value="">
@@ -235,9 +243,12 @@
 <div id="tooltip-layer"></div>
 <script src="/src/renderer.ts" type="module"></script>
 <script>
-    function updateColorAlpha (alpha) {
-        document.getElementById('button-color').style.opacity = alpha;
+    function updateColorAlpha(rangeEl) {
+      const alpha = rangeEl.value;
+      // removing "-alpha" from the ID
+      const targetId = rangeEl.id.replace('-alpha', '');
+      document.getElementById(targetId).style.opacity = alpha;
     }
-</script>
+  </script>
 </body>
 </html>

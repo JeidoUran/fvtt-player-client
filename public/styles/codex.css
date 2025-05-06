@@ -8,6 +8,9 @@
     --opacity-button: 0.65;
     --color-button: #14141e;
     --color-button-rgba: #14141ea6;
+    --opacity-button-hover : 0.95;
+    --color-button-hover: #28283c;
+    --color-button-hover-rgba: #28283cf2;
 }
 
 #particles {

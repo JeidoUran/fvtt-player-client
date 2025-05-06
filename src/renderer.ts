@@ -198,6 +198,9 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
     const buttonColorAlphaInput = closeUserConfig.querySelector("#button-color-alpha") as HTMLInputElement;
     const buttonColorAlpha = buttonColorAlphaInput.valueAsNumber;
     const buttonColor = (closeUserConfig.querySelector("#button-color") as HTMLInputElement).value;
+    const buttonColorHoverAlphaInput = closeUserConfig.querySelector("#button-color-hover-alpha") as HTMLInputElement;
+    const buttonColorHoverAlpha = buttonColorHoverAlphaInput.valueAsNumber;
+    const buttonColorHover = (closeUserConfig.querySelector("#button-color-hover") as HTMLInputElement).value;
     const config = {
         accentColor,
         backgroundColor,
@@ -205,6 +208,8 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
         textColor,
         buttonColorAlpha,
         buttonColor,
+        buttonColorHoverAlpha,
+        buttonColorHover
     } as ThemeConfig;
 
     console.log(config);
@@ -312,6 +317,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         themeConfig.buttonColorAlpha = 0.65;
         themeConfig.buttonColor = "#14141e";
         themeConfig.accentColor = "#98e4f7ff";
+        themeConfig.buttonColorHoverAlpha = 0.95;
+        themeConfig.buttonColorHover = "#28283c";
         
         document.body.style.backgroundColor = "";
         applyThemeConfig(themeConfig);
@@ -616,6 +623,12 @@ function applyThemeConfig(config: ThemeConfig) {
     (document.querySelector("#accent-color") as HTMLInputElement).value = "#98e4f7";
     (document.querySelector("#background-color") as HTMLInputElement).value = "#0e1a23";
     (document.querySelector("#text-color") as HTMLInputElement).value = "#88c0a9";
+    const alphaInput = document.querySelector("#button-color-alpha") as HTMLInputElement;
+    alphaInput.valueAsNumber = 0.65;
+    (document.querySelector("#button-color") as HTMLInputElement).value = "#14141e";
+    const alphaHoverInput = document.querySelector("#button-color-hover-alpha") as HTMLInputElement;
+    alphaHoverInput.valueAsNumber = 0.95;
+    (document.querySelector("#button-color-hover") as HTMLInputElement).value = "#28283c";
     if (config.background) {
         document.body.style.backgroundImage = `url(${config.background})`;
         (document.querySelector("#background-image") as HTMLInputElement).value = config.background;
@@ -650,6 +663,20 @@ function applyThemeConfig(config: ThemeConfig) {
     const rgba = hexToRgba(config.buttonColor, config.buttonColorAlpha);
     document.documentElement.style.setProperty('--color-button-rgba', rgba);
     
+    if (config.buttonColorHoverAlpha != null) {  
+        const alphaStr = config.buttonColorHoverAlpha.toString();  
+    
+        document.documentElement.style.setProperty("--opacity-button-hover", alphaStr);  
+        const inputAlpha = document.querySelector("#button-color-hover-alpha") as HTMLInputElement;
+        inputAlpha.valueAsNumber = config.buttonColorHoverAlpha;
+    }
+    if (config.buttonColorHover) {  
+        document.documentElement.style.setProperty("--color-button-hover", config.buttonColorHover);  
+        (document.querySelector("#button-color-hover") as HTMLInputElement).value = config.buttonColorHover;  
+    }  
+    const rgbaHover = hexToRgba(config.buttonColorHover, config.buttonColorHoverAlpha);
+    document.documentElement.style.setProperty('--color-button-hover-rgba', rgbaHover);
+
     const enabled = config.particlesEnabled ?? true;
     const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
     checkbox.checked = enabled;
@@ -819,7 +846,25 @@ async function refreshAllServerInfos() {
 async function createGameList() {
     await migrateConfig();
     const config: AppConfig = await window.api.appConfig();
-    const themeConfig: ThemeConfig = await window.api.localThemeConfig();
+    const defaults: ThemeConfig = {
+        background: "",
+        backgrounds: [],
+        backgroundColor: "#0e1a23ff",
+        textColor: "#88c0a9ff",
+        accentColor: "#98e4f7ff",
+        buttonColorAlpha: 0.65,
+        buttonColor: "#14141e",
+        buttonColorHoverAlpha: 0.95,
+        buttonColorHover: "#28283c",
+        theme: undefined,
+        particlesEnabled: true,
+      };
+      
+      const themeConfig: ThemeConfig = {
+        ...defaults,
+        ...(await window.api.localThemeConfig())
+      };
+      
     games = config.games;
 
     addStyle(config.customCSS ?? "");

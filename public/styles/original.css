@@ -5,6 +5,9 @@
     --opacity-button: 0.00;
     --color-button: #000000;
     --color-button-rgba: #00000000;
+    --opacity-button-hover : 0.00;
+    --color-button-hover: #000000;
+    --color-button-hover-rgba: #00000000;
 }
 
 #particles {

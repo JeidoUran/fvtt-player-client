@@ -30,6 +30,8 @@ type ThemeConfig = {
     accentColor: string;
     buttonColorAlpha: number;
     buttonColor: string;
+    buttonColorHoverAlpha: number;
+    buttonColorHover: string;
     theme?: string;
     particlesEnabled?: boolean;
 }
