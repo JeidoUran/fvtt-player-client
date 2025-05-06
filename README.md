@@ -1,5 +1,7 @@
 # FVTT Desktop Client
-![Static Badge](https://img.shields.io/badge/Foundry%20Compatibility-v12%2Fv13-lightgreen)
+![Static Badge](https://img.shields.io/badge/Foundry-v11-lightgreen)
+![Static Badge](https://img.shields.io/badge/Foundry-v12-lightgreen)
+![Static Badge](https://img.shields.io/badge/Foundry-v13-lightgreen)
 ![Static Badge](https://img.shields.io/badge/License-MIT-yellow)
 
 A simple and lightweight, Chromium based, desktop client for Foundry VTT.
