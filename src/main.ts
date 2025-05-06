@@ -15,14 +15,44 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 /* Remove the comment (//) from the line below to ignore certificate errors (useful for self-signed certificates) */
 
 getAppConfig();
+getThemeConfig();
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
 function getUserData(): UserData {
+    const userDataPath = path.join(app.getPath("userData"), "userData.json");
     try {
-        const json = fs.readFileSync(path.join(app.getPath("userData"), "userData.json")).toString();
-        return JSON.parse(json);
+        const raw = fs.readFileSync(userDataPath).toString();
+        const data = JSON.parse(raw) as UserData;
+
+        // List of ThemeConfig keys
+        const themeKeys: (keyof ThemeConfig)[] = [
+          "background", "backgrounds", "backgroundColor",
+          "textColor", "accentColor", "buttonColorAlpha",
+          "buttonColor", "theme", "particlesEnabled"
+        ];
+
+        let migrated = false;
+        data.theme = data.theme || {} as ThemeConfig;
+
+        if (data.app) {
+          for (const key of themeKeys) {
+            if ((data.app as any)[key] !== undefined) {
+              // moving value
+              (data.theme as any)[key] = (data.app as any)[key];
+              delete (data.app as any)[key];
+              migrated = true;
+            }
+          }
+        }
+
+        if (migrated) {
+          // rewrite file
+          fs.writeFileSync(userDataPath, JSON.stringify(data, null, 2));
+        }
+
+        return data;
     } catch (e) {
-        return {};
+        return {} as UserData;
     }
 }
 
@@ -358,6 +388,17 @@ function getAppConfig(): AppConfig {
     }
 }
 
+function getThemeConfig(): ThemeConfig {
+    try {
+        const json = fs.readFileSync(path.join(app.getAppPath(), "config.json")).toString();
+        console.log(json);
+        let themeConfig = JSON.parse(json) as ThemeConfig;
+        return themeConfig;
+    } catch (e) {
+        return {} as ThemeConfig;
+    }
+}
+
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
     const currentData = getUserData();
     currentData.app = {...currentData.app, ...data};
@@ -370,6 +411,21 @@ ipcMain.handle("local-app-config", () => {
         return userData.app ?? {} as AppConfig;
     } catch (e) {
         return {} as AppConfig;
+    }
+});
+
+ipcMain.on("save-theme-config", (_e, data: ThemeConfig) => {
+    const currentData = getUserData();
+    currentData.theme = {...currentData.theme, ...data};
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData));
+});
+ipcMain.handle("theme-config", getThemeConfig);
+ipcMain.handle("local-theme-config", () => {
+    try {
+        const userData = getUserData();
+        return userData.theme ?? {} as ThemeConfig;
+    } catch (e) {
+        return {} as ThemeConfig;
     }
 });
 

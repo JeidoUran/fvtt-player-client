@@ -103,25 +103,15 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
     preventMenuClose = false;
 
     const closeUserConfig = e.target.closest(".app-configuration") as HTMLDivElement;
-    const background = (closeUserConfig.querySelector("#background-image") as HTMLInputElement).value;
-    const accentColor = (closeUserConfig.querySelector("#accent-color") as HTMLInputElement).value;
-    const backgroundColor = (closeUserConfig.querySelector("#background-color") as HTMLInputElement).value;
-    const textColor = (closeUserConfig.querySelector("#text-color") as HTMLInputElement).value;
     const cachePath = (closeUserConfig.querySelector("#cache-path") as HTMLInputElement).value;
     const autoCacheClear = (closeUserConfig.querySelector("#clear-cache-on-close") as HTMLInputElement).checked;
     const ignoreCertificateErrors = (closeUserConfig.querySelector("#insecure-ssl") as HTMLInputElement).checked;
     const discordRP = (closeUserConfig.querySelector("#discord-rp") as HTMLInputElement).checked;
-    const particlesEnabled = (closeUserConfig.querySelector("#particles-button") as HTMLInputElement).checked;
     const config = {
-        accentColor,
-        backgroundColor,
-        background,
-        textColor,
         cachePath,
         autoCacheClear,
         ignoreCertificateErrors,
         discordRP,
-        particlesEnabled
     } as AppConfig;
 
     console.log(config);
@@ -170,6 +160,91 @@ document.querySelector("#clear-cache").addEventListener("click", async () => {
     showNotification("Cache cleared");
 });
 
+document.querySelector("#save-theme-config").addEventListener("click", (e) => {
+    if (!(e.target instanceof Element))
+        return;
+    
+    const themeConfigMenu = document.querySelector(".theme-configuration") as HTMLDivElement;
+    
+    if (themeConfigMenu && !preventMenuClose) {
+        themeConfigMenu.classList.add('hidden2');
+
+        const computedStyle = window.getComputedStyle(themeConfigMenu);
+        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+
+        if (transitionDuration > 0) {
+            themeConfigMenu.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'opacity') {
+                    themeConfigMenu.classList.remove('show');
+                    themeConfigMenu.classList.remove('flex-display');
+                    themeConfigMenu.classList.add('hidden-display');
+                    themeConfigMenu.removeEventListener('transitionend', handler);
+                }
+            });
+        } else {
+            themeConfigMenu.classList.remove('show');
+            themeConfigMenu.classList.remove('flex-display');
+            themeConfigMenu.classList.add('hidden-display');
+        }
+    }
+
+    preventMenuClose = false;
+
+    const closeUserConfig = e.target.closest(".theme-configuration") as HTMLDivElement;
+    const background = (closeUserConfig.querySelector("#background-image") as HTMLInputElement).value;
+    const accentColor = (closeUserConfig.querySelector("#accent-color") as HTMLInputElement).value;
+    const backgroundColor = (closeUserConfig.querySelector("#background-color") as HTMLInputElement).value;
+    const textColor = (closeUserConfig.querySelector("#text-color") as HTMLInputElement).value;
+    const buttonColorAlpha = (closeUserConfig.querySelector("#button-color-alpha") as HTMLInputElement).value;
+    const buttonColor = (closeUserConfig.querySelector("#button-color") as HTMLInputElement).value;
+    const config = {
+        accentColor,
+        backgroundColor,
+        background,
+        textColor,
+        buttonColorAlpha,
+        buttonColor,
+    } as ThemeConfig;
+
+    console.log(config);
+    window.api.saveThemeConfig(config);
+    applyThemeConfig(config);
+    showNotification("Changes saved");
+});
+
+const cancelThemeButton = document.querySelector("#cancel-theme-config") as HTMLButtonElement;
+
+if (cancelThemeButton) {
+    cancelThemeButton.addEventListener("click", async () => {
+        const themeConfig = await window.api.localThemeConfig();
+        applyThemeConfig(themeConfig);
+        showNotification("Changes canceled");
+    
+        const themeConfigMenu = document.querySelector(".theme-configuration") as HTMLDivElement;
+        if (themeConfigMenu) {
+            themeConfigMenu.classList.add('hidden2');
+
+            const computedStyle = window.getComputedStyle(themeConfigMenu);
+            const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+    
+            if (transitionDuration > 0) {
+                themeConfigMenu.addEventListener('transitionend', function handler(e) {
+                    if (e.propertyName === 'opacity') {
+                        themeConfigMenu.classList.remove('show');
+                        themeConfigMenu.classList.remove('flex-display');
+                        themeConfigMenu.classList.add('hidden-display');
+                        themeConfigMenu.removeEventListener('transitionend', handler);
+                    }
+                });
+            } else {
+                themeConfigMenu.classList.remove('show');
+                themeConfigMenu.classList.remove('flex-display');
+                themeConfigMenu.classList.add('hidden-display');
+            }
+        }
+    });
+}
+
 document.addEventListener("click", (event) => {
     const target = (event.target as HTMLElement).closest(".toggle-password") as HTMLButtonElement | null;
     if (!target) return;
@@ -196,23 +271,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   
     const appConfig: AppConfig = await window.api.localAppConfig();
+    const themeConfig: ThemeConfig = await window.api.localThemeConfig();
 
-    const selectedTheme = appConfig.theme ?? "codex";
+    const selectedTheme = themeConfig.theme ?? "codex";
     themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
     themeSelector.value = selectedTheme;
 
     themeSelector.addEventListener("change", async () => {
       const newTheme = themeSelector.value;
       themeStylesheet.setAttribute("href", `styles/${newTheme}.css`);
-      const appConfigMenu = document.querySelector('.app-configuration') as HTMLDivElement;
-        if (appConfigMenu) {
-            appConfigMenu.classList.add('flex-display');
-            appConfigMenu.classList.remove('hidden2');
-            appConfigMenu.classList.remove('hidden-display');
-            appConfigMenu.classList.add('show');
+      const themeConfigMenu = document.querySelector('.theme-configuration') as HTMLDivElement;
+        if (themeConfigMenu) {
+            themeConfigMenu.classList.add('flex-display');
+            themeConfigMenu.classList.remove('hidden2');
+            themeConfigMenu.classList.remove('hidden-display');
+            themeConfigMenu.classList.add('show');
         }
 
-      appConfig.theme = newTheme;
+      themeConfig.theme = newTheme;
       preventMenuClose = true;
       await window.api.saveAppConfig(appConfig);
       showNotification("Theme changed");
@@ -227,14 +303,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         const confirmed = await safePrompt("Are you sure you want to reset the appearance settings? This will erase your custom colors and backgrounds.");
         if (!confirmed) return;
 
-        appConfig.background = "";
-        appConfig.backgrounds = [];
-        appConfig.backgroundColor = "#0e1a23ff";
-        appConfig.textColor = "#88c0a9ff";
-        appConfig.accentColor = "#98e4f7ff";
+        themeConfig.background = "";
+        themeConfig.backgrounds = [];
+        themeConfig.backgroundColor = "#0e1a23ff";
+        themeConfig.textColor = "#88c0a9ff";
+        themeConfig.accentColor = "#98e4f7ff";
 
         document.body.style.backgroundColor = "";
-        applyAppConfig(appConfig);
+        applyThemeConfig(themeConfig);
 
         await window.api.saveAppConfig(appConfig);
         showNotification("Appearance settings reset");
@@ -246,18 +322,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         const confirmed = await safePrompt("Are you sure you want to reset all settings? This will erase your background, custom CSS, and revert your theme to Codex (games are not affected).");
         if (!confirmed) return;
 
-        appConfig.background = "";
-        appConfig.backgrounds = [];
-        appConfig.backgroundColor = "#0e1a23ff";
-        appConfig.textColor = "#88c0a9ff";
-        appConfig.accentColor = "#98e4f7ff";
         appConfig.cachePath = undefined;
         appConfig.autoCacheClear = undefined;
         appConfig.customCSS = undefined;
         appConfig.ignoreCertificateErrors = undefined;
         appConfig.discordRP = false;
-        appConfig.theme = "codex";
-        appConfig.particlesEnabled = true;
 
         themeStylesheet.setAttribute("href", "styles/codex.css");
         themeSelector.value = "codex";
@@ -377,6 +446,7 @@ function toggleConfigureGame(event: MouseEvent) {
     });
 
     document.getElementById("open-config")?.addEventListener("click", () => toggleMenu(".app-configuration"));
+    document.getElementById("open-theme")?.addEventListener("click", () => toggleMenu(".theme-configuration"));
     document.getElementById("open-help")?.addEventListener("click", () => toggleMenu(".help"));
     document.getElementById("open-export")?.addEventListener("click", async () => {
         await toggleMenu(".config-export", async () => {
@@ -462,7 +532,6 @@ async function createGameItem(game: GameConfig) {
 
     li.id = game.cssId;
     li.setAttribute("data-game-id", String(game.id ?? game.name));
-
     (li.querySelector(".user-name") as HTMLInputElement).value = loginData.user;
     (li.querySelector(".user-password") as HTMLInputElement).value = loginData.password;
     (li.querySelector(".admin-password") as HTMLInputElement).value = loginData.adminPassword;
@@ -527,6 +596,22 @@ async function createGameItem(game: GameConfig) {
 }
 
 function applyAppConfig(config: AppConfig) {
+    if (config.cachePath) {
+        (document.querySelector("#cache-path") as HTMLInputElement).value = config.cachePath;
+        window.api.setCachePath(config.cachePath);
+    }
+    if (config.ignoreCertificateErrors) {
+        (document.querySelector("#insecure-ssl") as HTMLInputElement).checked = config.ignoreCertificateErrors;
+    }
+    if (config.autoCacheClear) {
+        (document.querySelector("#clear-cache-on-close") as HTMLInputElement).checked = config.autoCacheClear;
+    }
+    if (config.discordRP) {
+        (document.querySelector("#discord-rp") as HTMLInputElement).checked = config.discordRP;
+    }
+}
+
+function applyThemeConfig(config: ThemeConfig) {
     (document.querySelector("#accent-color") as HTMLInputElement).value = "#98e4f7";
     (document.querySelector("#background-color") as HTMLInputElement).value = "#0e1a23";
     (document.querySelector("#text-color") as HTMLInputElement).value = "#88c0a9";
@@ -550,19 +635,6 @@ function applyAppConfig(config: AppConfig) {
         document.documentElement.style.setProperty("--color-accent", config.accentColor);
         (document.querySelector("#accent-color") as HTMLInputElement).value = config.accentColor.substring(0, 7);
     }
-    if (config.cachePath) {
-        (document.querySelector("#cache-path") as HTMLInputElement).value = config.cachePath;
-        window.api.setCachePath(config.cachePath);
-    }
-    if (config.ignoreCertificateErrors) {
-        (document.querySelector("#insecure-ssl") as HTMLInputElement).checked = config.ignoreCertificateErrors;
-    }
-    if (config.autoCacheClear) {
-        (document.querySelector("#clear-cache-on-close") as HTMLInputElement).checked = config.autoCacheClear;
-    }
-    if (config.discordRP) {
-        (document.querySelector("#discord-rp") as HTMLInputElement).checked = config.discordRP;
-    }
     const enabled = config.particlesEnabled ?? true;
     const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
     checkbox.checked = enabled;
@@ -572,7 +644,6 @@ function applyAppConfig(config: AppConfig) {
         particles.stopParticles();
     }
 }
-
 
 function addStyle(styleString: string) {
     const style = document.createElement('style');
@@ -719,13 +790,9 @@ async function refreshAllServerInfos() {
 
 async function createGameList() {
     await migrateConfig();
-    let config: AppConfig;
-    try {
-        config = await window.api.appConfig();
-        games = config.games;
-    } catch (e) {
-        console.log("Failed to load config.json");
-    }
+    const config: AppConfig = await window.api.appConfig();
+    const themeConfig: ThemeConfig = await window.api.localThemeConfig();
+    games = config.games;
 
     addStyle(config.customCSS ?? "");
 
@@ -757,6 +824,7 @@ async function createGameList() {
     }
 
     applyAppConfig(config);
+    applyThemeConfig(themeConfig);
 
     gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 

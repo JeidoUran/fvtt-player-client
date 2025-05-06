@@ -5,6 +5,7 @@
     --color-background: #0e1a23ff;
     --color-accent: #98e4f7ff;
     --color-text-primary: #88c0a9ff;
+    --color-button: #14141ea6;
 }
 
 #particles {
@@ -74,7 +75,7 @@ body::after {
     overflow-y: auto;
 }
 
-input:not([type=color], [type=checkbox]) {
+input:not([type=color], [type=checkbox], [type=range]) {
     background-color: transparent;
     border: none;
     border-bottom: 1px solid var(--color-text-primary);
@@ -128,7 +129,7 @@ button:not(.game-button) {
     font-size: 18px;
 	border: 1px solid rgba(255, 255, 255, 0.15);
 	border-radius: 8px;
-    background-color: rgba(20, 20, 30, 0.65);
+    background-color: var(--color-button);
 	padding: 0.7rem 1rem;
     transition: all 0.3s ease;
 }
@@ -161,7 +162,8 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     text-decoration: none;
 }
 
-.app-configuration button {
+.app-configuration button,
+.theme-configuration button {
 	padding: 0.7rem 0.5rem;
 }
 
@@ -195,7 +197,7 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     box-shadow: 0 0 5px black;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    background-color: rgba(20, 20, 30, 0.65);
+    background-color: var(--color-button);
 }
 
 .hidden {
@@ -242,6 +244,7 @@ table, th, td {
     justify-content: space-between;
     font-family: 'Sorts Mill Goudy', serif;
     padding: 0.5rem;
+    align-items: center;
 }
 
 .help {
@@ -264,7 +267,8 @@ table, th, td {
     right: 2rem;
 }
 
-.app-configuration {
+.app-configuration,
+.theme-configuration {
     box-shadow: 0 0 5px black;
     transform: scale(0.98);
     flex-direction: column;
@@ -276,12 +280,14 @@ table, th, td {
     border-radius: 12px;
 }
 
-.app-configuration.show {
+.app-configuration.show,
+.theme-configuration.show {
     transform: scale(1);
     opacity: 1;
 }
 
-.app-configuration.hidden2 {
+.app-configuration.hidden2,
+.theme-configuration.hidden2 {
     transform: scale(0.98);
     opacity: 0;
 }

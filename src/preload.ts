@@ -31,6 +31,8 @@ export type ContextBridgeApi = {
     appVersion: () => Promise<string>;
     appConfig: () => Promise<AppConfig>;
     localAppConfig: () => Promise<AppConfig>;
+    themeConfig: () => Promise<ThemeConfig>;
+    localThemeConfig: () => Promise<ThemeConfig>;
     cachePath: () => Promise<string>;
     setCachePath: (cachePath: string) => void;
     returnToServerSelect: () => void;
@@ -38,6 +40,7 @@ export type ContextBridgeApi = {
     openGame: (id: number | string, serverName: string) => void;
     clearCache: () => void;
     saveAppConfig: (data: AppConfig) => void;
+    saveThemeConfig: (data: ThemeConfig) => void;
 }
 const exposedApi: ContextBridgeApi = {
     // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -58,6 +61,12 @@ const exposedApi: ContextBridgeApi = {
     },
     localAppConfig() {
         return ipcRenderer.invoke("local-app-config") as Promise<AppConfig>;
+    },
+    themeConfig() {
+        return ipcRenderer.invoke("theme-config") as Promise<ThemeConfig>;
+    },
+    localThemeConfig() {
+        return ipcRenderer.invoke("local-theme-config") as Promise<ThemeConfig>;
     },
     appVersion() {
         return ipcRenderer.invoke("app-version") as Promise<string>;
@@ -82,6 +91,9 @@ const exposedApi: ContextBridgeApi = {
     },
     saveAppConfig(data: AppConfig) {
         ipcRenderer.send("save-app-config", data);
+    },
+    saveThemeConfig(data: ThemeConfig) {
+        ipcRenderer.send("save-theme-config", data);
     }
 
 

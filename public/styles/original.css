@@ -44,7 +44,7 @@ body {
     overflow-y: auto;
 }
 
-input:not([type=color], [type=checkbox]) {
+input:not([type=color], [type=checkbox], [type=range]) {
     background-color: transparent;
     backdrop-filter: blur(5px);
     border: none;
@@ -237,6 +237,7 @@ table, th, td {
 .field {
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 .help {
@@ -256,7 +257,8 @@ table, th, td {
     right: 2rem;
 }
 
-.app-configuration {
+.app-configuration,
+.theme-configuration {
     box-shadow: 0 0 5px black;
     flex-direction: column;
     border: 2px solid var(--color-text-primary);
@@ -265,11 +267,13 @@ table, th, td {
     pointer-events: all;
 }
 
-.app-configuration.show {
+.app-configuration.show,
+.theme-configuration.show {
     opacity: 1;
 }
 
-.app-configuration.hidden2 {
+.app-configuration.hidden2,
+.theme-configuration.hidden2 {
     opacity: 0;
 }
 

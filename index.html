@@ -18,10 +18,12 @@
     <div class="button-controls">
         <div class="tooltip-wrapper"><button class="config-button" id="open-config"><i class="fa-solid fa-gear"></i></button>
         <div class="tooltip">Client Settings</div></div>
+        <div class="tooltip-wrapper"><button class="config-button" id="open-theme"><i class="fa-solid fa-brush"></i></button>
+        <div class="tooltip">Theme Editor</div></div> 
         <div class="tooltip-wrapper"><button class="config-button" id="open-help"><i class="fa-solid fa-question-circle"></i></button>
         <div class="tooltip">Help</div></div>
         <div class="tooltip-wrapper"><button class="config-button" id="open-export"><i class="fa-solid fa-file-export"></i></button>
-        <div class="tooltip">Export Settings</div></div>      
+        <div class="tooltip">Export Settings</div></div>
     </div>
 
     <div class="update-available hidden2">
@@ -72,21 +74,6 @@
         </div>
 
         <div class="app-configuration hidden2 hidden-display">
-            <div class="background-color-field field">
-                <label for="background-color">Background Color</label>
-                <input id="background-color" type="color">
-            </div>
-            <div class="text-color-field field">
-                <label for="text-color">Text Color</label>
-                <input class="no-text" id="text-color" type="color">
-            </div>
-            <div class="accent-color-field field">
-                <label for="accent-color">Accent Color</label>
-                <input class="no-text" id="accent-color" type="color">
-            </div>
-            <div class="background-image-field">
-                <input id="background-image" placeholder="Background Image" type="text" value="">
-            </div>
             <div class="cache-path-field">
                 <input id="cache-path" placeholder="Cache Path" type="text" value="">
             </div>
@@ -107,6 +94,35 @@
                 <div class="tooltip">Requires Foundry VTT Rich Presence module installed per server<br>Turning this option off disables Discord Rich Presence globally, regardless of each server's module settings</div></div>
             </div>
             <div class="download-link">Download the required module <a href="https://github.com/JeidoUran/fvtt-rich-presence" target="_blank">here</a>!</div>
+            <div class="button-group">
+                <button id="save-app-config">Save</button>
+                <button id="cancel-app-config">Cancel</button>
+                <button id="reset-all">Reset Settings</button>
+                <button id="clear-cache">Clear Cache</button>
+            </div>
+        </div>
+
+        <div class="theme-configuration hidden2 hidden-display">
+            <div class="background-color-field field">
+                <label for="background-color">Background Color</label>
+                <input id="background-color" type="color">
+            </div>
+            <div class="text-color-field field">
+                <label for="text-color">Text Color</label>
+                <input class="no-text" id="text-color" type="color">
+            </div>
+            <div class="accent-color-field field">
+                <label for="accent-color">Accent Color</label>
+                <input class="no-text" id="accent-color" type="color">
+            </div>
+            <div class="button-color-field field">
+                <label for="button-color">Button Color</label>
+                <input type="range" id="button-color-alpha" onchange="updateColorAlpha(this.value);" min="0" max="1" step="0.1" value="1">
+                <input class="no-text" id="button-color" type="color">
+            </div>
+            <div class="background-image-field">
+                <input id="background-image" placeholder="Background Image" type="text" value="">
+            </div>
             <div class="theme-selector-field field">
                 <label for="theme-selector">Theme</label>
                 <select id="theme-selector">
@@ -120,11 +136,9 @@
                 <span class="custom-checkbox"></span>
             </div>
             <div class="button-group">
-                <button id="save-app-config">Save</button>
-                <button id="cancel-app-config">Cancel</button>
+                <button id="save-theme-config">Save</button>
+                <button id="cancel-theme-config">Cancel</button>
                 <button id="reset-appearance">Reset Appearance</button>
-                <button id="reset-all">Reset Settings</button>
-                <button id="clear-cache">Clear Cache</button>
             </div>
         </div>
 
@@ -217,5 +231,10 @@
 </div>
 <div id="tooltip-layer"></div>
 <script src="/src/renderer.ts" type="module"></script>
+<script>
+    function updateColorAlpha (alpha) {
+        document.getElementById('button-color').style.opacity = alpha;
+    }
+</script>
 </body>
 </html>

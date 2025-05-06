@@ -15,25 +15,30 @@ type GameConfig = {
 
 type AppConfig = {
     games: GameConfig[];
-    background: string;
-    backgrounds?: string[];
-    backgroundColor: string;
-    textColor: string;
-    accentColor: string;
     cachePath?: string;
     autoCacheClear?: boolean;
     customCSS?: string;
     ignoreCertificateErrors?: boolean;
     discordRP?: boolean;
+}
+
+type ThemeConfig = {
+    background: string;
+    backgrounds?: string[];
+    backgroundColor: string;
+    textColor: string;
+    accentColor: string;
+    buttonColorAlpha: string;
+    buttonColor: string;
     theme?: string;
     particlesEnabled?: boolean;
 }
-
 
 type UserData = {
     cachePath?: string;
     [index: GameId]: GameUserData;
     app?: AppConfig;
+    theme?: ThemeConfig;
 }
 
 type GameUserData = {
