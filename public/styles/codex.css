@@ -388,24 +388,20 @@ table, th, td {
     word-break: break-word;
 }
 
-/* 1. Cible la scrollbar du conteneur d’export */
 .config-export::-webkit-scrollbar {
-    width: 8px;                /* largeur fine */
-    background: transparent;   /* pas de track visible */
+    width: 8px;
+    background: transparent;
   }
   
-  /* 2. Le “rail” (track) — on le rend quasiment invisible */
   .config-export::-webkit-scrollbar-track {
     background: transparent;
   }
   
-  /* 3. Le “thumb” (le curseur) — plus discret */
   .config-export::-webkit-scrollbar-thumb {
-    background-color: var(--color-text-primary);  /* clair et semi-transparent */
-    border-radius: 4px;                         /* arrondis doux */
+    background-color: var(--color-text-primary);
+    border-radius: 4px; 
   }
   
-  /* 4. Survol du thumb — légèrement éclairci */
   .config-export::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255,255,255,0.25);
   }

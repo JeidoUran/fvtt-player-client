@@ -353,6 +353,8 @@ table, th, td {
 }
 
 .config-export {
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 0 5px black;
     flex-direction: column;
     border: 2px solid var(--color-text-primary);
@@ -363,7 +365,27 @@ table, th, td {
 
 .config-export code {
     user-select: text;
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
+
+.config-export::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
+  }
+  
+  .config-export::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .config-export::-webkit-scrollbar-thumb {
+    background-color: var(--color-text-primary);
+  }
+  
+  .config-export::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255,255,255,0.25);
+  }
 
 .update-available {
     position: absolute;
