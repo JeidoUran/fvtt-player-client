@@ -337,12 +337,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         appConfig.autoCacheClear = undefined;
         appConfig.customCSS = undefined;
         appConfig.ignoreCertificateErrors = undefined;
-        appConfig.discordRP = false;
+        appConfig.discordRP = undefined;
 
         applyAppConfig(appConfig);
 
         await window.api.saveAppConfig(appConfig);
-        showNotification("Client settings reset"); //TODO: Doesn't seem to be resetting anything
+        showNotification("Client settings reset");
     });
   }
 
@@ -604,6 +604,10 @@ async function createGameItem(game: GameConfig) {
 }
 
 function applyAppConfig(config: AppConfig) {
+    (document.querySelector("#cache-path") as HTMLInputElement).value = "";
+    (document.querySelector("#insecure-ssl") as HTMLInputElement).checked = false;
+    (document.querySelector("#clear-cache-on-close") as HTMLInputElement).checked = false;
+    (document.querySelector("#discord-rp") as HTMLInputElement).checked = false;
     if (config.cachePath) {
         (document.querySelector("#cache-path") as HTMLInputElement).value = config.cachePath;
         window.api.setCachePath(config.cachePath);
