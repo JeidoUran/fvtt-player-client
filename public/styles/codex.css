@@ -129,7 +129,7 @@ input[type=color]::-moz-color-swatch {
     border: none;
 }
 
-input:focus {
+input:not([type=color], [type=checkbox], [type=range]):focus {
     border-bottom: 1px solid var(--color-accent);
 }
 
@@ -147,7 +147,7 @@ button:not(.game-button) {
 }
 
 button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
-    background: rgba(40, 40, 60, 0.95);
+    background: var(--color-button-hover-rgba);
     box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
     text-shadow: 0 0 4px var(--color-accent);
     text-decoration: none;
@@ -430,7 +430,7 @@ a {
 }
 
 .game-title-bar .config-button-wrapper:hover {
-	background: rgba(40, 40, 60, 0.95);
+	background: var(--color-button-hover-rgba);
 	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
 	text-shadow: 0 0 4px var(--color-accent);
 	text-decoration: none;
@@ -664,7 +664,7 @@ select#theme-selector option {
 
 .game-main-button:hover {
     transform: scale(1.03);
-	background: rgba(40, 40, 60, 0.95);
+	background: var(--color-button-hover-rgba);
 	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
 	text-shadow: 0 0 3px var(--color-accent);
 	text-decoration: none;
@@ -867,7 +867,6 @@ input[type="range"] {
   /* Removes default focus */
   input[type="range"]:focus {
     outline: none;
-    border-bottom: none;
   }
   
   /******** Chrome, Safari, Opera and Edge Chromium styles ********/
