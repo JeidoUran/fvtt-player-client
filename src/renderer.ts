@@ -88,14 +88,6 @@ document.querySelector("#add-game").addEventListener("click", async () => {
     showNotification("Game added");
 });
 
-document.querySelector("#copy-button").addEventListener("click", async () => {
-    const config = await window.api.localAppConfig();
-    const text = JSON.stringify(config, null, 4);
-    navigator.clipboard.writeText(text);
-    showNotification("Settings copied");
-});
-
-
 const gameItemList = document.querySelector("#game-list");
 const gameItemTemplate = document.querySelector("template").content.querySelector("li");
 
@@ -576,25 +568,175 @@ function toggleConfigureGame(event: MouseEvent) {
     document.getElementById("open-config")?.addEventListener("click", () => toggleMenu(".app-configuration"));
     document.getElementById("open-theme")?.addEventListener("click", () => toggleMenu(".theme-configuration"));
     document.getElementById("open-help")?.addEventListener("click", () => toggleMenu(".help"));
-    document.getElementById("open-export")?.addEventListener("click", async () => {
-        await toggleMenu(".config-export", async () => {
-          const code        = document.getElementById("export-text");
-          const app   = await window.api.localAppConfig();
-          const theme = await window.api.localThemeConfig();
-      
-          const exportObj = {
-            app,
-            theme
-          };
-      
-          const text = JSON.stringify(exportObj, null, 4);
-          if (code) code.textContent = text;
-        });
-      });      
-    document.getElementById("close-export")?.addEventListener("click", () => toggleMenu(".config-export"));
+    document.getElementById("open-share")?.addEventListener("click", async () => {
+        await toggleMenu("#share-menu", async () => {
+            // Export Settings
+            document.getElementById("export-settings")!.addEventListener("click", async () => {
+                const saveAsBtn = document.getElementById("share-save-as") as HTMLButtonElement;
+                saveAsBtn.style.display = "block";
+                const copyBtn = document.getElementById("share-copy") as HTMLButtonElement;
+                copyBtn.style.display = "block";
+                const app = await window.api.localAppConfig();
+                const theme = await window.api.localThemeConfig();
+                const full = { app, theme };
+                document.getElementById("share-output")!.textContent = JSON.stringify(full, null, 2);
+            });
+            
+            // Export Theme
+            document.getElementById("export-theme")!.addEventListener("click", async () => {
+                const saveAsBtn = document.getElementById("share-save-as") as HTMLButtonElement;
+                saveAsBtn.style.display = "block";
+                const copyBtn = document.getElementById("share-copy") as HTMLButtonElement;
+                copyBtn.style.display = "block";
+                const themeConfig = await window.api.localThemeConfig();
+                document.getElementById("share-output")!.textContent = JSON.stringify(themeConfig, null, 2);
+            });
+            // Appliquer l’import (paramétrable selon ce qu’on colle)
+            document.getElementById("share-apply-import")!.addEventListener("click", async () => {
+                const txt = (document.getElementById("share-input") as HTMLTextAreaElement).value;
+                let data: any;
+                try {
+                  data = JSON.parse(txt);
+                } catch {
+                  await safePrompt("Invalid JSON data", { mode: 'alert' });
+                  return;
+                }
+              
+                // full settings import
+                if (data.app && data.theme) {
+                  await window.api.saveAppConfig(data.app);
+                  await window.api.saveThemeConfig(data.theme);
+                  applyAppConfig(data.app);
+                  applyThemeConfig(data.theme);
+                  await createGameList();
+                  return showNotification("Settings imported");
+                }
+              
+                // theme-only import
+                if (data.theme) {
+                  await window.api.saveThemeConfig(data.theme);
+                  applyThemeConfig(data.theme);
+                  return showNotification("Theme imported");
+                }
+              
+                await safePrompt("Format non reconnu (Settings ou Theme attendu)", { mode: 'alert' });
+              });              
+            
+              const fileInput = document.getElementById("import-file") as HTMLInputElement;
 
+              document.getElementById("import-settings")!.addEventListener("click", () => {
+                fileInput.onchange = async () => {
+                  const file = fileInput.files![0];
+                  const txt  = await file.text();
+                  let data: any;
+                  try {
+                    data = JSON.parse(txt);
+                  } catch {
+                    await safePrompt("Invalid JSON data", { mode: 'alert' });
+                    return;
+                  }
+                
+                  // full settings import
+                  if (data.app && data.theme) {
+                    await window.api.saveAppConfig(data.app);
+                    await window.api.saveThemeConfig(data.theme);
+                    applyAppConfig(data.app);
+                    applyThemeConfig(data.theme);
+                    await createGameList();
+                    return showNotification("Settings imported");
+                  }
+                
+                  // theme-only import
+                  if (data.theme) {
+                    await window.api.saveThemeConfig(data.theme);
+                    applyThemeConfig(data.theme);
+                    return showNotification("Theme imported");
+                  }
+                
+                  await safePrompt("Format non reconnu (Settings ou Theme attendu)", { mode: 'alert' });
+                };
+                fileInput.click();
+              });
+                // Récupère le bouton
+                const saveAsBtn = document.getElementById("share-save-as") as HTMLButtonElement;
+
+                // Quand on clique dessus…
+                saveAsBtn.addEventListener("click", () => {
+                // 1) Récupère le JSON déjà affiché dans <pre id="share-output">
+                const outputEl = document.getElementById("share-output") as HTMLElement;
+                const text = outputEl.textContent ?? "";
+                if (!text) {
+                    return showNotification("Nothing to save");
+                }
+
+                // 2) Crée un Blob JSON
+                const blob = new Blob([text], { type: "application/json" });
+
+                // 3) Crée un URL temporaire
+                const url = URL.createObjectURL(blob);
+
+                // 4) Crée dynamiquement un <a> pour forcer le download
+                const a = document.createElement("a");
+                a.href = url;
+
+                // Choisis un nom de fichier selon le contenu du JSON
+                // On teste si c'est un export complet (app+theme) ou un thème seul
+                let filename = "export";
+                try {
+                    const data = JSON.parse(text);
+                    if (data.app && data.theme) {
+                    filename = "settings";
+                    } else {
+                    filename = "theme";
+                    }
+                } catch {
+                    filename = "export";
+                }
+                a.download = `${filename}.json`;
+
+                // 5) Lance le download et nettoie
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showNotification(`Saved ${a.download}`);
+                });
+                document.querySelectorAll<HTMLButtonElement>('.tab-button').forEach(btn => {
+                    const tabId = btn.getAttribute('data-tab')
+                    if (!tabId) return
+                    btn.addEventListener('click', e => switchTab(e as MouseEvent, tabId))
+                })
+            });
+        }); 
+    document.getElementById("close-share")?.addEventListener("click", () => toggleMenu("#share-menu"));
+    document.querySelector("#share-copy").addEventListener("click", async () => {
+        const txt = document.getElementById("share-output")!.textContent;
+        navigator.clipboard.writeText(txt);
+        showNotification("Settings copied");
+    });
 });
   
+function switchTab(event: MouseEvent, tabId: string): void {
+    event.preventDefault()
+    const tabs = document.querySelectorAll<HTMLButtonElement>('.tab-button')
+    const contents = document.querySelectorAll<HTMLElement>('.tab-content')
+  
+    tabs.forEach(t => t.classList.remove('active'))
+    contents.forEach(c => {
+      c.classList.remove('active');
+      c.style.display = 'none';
+    });
+  
+    (event.currentTarget as HTMLElement).classList.add('active')
+  
+    const target = document.getElementById(`tab-${tabId}`)
+    if (!target) return
+    target.style.display = 'block'
+    void target.offsetWidth // force repaint
+    target.classList.add('active')
+  }
+
 function safePrompt(message: string, options?: { mode?: 'confirm' | 'alert' }): Promise<boolean> {
     return new Promise((resolve) => {
         const confirmBox = document.getElementById("custom-confirm") as HTMLDivElement;

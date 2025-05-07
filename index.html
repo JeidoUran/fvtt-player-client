@@ -22,8 +22,8 @@
         <div class="tooltip">Theme Editor</div></div> 
         <div class="tooltip-wrapper"><button class="config-button" id="open-help"><i class="fa-solid fa-question-circle"></i></button>
         <div class="tooltip">Help</div></div>
-        <div class="tooltip-wrapper"><button class="config-button" id="open-export"><i class="fa-solid fa-file-export"></i></button>
-        <div class="tooltip">Export Settings</div></div>
+        <div class="tooltip-wrapper"><button class="config-button" id="open-share"><i class="fa-solid fa-share-from-square"></i></button>
+        <div class="tooltip">Share</div></div>
     </div>
 
     <div class="update-available hidden2">
@@ -218,11 +218,28 @@
             </div>
         </div>
 
-        <div class="config-export hidden2 hidden-display">
-            <h3>Put this in your <code>config.json</code> file to include it installation-wide:</h3>
-            <pre><code id="export-text"></code></pre>
-            <button id="copy-button">Copy</button>
-            <button id="close-export">Close</button>
+        <div class="share-menu config-export hidden2 hidden-display" id="share-menu">
+            <div class="tabs-wrapper">
+                <button class="tab-button active" data-tab="import">Import</button>
+                <button class="tab-button"       data-tab="export">Export</button>
+            </div>
+
+            <section id="tab-import" class="tab-content active">
+                <textarea id="share-input" placeholder="Paste JSON here…"></textarea>
+                <button id="share-apply-import">Import Text</button>
+                <input type="file" id="import-file" accept=".json" style="display:none"/>
+                <button id="import-settings">Import File</button>
+            </section>
+
+            <section id="tab-export" class="tab-content">
+                <button id="export-settings">Export Settings</button>
+                <button id="export-theme">Export Theme</button>
+
+                <pre><code id="share-output" class="share-output"></code></pre>
+
+                <button id="share-save-as" style="display: none;">Save As…</button>
+                <button id="share-copy" style="display: none;">Copy to Clipboard</button>
+            </section>
         </div>
     </section>
 

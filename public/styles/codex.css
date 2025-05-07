@@ -367,9 +367,27 @@ table, th, td {
     display: block;
 }
 
-.config-export {
-    max-height: 90vh;
-    overflow-y: auto;
+
+::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
+}
+  
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+  
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-text-primary);
+    border-radius: 4px; 
+}
+  
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255,255,255,0.25);
+}
+
+  .share-menu {
+    max-height: 75vh;
     box-shadow: 0 0 5px black;
     transform: scale(0.98);
     flex-direction: column;
@@ -379,31 +397,28 @@ table, th, td {
     background: var(--color-background);
     pointer-events: all;
     border-radius: 12px;
-}
+  }
+  .share-output, .share-input {
+    max-height: 35vh;
+    overflow-y: auto;
+    width: auto;
+    min-height: 6em;
+    background: rgba(0,0,0,0.2);
+    color: inherit;
+    border: none;
+    padding: 0.5rem;
+    font-family: monospace;
+  }
 
-.config-export code {
+  code.share-output {
     user-select: text;
     display: block;
     white-space: pre-wrap;
     word-break: break-word;
 }
 
-.config-export::-webkit-scrollbar {
-    width: 8px;
-    background: transparent;
-  }
-  
-  .config-export::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .config-export::-webkit-scrollbar-thumb {
-    background-color: var(--color-text-primary);
-    border-radius: 4px; 
-  }
-  
-  .config-export::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255,255,255,0.25);
+  .share-input {
+    resize: vertical;
   }
 
 .update-available {
@@ -570,6 +585,15 @@ select option {
 	color: #e8ddc5;
 	padding: 0.5rem;
 	line-height: 1.8;
+}
+
+textarea {
+    background: rgba(0, 0, 0, 0.3);
+    color: #e8ddc5;
+    border: 1px solid #88c0a9;
+    padding: 0.25rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
 }
 
 .checkbox-wrapper {
@@ -943,3 +967,20 @@ input[type="range"] {
     outline: 2px solid var(--color-accent);
     outline-offset: 0.125rem;
   }
+
+.tab-button.active {
+    box-shadow: 0 0 10px var(--color-accent);
+}
+
+.tab-content {
+	padding: 1.5rem;
+	margin-bottom: 2rem;
+	opacity: 0;
+	transition: opacity 0.4s ease;
+	display: none;
+}
+
+.tab-content.active {
+	display: flex;
+	opacity: 1;
+}
