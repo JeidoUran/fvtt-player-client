@@ -414,7 +414,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (resetAppearanceButton) {
     resetAppearanceButton.addEventListener("click", async () => {
-        const confirmed = await safePrompt("Are you sure you want to reset the appearance settings? This will erase your custom colors and backgrounds (games and client settings are not affected).");
+        const confirmed = await safePrompt("Are you sure you want to reset the theme settings? This will erase your custom colors, fonts and backgrounds (games and client settings are not affected).");
         if (!confirmed) return;
 
         themeConfig.background = "";
@@ -570,12 +570,13 @@ function toggleConfigureGame(event: MouseEvent) {
     document.getElementById("open-help")?.addEventListener("click", () => toggleMenu(".help"));
     document.getElementById("open-share")?.addEventListener("click", async () => {
         await toggleMenu("#share-menu", async () => {
+            const shareInput  = document.getElementById("share-input")  as HTMLTextAreaElement;
+            const shareOutput = document.getElementById("share-output") as HTMLElement;
+            shareInput.value   = "";
+            shareOutput.textContent = "";
+
             // Export Settings
             document.getElementById("export-settings")!.addEventListener("click", async () => {
-                const saveAsBtn = document.getElementById("share-save-as") as HTMLButtonElement;
-                saveAsBtn.style.display = "block";
-                const copyBtn = document.getElementById("share-copy") as HTMLButtonElement;
-                copyBtn.style.display = "block";
                 const app = await window.api.localAppConfig();
                 const theme = await window.api.localThemeConfig();
                 const full = { app, theme };
@@ -584,10 +585,6 @@ function toggleConfigureGame(event: MouseEvent) {
             
             // Export Theme
             document.getElementById("export-theme")!.addEventListener("click", async () => {
-                const saveAsBtn = document.getElementById("share-save-as") as HTMLButtonElement;
-                saveAsBtn.style.display = "block";
-                const copyBtn = document.getElementById("share-copy") as HTMLButtonElement;
-                copyBtn.style.display = "block";
                 const themeConfig = await window.api.localThemeConfig();
                 document.getElementById("share-output")!.textContent = JSON.stringify(themeConfig, null, 2);
             });
@@ -619,7 +616,7 @@ function toggleConfigureGame(event: MouseEvent) {
                   return showNotification("Theme imported");
                 }
               
-                await safePrompt("Format non reconnu (Settings ou Theme attendu)", { mode: 'alert' });
+                await safePrompt("Could not recognise format", { mode: 'alert' });
               });              
             
               const fileInput = document.getElementById("import-file") as HTMLInputElement;
@@ -709,10 +706,20 @@ function toggleConfigureGame(event: MouseEvent) {
                 })
             });
         }); 
-    document.getElementById("close-share")?.addEventListener("click", () => toggleMenu("#share-menu"));
+        document.getElementById("close-share")?.addEventListener("click", () => {
+            const shareInput  = document.getElementById("share-input")  as HTMLTextAreaElement;
+            const shareOutput = document.getElementById("share-output") as HTMLElement;
+            shareInput.value   = "";
+            shareOutput.textContent = "";
+          
+            toggleMenu("#share-menu");
+          });
     document.querySelector("#share-copy").addEventListener("click", async () => {
         const txt = document.getElementById("share-output")!.textContent;
         navigator.clipboard.writeText(txt);
+        if (!txt) {
+            return showNotification("Nothing to copy");
+        }
         showNotification("Settings copied");
     });
 });
@@ -732,7 +739,7 @@ function switchTab(event: MouseEvent, tabId: string): void {
   
     const target = document.getElementById(`tab-${tabId}`)
     if (!target) return
-    target.style.display = 'block'
+    target.style.display = 'flex'
     void target.offsetWidth // force repaint
     target.classList.add('active')
   }

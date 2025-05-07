@@ -20,10 +20,10 @@
         <div class="tooltip">Client Settings</div></div>
         <div class="tooltip-wrapper"><button class="config-button" id="open-theme"><i class="fa-solid fa-brush"></i></button>
         <div class="tooltip">Theme Editor</div></div> 
-        <div class="tooltip-wrapper"><button class="config-button" id="open-help"><i class="fa-solid fa-question-circle"></i></button>
-        <div class="tooltip">Help</div></div>
         <div class="tooltip-wrapper"><button class="config-button" id="open-share"><i class="fa-solid fa-share-from-square"></i></button>
         <div class="tooltip">Share</div></div>
+        <div class="tooltip-wrapper"><button class="config-button" id="open-help"><i class="fa-solid fa-question-circle"></i></button>
+        <div class="tooltip">Help</div></div>
     </div>
 
     <div class="update-available hidden2">
@@ -95,10 +95,12 @@
             </div>
             <div class="download-link">Download the required module <a href="https://github.com/JeidoUran/fvtt-rich-presence" target="_blank">here</a>!</div>
             <div class="button-group">
+            <div class="button-row">
                 <button id="save-app-config">Save</button>
-                <button id="cancel-app-config">Cancel</button>
                 <button id="reset-client">Reset Settings</button>
                 <button id="clear-cache">Clear Cache</button>
+            </div>
+                <button id="cancel-app-config">Cancel</button>
             </div>
         </div>
 
@@ -108,7 +110,7 @@
                 <div class="color-wrapper"><input id="background-color" type="color"></div>
             </div>
             <div class="background-image-field">
-                <input id="background-image" placeholder="Background Image" type="text" value="">
+                <input id="background-image" placeholder="Background Image Path" type="text" value="">
             </div>
             <div class="primary-font-selector-field field">
                 <label for="primary-font-selector">Primary Font</label>
@@ -128,7 +130,7 @@
                 </select>
             </div>
             <div class="primary-custom-font-field" id="primary-custom-font-field">
-                <input id="primary-custom-font" style="display: none;" placeholder="Custom Primary Font" type="text" value="">
+                <input id="primary-custom-font" style="display: none;" placeholder="Custom Primary Font URL" type="text" value="">
             </div>
             <div class="secondary-font-selector-field field">
                 <label for="secondary-font-selector">Secondary Font</label>
@@ -148,7 +150,7 @@
                 </select>
             </div>
             <div class="secondary-custom-font-field">
-                <input id="secondary-custom-font" style="display: none;" placeholder="Custom Secondary Font" type="text" value="">
+                <input id="secondary-custom-font" style="display: none;" placeholder="Custom Secondary Font URL" type="text" value="">
             </div>
             <div class="text-color-field field">
                 <label for="text-color">Text Color</label>
@@ -212,34 +214,41 @@
                 </select>
             </div>
             <div class="button-group">
+            <div class="button-row">
                 <button id="save-theme-config">Save</button>
+                <button id="reset-appearance">Reset Theme</button>
+            </div>
                 <button id="cancel-theme-config">Cancel</button>
-                <button id="reset-appearance">Reset Appearance</button>
             </div>
         </div>
 
-        <div class="share-menu config-export hidden2 hidden-display" id="share-menu">
+        <div class="share-menu hidden2 hidden-display" id="share-menu">
             <div class="tabs-wrapper">
                 <button class="tab-button active" data-tab="import">Import</button>
-                <button class="tab-button"       data-tab="export">Export</button>
+                <button class="tab-button" data-tab="export">Export</button>
             </div>
 
-            <section id="tab-import" class="tab-content active">
+            <div id="tab-import" class="tab-content active">
                 <textarea id="share-input" placeholder="Paste JSON here…"></textarea>
+            <div class="button-row">
                 <button id="share-apply-import">Import Text</button>
                 <input type="file" id="import-file" accept=".json" style="display:none"/>
                 <button id="import-settings">Import File</button>
-            </section>
+            </div>
+        </div>
 
-            <section id="tab-export" class="tab-content">
+            <div id="tab-export" class="tab-content">
+            <div class="button-row">
                 <button id="export-settings">Export Settings</button>
                 <button id="export-theme">Export Theme</button>
-
+            </div>
                 <pre><code id="share-output" class="share-output"></code></pre>
-
-                <button id="share-save-as" style="display: none;">Save As…</button>
-                <button id="share-copy" style="display: none;">Copy to Clipboard</button>
-            </section>
+            <div class="button-row">
+                <button id="share-save-as">Save As…</button>
+                <button id="share-copy">Copy to Clipboard</button>
+            </div>
+            </div>
+            <button id="close-share">Close</button>
         </div>
     </section>
 
