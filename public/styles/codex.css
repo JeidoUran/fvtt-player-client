@@ -510,6 +510,7 @@ a {
     flex: 1 1 auto;
     width: 100%;
     padding: 0.5rem;
+    margin: 0 0.5rem 0.25rem;
 }
 
 .field-large {
@@ -740,7 +741,6 @@ select#theme-selector option {
     pointer-events: none;
     z-index: 9999;
     font-family: 'Sorts Mill Goudy', serif;
-    text-align: center;
 }
 
 #tooltip-layer {
@@ -881,6 +881,7 @@ input[type="range"] {
     appearance: none;
     background: transparent;
     cursor: pointer;
+    margin-top: 0.6rem;
   }
   
   /* Removes default focus */

@@ -205,6 +205,8 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
     const particlesEnabled = (closeUserConfig.querySelector("#particles-button") as HTMLInputElement).checked;
     const particlesCount = Number((closeUserConfig.querySelector("#particles-count") as HTMLInputElement).value);
     const particlesSpeed = Number((closeUserConfig.querySelector("#particles-speed") as HTMLInputElement).value);
+    const particlesColorAlphaInput = closeUserConfig.querySelector("#particles-color-alpha") as HTMLInputElement;
+    const particlesColorAlpha = particlesColorAlphaInput.valueAsNumber;
     const particlesColor = (closeUserConfig.querySelector("#particles-color") as HTMLInputElement).value;
     const config = {
         accentColor,
@@ -220,7 +222,8 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
             count: particlesCount,
             speedYMin: particlesSpeed / 2,
             speedYMax: particlesSpeed,
-            color: hexToRgba(particlesColor, 0.15),
+            colorHex: particlesColor,           // #rrggbb
+            alpha:   particlesColorAlpha        // 0.00–1.00
         }
     } as ThemeConfig;
 
@@ -672,14 +675,19 @@ function applyThemeConfig(config: ThemeConfig) {
     const defaults = {
         count: 100,
         speedYMin: 0.1,
-        speedYMax: 0.4,
-        color: 'rgba(99,176,196,0.15)'
+        speedYMax: 0.3,
+        colorHex: '#63b0c4',
+        alpha: 0.15
     };
+
     const opts = { ...defaults, ...config.particleOptions };
     
     (document.querySelector("#particles-count") as HTMLInputElement).valueAsNumber = opts.count;
     (document.querySelector("#particles-speed") as HTMLInputElement).valueAsNumber = opts.speedYMax;
-    (document.querySelector("#particles-color") as HTMLInputElement).value = rgbaToHex(opts.color);
+    (document.querySelector("#particles-color") as HTMLInputElement).value = opts.colorHex;
+    (document.querySelector("#particles-color-alpha") as HTMLInputElement).valueAsNumber = opts.alpha;
+
+    const rgbaParticles = hexToRgba(opts.colorHex, opts.alpha);
 
     if (config.background) {
         document.body.style.backgroundImage = `url(${config.background})`;
@@ -729,7 +737,12 @@ function applyThemeConfig(config: ThemeConfig) {
     const rgbaHover = hexToRgba(config.buttonColorHover, config.buttonColorHoverAlpha);
     document.documentElement.style.setProperty('--color-button-hover-rgba', rgbaHover);
     
-    configureParticles(opts);
+    particles.configureParticles({
+        count: opts.count,
+        speedYMin: opts.speedYMin,
+        speedYMax: opts.speedYMax,
+        color: rgbaParticles,
+    });
     
     const enabled = config.particlesEnabled ?? true;
     const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
