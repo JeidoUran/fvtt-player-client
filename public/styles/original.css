@@ -253,6 +253,20 @@ table, th, td {
     align-items: center;
 }
 
+.field .range-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: right;
+  }
+  .field .color-wrapper {
+    flex: 0 0 auto;
+    margin-left: 1rem;
+  }
+  
+  .field label {
+    margin-right: 1rem;
+  }
+
 .help {
     background: var(--color-background);
     pointer-events: all;
@@ -693,6 +707,7 @@ input[type="range"] {
     appearance: none;
     background: transparent;
     cursor: pointer;
+    margin-top: 0.4rem;
   }
   
   /* Removes default focus */
