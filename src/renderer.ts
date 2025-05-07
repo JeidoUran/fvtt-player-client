@@ -578,12 +578,19 @@ function toggleConfigureGame(event: MouseEvent) {
     document.getElementById("open-help")?.addEventListener("click", () => toggleMenu(".help"));
     document.getElementById("open-export")?.addEventListener("click", async () => {
         await toggleMenu(".config-export", async () => {
-            const code = document.getElementById("export-text");
-            const config = await window.api.localAppConfig();
-            const text = JSON.stringify(config, null, 4);
-            if (code) code.textContent = text;
+          const code        = document.getElementById("export-text");
+          const app   = await window.api.localAppConfig();
+          const theme = await window.api.localThemeConfig();
+      
+          const exportObj = {
+            app,
+            theme
+          };
+      
+          const text = JSON.stringify(exportObj, null, 4);
+          if (code) code.textContent = text;
         });
-    });
+      });      
     document.getElementById("close-export")?.addEventListener("click", () => toggleMenu(".config-export"));
 
 });
