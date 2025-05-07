@@ -110,6 +110,46 @@
             <div class="background-image-field">
                 <input id="background-image" placeholder="Background Image" type="text" value="">
             </div>
+            <div class="primary-font-selector-field field">
+                <label for="primary-font-selector">Primary Font</label>
+                <select id="primary-font-selector">
+                    <option value="" style="font-family: var(--font-primary);">Default</option>
+                    <option value="'Cinzel',serif" style="font-family: Cinzel, serif;">Cinzel</option>
+                    <option value="'Sorts Mill Goudy',serif" style="font-family: 'Sorts Mill Goudy', serif;">Sorts Mill Goudy</option>
+                    <option value="Arial,Helvetica,sans-serif" style="font-family: Arial,Helvetica,sans-serif;">Arial</option>
+                    <option value="'Times New Roman',Times,serif" style="font-family: 'Times New Roman',Times,serif;">Times New Roman</option>
+                    <option value="'Courier New',Courier,monospace" style="font-family: 'Courier New',Courier,monospace">Courier New</option>
+                    <option value="'Trebuchet MS',sans-serif" style="font-family: 'Trebuchet MS',sans-serif">Trebuchet MS</option>
+                    <option value="Georgia,serif" style="font-family: Georgia,serif">Georgia</option>
+                    <option value="Verdana,Geneva,sans-serif" style="font-family: Verdana,Geneva,sans-serif">Verdana</option>
+                    <option value="Open Sans,sans-serif" style="font-family: Open Sans,sans-serif">Open Sans</option>
+                    <option value="Comic Sans MS,sans-serif" style="font-family: Comic Sans MS,sans-serif">Comic Sans MS</option>
+                    <option value="__custom">Custom</option>
+                </select>
+            </div>
+            <div class="primary-custom-font-field" id="primary-custom-font-field">
+                <input id="primary-custom-font" style="display: none;" placeholder="Custom Primary Font" type="text" value="">
+            </div>
+            <div class="secondary-font-selector-field field">
+                <label for="secondary-font-selector">Secondary Font</label>
+                <select id="secondary-font-selector">
+                    <option value="" style="font-family: var(--font-secondary);">Default</option>
+                    <option value="'Sorts Mill Goudy',serif" style="font-family: 'Sorts Mill Goudy', serif;">Sorts Mill Goudy</option>
+                    <option value="'Cinzel',serif" style="font-family: Cinzel, serif;">Cinzel</option>
+                    <option value="Arial,Helvetica,sans-serif" style="font-family: Arial,Helvetica,sans-serif;">Arial</option>
+                    <option value="'Times New Roman',Times,serif" style="font-family: 'Times New Roman',Times,serif;">Times New Roman</option>
+                    <option value="'Courier New',Courier,monospace" style="font-family: 'Courier New',Courier,monospace">Courier New</option>
+                    <option value="'Trebuchet MS',sans-serif" style="font-family: 'Trebuchet MS',sans-serif">Trebuchet MS</option>
+                    <option value="Georgia,serif" style="font-family: Georgia,serif">Georgia</option>
+                    <option value="Verdana,Geneva,sans-serif" style="font-family: Verdana,Geneva,sans-serif">Verdana</option>
+                    <option value="Open Sans,sans-serif" style="font-family: Open Sans,sans-serif">Open Sans</option>
+                    <option value="Comic Sans MS,sans-serif" style="font-family: Comic Sans MS,sans-serif">Comic Sans MS</option>
+                    <option value="__custom">Custom</option>
+                </select>
+            </div>
+            <div class="secondary-custom-font-field">
+                <input id="secondary-custom-font" style="display: none;" placeholder="Custom Secondary Font" type="text" value="">
+            </div>
             <div class="text-color-field field">
                 <label for="text-color">Text Color</label>
                 <div class="color-wrapper"><input class="no-text" id="text-color" type="color"></div>
@@ -145,13 +185,13 @@
             <div class="particles-count-field field">
                 <label for="particles-count">Particles Count</label>
                 <div class="tooltip-wrapper">
-                <input type="range" id="particles-count" min="0" max="200" step="10" value="100">
+                <input type="range" id="particles-count" min="10" max="1000" step="10" value="100">
                 <div class="tooltip">Value</div></div>
             </div>
             <div class="particles-speed-field field">
                 <label for="particles-speed">Particles Speed</label>
                 <div class="tooltip-wrapper">
-                <input type="range" id="particles-speed" min="0" max="2" step="0.1" value="0.3">
+                <input type="range" id="particles-speed" min="0" max="5" step="0.1" value="0.3">
                 <div class="tooltip">Value</div></div>
             </div>
             <div class="particles-color-field field">
@@ -165,7 +205,7 @@
             </div>
             </div>
             <div class="theme-selector-field field">
-                <label for="theme-selector">Theme</label>
+                <label for="theme-selector">Base Theme</label>
                 <select id="theme-selector">
                     <option value="codex">Codex</option>
                     <option value="original">Original</option>

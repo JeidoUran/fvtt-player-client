@@ -38,6 +38,10 @@ type ThemeConfig = {
     backgrounds?: string[];
     backgroundColor: string;
     textColor: string;
+    fontPrimary?: string;
+    fontPrimaryUrl?: string;
+    fontSecondary?: string;
+    fontSecondaryUrl?: string;
     accentColor: string;
     buttonColorAlpha: number;
     buttonColor: string;

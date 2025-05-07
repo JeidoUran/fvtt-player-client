@@ -11,6 +11,8 @@
     --opacity-button-hover : 0.95;
     --color-button-hover: #28283c;
     --color-button-hover-rgba: #28283cf2;
+    --font-primary: 'Cinzel', serif;
+    --font-secondary: 'Sorts Mill Goudy', serif;
 }
 
 #particles {
@@ -91,7 +93,7 @@ input:not([type=color], [type=checkbox], [type=range]) {
     margin: 0.5rem;
     outline: none;
     transition: all 0.3s ease-in-out;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
 }
 
 label {
@@ -137,7 +139,7 @@ button:not(.game-button) {
     text-decoration: none;
 	color: var(--color-text-primary);
 	overflow: hidden;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-primary);
     font-size: 18px;
 	border: 1px solid rgba(255, 255, 255, 0.15);
 	border-radius: 8px;
@@ -163,7 +165,7 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     cursor: pointer;
     color: inherit;
     text-shadow: inherit;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-primary);
     font-size: 18px;
     flex-grow: 1;
     text-align: left;
@@ -258,7 +260,7 @@ table, th, td {
 .field {
     display: flex;
     justify-content: space-between;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
     padding: 0.5rem;
     align-items: center;
 }
@@ -500,17 +502,22 @@ a {
 }
 
 .background-image-field,
-.cache-path-field {
+.cache-path-field,
+.primary-custom-font-field,
+.secondary-custom-font-field {
     display: flex;
     width: 100%;
 }
 
 .background-image-field input[type="text"],
-.cache-path-field input[type="text"] {
+.cache-path-field input[type="text"],
+.primary-custom-font-field input[type="text"],
+.secondary-custom-font-field input[type="text"] {
     flex: 1 1 auto;
     width: 100%;
     padding: 0.5rem;
     margin: 0 0.5rem 0.25rem;
+    font-size: 1.25rem;
 }
 
 .field-large {
@@ -522,10 +529,11 @@ a {
     flex: 1 1 auto;
     width: 100%;
     margin: 0.5rem 2rem;
+    font-size: 1.4rem;
 }
 
-select#theme-selector {
-    font-family: 'Cinzel', serif;
+select {
+    font-family: var(--font-primary);
     background: rgba(0, 0, 0, 0.3);
     color: #e8ddc5;
     border: 1px solid #88c0a9;
@@ -534,7 +542,7 @@ select#theme-selector {
     border-radius: 6px;
 }
 
-select#theme-selector option {
+select option {
 	background-color: #121c24;
 	color: #e8ddc5;
 	padding: 0.5rem;
@@ -603,7 +611,7 @@ select#theme-selector option {
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-primary);
     color: var(--color-text-primary);
     font-size: 1.5rem;
     opacity: 0;
@@ -638,7 +646,7 @@ select#theme-selector option {
 .confirm-box {
     background: var(--color-background);
     border: 2px solid rgba(255, 255, 255, 0.15);
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
     font-size: 1.35rem;
     padding: 2rem;
     border-radius: 0.5rem;
@@ -740,7 +748,7 @@ select#theme-selector option {
     white-space: nowrap;
     pointer-events: none;
     z-index: 9999;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
 }
 
 #tooltip-layer {
@@ -831,7 +839,7 @@ select#theme-selector option {
     font-weight: 700;
     padding: 0.5rem;
     transition: all 0.3s ease-in-out;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
 }
 
 .user-configuration .checkbox-wrapper .custom-checkbox {
@@ -855,7 +863,7 @@ select#theme-selector option {
   .download-link a {
     margin-top: -0.25rem;
     font-size: 1rem;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
   }
 
   .download-link {

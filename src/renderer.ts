@@ -1,6 +1,5 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from './particles';
-import { configureParticles } from './particles';
 
 let appVersion: string;
 let preventMenuClose = false;
@@ -22,6 +21,34 @@ function compareSemver(a: string, b: string): number {
     }
     return 0
 }
+
+/**
+ * Injecte ou retire dynamiquement une Google Font via un <link> dans le <head>.
+ * key sert juste à différencier le <link> (par ex. "primary" ou "secondary").
+ */
+function useGoogleFont(url: string, key: string) {
+    const existing = document.getElementById(`gf-${key}`);
+    if (existing) existing.remove();
+    if (!url) return;
+    const link = document.createElement("link");
+    link.id   = `gf-${key}`;
+    link.rel  = "stylesheet";
+    link.href = url;
+    document.head.append(link);
+  }
+  
+  /**
+   * Extrait le family name depuis une URL Google Fonts.
+   * Ex: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700" → "Roboto"
+   */
+  function extractFamilyName(url: string): string {
+    try {
+      const params = new URL(url).searchParams.get("family");
+      return params?.split(":")[0].replace(/_/g, " ") ?? "";
+    } catch {
+      return "";
+    }
+  }
 
 async function updateGameList(task: (appConfig: AppConfig) => void) {
     const appConfig = await window.api.localAppConfig();
@@ -208,6 +235,10 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
     const particlesColorAlphaInput = closeUserConfig.querySelector("#particles-color-alpha") as HTMLInputElement;
     const particlesColorAlpha = particlesColorAlphaInput.valueAsNumber;
     const particlesColor = (closeUserConfig.querySelector("#particles-color") as HTMLInputElement).value;
+    const primaryFontSelect = document.querySelector("#primary-font-selector") as HTMLSelectElement;
+    const secondaryFontSelect = document.querySelector("#secondary-font-selector") as HTMLSelectElement;
+    const customPrimary = document.querySelector<HTMLInputElement>("#primary-custom-font")!;
+    const customSecondary = document.querySelector<HTMLInputElement>("#secondary-custom-font")!;
     const config = {
         accentColor,
         backgroundColor,
@@ -222,11 +253,27 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
             count: particlesCount,
             speedYMin: particlesSpeed / 2,
             speedYMax: particlesSpeed,
-            colorHex: particlesColor,           // #rrggbb
-            alpha:   particlesColorAlpha        // 0.00–1.00
+            colorHex: particlesColor,
+            alpha:   particlesColorAlpha
         }
     } as ThemeConfig;
 
+    if (primaryFontSelect.value === "__custom") {
+        config.fontPrimaryUrl = customPrimary.value.trim();
+        config.fontPrimary    = "__custom";
+      } else {
+        config.fontPrimary    = primaryFontSelect.value;  
+        config.fontPrimaryUrl = "";
+      }
+
+      if (secondaryFontSelect.value === "__custom") {
+        config.fontSecondaryUrl = customSecondary.value.trim();
+        config.fontSecondary    = "__custom";
+      } else {
+        config.fontSecondary    = secondaryFontSelect.value;  
+        config.fontSecondaryUrl = "";
+      }
+    
     console.log(config);
     window.api.saveThemeConfig(config);
     applyThemeConfig(config);
@@ -290,12 +337,43 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Theme selector or stylesheet not found.");
       return;
     }
-  
     const appConfig: AppConfig = await window.api.localAppConfig();
     const themeConfig: ThemeConfig = await window.api.localThemeConfig();
+    
+    const primaryFontSelect = document.querySelector<HTMLSelectElement>("#primary-font-selector")!;
+    const primaryCustomField = document.getElementById("primary-custom-font")!;
+    if (themeConfig.fontPrimary === "__custom") {
+        primaryCustomField.style.display = "flex";  // ou "block" selon ton layout
+    }
+    primaryFontSelect.addEventListener("change", () => {
+      if (primaryFontSelect.value === "__custom") {
+        primaryCustomField.style.display = "flex";  // ou "block" selon ton layout
+      } else {
+        primaryCustomField.style.display = "none";
+      }
+    });
+
+    const secondaryFontSelect = document.querySelector<HTMLSelectElement>("#secondary-font-selector")!;
+    const secondaryCustomField = document.getElementById("secondary-custom-font")!;
+    if (themeConfig.fontSecondary === "__custom") {
+        secondaryCustomField.style.display = "flex";  // ou "block" selon ton layout
+    }
+    secondaryFontSelect.addEventListener("change", () => {
+      if (secondaryFontSelect.value === "__custom") {
+        secondaryCustomField.style.display = "flex";  // ou "block" selon ton layout
+      } else {
+        secondaryCustomField.style.display = "none";
+      }
+    });
+
+    const particlesConfig = document.querySelector('.particles-config') as HTMLDivElement;
+
+    if (!themeConfig.particlesEnabled) {
+        particlesConfig.style.height = "0px";
+        particlesConfig.classList.add('hidden');
+    }
 
     const particlesCheckbox = document.getElementById("particles-button") as HTMLInputElement;
-    const particlesConfig = document.querySelector('.particles-config') as HTMLDivElement;
     particlesCheckbox.addEventListener("change", async () => {
             const enabled = particlesCheckbox.checked;
             if (enabled) {
@@ -357,6 +435,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         themeConfig.accentColor = "#98e4f7ff";
         themeConfig.buttonColorHoverAlpha = 0.95;
         themeConfig.buttonColorHover = "#28283c";
+        themeConfig.fontPrimary = "";
+        themeConfig.fontPrimaryUrl = "";
+        themeConfig.fontSecondary = "";
+        themeConfig.fontSecondaryUrl = "";
         
         document.body.style.backgroundColor = "";
         applyThemeConfig(themeConfig);
@@ -662,6 +744,50 @@ function applyAppConfig(config: AppConfig) {
 }
 
 function applyThemeConfig(config: ThemeConfig) {
+
+  // ——— CUSTOM FONTS ——————————————————————————————————
+  const primaryFontSelect = document.querySelector<HTMLSelectElement>("#primary-font-selector")!;
+  const customPrimaryField   = document.querySelector<HTMLInputElement>("#primary-custom-font")!;
+  const secondaryFontSelect  = document.querySelector<HTMLSelectElement>("#secondary-font-selector")!;
+  const customSecondaryField = document.querySelector<HTMLInputElement>("#secondary-custom-font")!;
+
+  // 1) On initialise la valeur du <select> et de l'input custom depuis le config
+  primaryFontSelect.value     = config.fontPrimary    ?? "";
+  customPrimaryField.value    = config.fontPrimaryUrl ?? "";
+  secondaryFontSelect.value   = config.fontSecondary ?? "";
+  customSecondaryField.value  = config.fontSecondaryUrl ?? "";
+
+  // 2) On affiche/masque le champ custom en fonction du select
+  customPrimaryField.style.display   = primaryFontSelect.value   === "__custom" ? "flex" : "none";
+  customSecondaryField.style.display = secondaryFontSelect.value === "__custom" ? "flex" : "none";
+
+  // 3) On injecte la font Google ou on remet par défaut
+  if (config.fontPrimary === "__custom" && config.fontPrimaryUrl) {
+    useGoogleFont(config.fontPrimaryUrl, "primary");
+    const fam = extractFamilyName(config.fontPrimaryUrl);
+    document.documentElement.style.setProperty("--font-primary", fam ? `'${fam}',sans-serif` : "");
+  } else {
+    useGoogleFont("", "primary");
+    if (config.fontPrimary && config.fontPrimary !== "__custom") {
+      document.documentElement.style.setProperty("--font-primary", config.fontPrimary);
+    } else {
+      document.documentElement.style.removeProperty("--font-primary");
+    }
+  }
+
+  if (config.fontSecondary === "__custom" && config.fontSecondaryUrl) {
+    useGoogleFont(config.fontSecondaryUrl, "secondary");
+    const fam = extractFamilyName(config.fontSecondaryUrl);
+    document.documentElement.style.setProperty("--font-secondary", fam ? `'${fam}',sans-serif` : "");
+  } else {
+    useGoogleFont("", "secondary");
+    if (config.fontSecondary && config.fontSecondary !== "__custom") {
+      document.documentElement.style.setProperty("--font-secondary", config.fontSecondary);
+    } else {
+      document.documentElement.style.removeProperty("--font-secondary");
+    }
+  }
+
     (document.querySelector("#accent-color") as HTMLInputElement).value = "#98e4f7";
     (document.querySelector("#background-color") as HTMLInputElement).value = "#0e1a23";
     (document.querySelector("#text-color") as HTMLInputElement).value = "#88c0a9";
@@ -1009,13 +1135,6 @@ async function createGameList() {
 
     applyAppConfig(config);
     applyThemeConfig(themeConfig);
-    
-    const particlesConfig = document.querySelector('.particles-config') as HTMLDivElement;
-
-    if (!themeConfig.particlesEnabled) {
-        particlesConfig.style.height = "0px";
-        particlesConfig.classList.add('hidden');
-    }
 
     gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 
