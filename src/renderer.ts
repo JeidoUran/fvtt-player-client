@@ -201,6 +201,7 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
     const buttonColorHoverAlphaInput = closeUserConfig.querySelector("#button-color-hover-alpha") as HTMLInputElement;
     const buttonColorHoverAlpha = buttonColorHoverAlphaInput.valueAsNumber;
     const buttonColorHover = (closeUserConfig.querySelector("#button-color-hover") as HTMLInputElement).value;
+    const particlesEnabled = (closeUserConfig.querySelector("#particles-button") as HTMLInputElement).checked;
     const config = {
         accentColor,
         backgroundColor,
@@ -209,7 +210,8 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
         buttonColorAlpha,
         buttonColor,
         buttonColorHoverAlpha,
-        buttonColorHover
+        buttonColorHover,
+        particlesEnabled
     } as ThemeConfig;
 
     console.log(config);
