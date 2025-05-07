@@ -905,4 +905,4 @@ async function createGameList() {
 }
 
 await createGameList();
-setInterval(refreshAllServerInfos, 30000);
+setInterval(refreshAllServerInfos, 15000);
