@@ -22,6 +22,17 @@ type AppConfig = {
     discordRP?: boolean;
 }
 
+interface ParticleOptions {
+    count?: number;
+    color?: string;
+    speedYMin?: number;
+    speedYMax?: number;
+    radiusMin?: number;
+    radiusMax?: number;
+    ampMin?: number;
+    ampMax?: number;
+}
+
 type ThemeConfig = {
     background: string;
     backgrounds?: string[];
@@ -34,6 +45,7 @@ type ThemeConfig = {
     buttonColorHover: string;
     theme?: string;
     particlesEnabled?: boolean;
+    particleOptions?: ParticleOptions;
 }
 
 type UserData = {

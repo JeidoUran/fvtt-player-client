@@ -1,5 +1,6 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from './particles';
+import { configureParticles } from './particles';
 
 let appVersion: string;
 let preventMenuClose = false;
@@ -202,6 +203,9 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
     const buttonColorHoverAlpha = buttonColorHoverAlphaInput.valueAsNumber;
     const buttonColorHover = (closeUserConfig.querySelector("#button-color-hover") as HTMLInputElement).value;
     const particlesEnabled = (closeUserConfig.querySelector("#particles-button") as HTMLInputElement).checked;
+    const particlesCount = Number((closeUserConfig.querySelector("#particles-count") as HTMLInputElement).value);
+    const particlesSpeed = Number((closeUserConfig.querySelector("#particles-speed") as HTMLInputElement).value);
+    const particlesColor = (closeUserConfig.querySelector("#particles-color") as HTMLInputElement).value;
     const config = {
         accentColor,
         backgroundColor,
@@ -211,7 +215,13 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
         buttonColor,
         buttonColorHoverAlpha,
         buttonColorHover,
-        particlesEnabled
+        particlesEnabled,
+        particleOptions: {
+            count: particlesCount,
+            speedYMin: particlesSpeed / 2,
+            speedYMax: particlesSpeed,
+            color: hexToRgba(particlesColor, 0.15),
+        }
     } as ThemeConfig;
 
     console.log(config);
@@ -280,6 +290,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   
     const appConfig: AppConfig = await window.api.localAppConfig();
     const themeConfig: ThemeConfig = await window.api.localThemeConfig();
+
+    const particlesCheckbox = document.getElementById("particles-button") as HTMLInputElement;
+    const particlesConfig = document.querySelector('.particles-config') as HTMLDivElement;
+    particlesCheckbox.addEventListener("change", async () => {
+            const enabled = particlesCheckbox.checked;
+            if (enabled) {
+                particlesConfig.classList.remove('hidden');
+                particlesConfig.style.height = "0px"; // Start collapsed but visible
+        
+                requestAnimationFrame(() => {
+                    const scrollHeight = particlesConfig.scrollHeight;
+                    particlesConfig.style.height = `${scrollHeight + 15}px`; // Animate expansion
+                });
+            } else {
+                particlesConfig.style.height = "0px"; // Collapse
+                particlesConfig.addEventListener('transitionend', function handler(e) {
+                    if (e.propertyName === 'height') {
+                        particlesConfig.classList.add('hidden');
+                        particlesConfig.removeEventListener('transitionend', handler);
+                    }
+                });
+            }
+        });
 
     const selectedTheme = themeConfig.theme ?? "codex";
     themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
@@ -635,6 +668,19 @@ function applyThemeConfig(config: ThemeConfig) {
     const alphaHoverInput = document.querySelector("#button-color-hover-alpha") as HTMLInputElement;
     alphaHoverInput.valueAsNumber = 0.95;
     (document.querySelector("#button-color-hover") as HTMLInputElement).value = "#28283c";
+
+    const defaults = {
+        count: 100,
+        speedYMin: 0.1,
+        speedYMax: 0.4,
+        color: 'rgba(99,176,196,0.15)'
+    };
+    const opts = { ...defaults, ...config.particleOptions };
+    
+    (document.querySelector("#particles-count") as HTMLInputElement).valueAsNumber = opts.count;
+    (document.querySelector("#particles-speed") as HTMLInputElement).valueAsNumber = opts.speedYMax;
+    (document.querySelector("#particles-color") as HTMLInputElement).value = rgbaToHex(opts.color);
+
     if (config.background) {
         document.body.style.backgroundImage = `url(${config.background})`;
         (document.querySelector("#background-image") as HTMLInputElement).value = config.background;
@@ -682,7 +728,9 @@ function applyThemeConfig(config: ThemeConfig) {
     }  
     const rgbaHover = hexToRgba(config.buttonColorHover, config.buttonColorHoverAlpha);
     document.documentElement.style.setProperty('--color-button-hover-rgba', rgbaHover);
-
+    
+    configureParticles(opts);
+    
     const enabled = config.particlesEnabled ?? true;
     const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
     checkbox.checked = enabled;
@@ -704,7 +752,25 @@ function hexToRgba(hex: string, alpha: number): string {
     const g = (bigint >> 8) & 255;
     const b = bigint & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
+}
+
+function rgbaToHex(rgba: string): string {
+    const match = rgba.match(/rgba?\(\s*([0-9]+)[ ,]+([0-9]+)[ ,]+([0-9]+)(?:[ ,]+([0-9.]+))?\s*\)/);
+    if (!match) {
+      console.warn(`rgbaToHex: format invalide (“${rgba}”), on retourne "#000000"`);
+      return "#000000";
+    }
+    const r = parseInt(match[1], 10);
+    const g = parseInt(match[2], 10);
+    const b = parseInt(match[3], 10);
+  
+    const toHex = (c: number) => {
+      const hex = c.toString(16);
+      return hex.length === 1 ? "0" + hex : hex;
+    };
+  
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
 
 function addStyle(styleString: string) {
     const style = document.createElement('style');
@@ -776,26 +842,52 @@ async function getServerInfo(game: GameConfig): Promise<ServerStatusData | null>
 }
 
 function renderTooltips() {
-    // Attach tooltip listeners dynamically
+    const layer = document.getElementById("tooltip-layer");
+    if (!layer) return;
+    
     document.querySelectorAll(".tooltip-wrapper").forEach(wrapper => {
-        const tooltip = wrapper.querySelector(".tooltip") as HTMLElement;
-        wrapper.addEventListener("mouseenter", (e) => {
-            const rect = wrapper.getBoundingClientRect();
-            const clonedTooltip = tooltip.cloneNode(true) as HTMLElement;
-            clonedTooltip.style.display = "block";
-            clonedTooltip.style.position = "fixed";
-            clonedTooltip.style.left = `${rect.left + rect.width/2}px`;
-            clonedTooltip.style.top = `${rect.bottom + 5}px`;
-            clonedTooltip.style.transform = "translateX(-50%)";
-            clonedTooltip.style.pointerEvents = "none";
-            clonedTooltip.classList.add("active-tooltip");
-            document.getElementById("tooltip-layer")?.appendChild(clonedTooltip);
-        });
-        wrapper.addEventListener("mouseleave", (e) => {
-            document.querySelectorAll("#tooltip-layer .active-tooltip").forEach(t => t.remove());
+        const tooltip = wrapper.querySelector<HTMLElement>(".tooltip");
+        if (!tooltip) return;
+    
+        // tente de repérer un input range à l'intérieur
+        const input = wrapper.querySelector<HTMLInputElement>("input[type=range]");
+    
+        wrapper.addEventListener("mouseenter", () => {
+        const rect = wrapper.getBoundingClientRect();
+        const clone = tooltip.cloneNode(true) as HTMLElement;
+        clone.classList.add("active-tooltip");
+        clone.style.display       = "block";
+        clone.style.position      = "fixed";
+        clone.style.pointerEvents = "none";
+        clone.style.transform      = "translateX(-50%)";
+        clone.style.left          = `${rect.left + rect.width/2}px`;
+        clone.style.top           = `${rect.bottom + 5}px`;
+    
+        const baseText = tooltip.textContent?.trim() ?? "";
+
+        // Si c'est un range, on met à jour la valeur live
+        let onInput: (() => void) | null = null;
+        if (input) {
+            clone.textContent = `${baseText}: ${input.value}`;
+            onInput = () => { clone.textContent = `${baseText}: ${input.value}`; };
+            input.addEventListener("input", onInput);
+        }
+    
+        layer.appendChild(clone);
+    
+        // Au mouseleave, on nettoie clone et listener
+        wrapper.addEventListener("mouseleave", () => {
+            clone.remove();
+            if (input && onInput) {
+            input.removeEventListener("input", onInput);
+            }
+        }, { once: true });
         });
     });
 }
+      
+      
+  
 
 async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
     const serverInfo = await getServerInfo(game);
@@ -904,6 +996,13 @@ async function createGameList() {
 
     applyAppConfig(config);
     applyThemeConfig(themeConfig);
+    
+    const particlesConfig = document.querySelector('.particles-config') as HTMLDivElement;
+
+    if (!themeConfig.particlesEnabled) {
+        particlesConfig.style.height = "0px";
+        particlesConfig.classList.add('hidden');
+    }
 
     gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 

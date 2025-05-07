@@ -230,6 +230,10 @@ button:not(.game-button):not(.configure-game):hover {
     transition: all 0.3s ease-in-out;
 }
 
+.particles-config {
+    overflow: hidden;
+}
+
 table, th, td {
     border: 1px solid;
     border-collapse: collapse;
@@ -251,6 +255,7 @@ table, th, td {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 0.35rem 0 0.35rem;
 }
 
 .field .range-wrapper {
@@ -595,6 +600,7 @@ select#theme-selector {
     pointer-events: none;
     z-index: 9999;
     font-family: "Open Sans", sans-serif;
+    text-align: center;
 }
 
 #tooltip-layer {
@@ -693,6 +699,7 @@ select#theme-selector {
 .download-link,
 .download-link a {
   font-size: 0.95rem;
+  padding-bottom: 0.25rem;
 }
 
 .download-link a {

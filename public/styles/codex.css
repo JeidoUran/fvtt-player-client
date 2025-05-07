@@ -118,7 +118,7 @@ input[type=color] {
 .color-wrapper {
     border: 1px solid var(--color-text-primary);
     border-radius: 4px;
-    height: 27px;
+    height: 26px;
 }
 
 input[type=color]::-webkit-color-swatch {
@@ -232,6 +232,10 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     flex-direction: column;
     transition: all 0.3s ease-in-out;
     width: 100%;
+}
+
+.particles-config {
+    overflow: hidden;
 }
 
 table, th, td {
@@ -736,6 +740,7 @@ select#theme-selector option {
     pointer-events: none;
     z-index: 9999;
     font-family: 'Sorts Mill Goudy', serif;
+    text-align: center;
 }
 
 #tooltip-layer {
@@ -855,6 +860,7 @@ select#theme-selector option {
 
   .download-link {
     padding-left: 0.5rem;
+    padding-bottom: 0.25rem;
   }
 
   .download-link a {

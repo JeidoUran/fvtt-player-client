@@ -136,17 +136,35 @@
             <div class="background-image-field">
                 <input id="background-image" placeholder="Background Image" type="text" value="">
             </div>
+            <div class="particles-button-field field checkbox-wrapper">
+                <label for="particles-button">Enable Background Particles</label>
+                <input id="particles-button" type="checkbox" class="no-text">
+                <span class="custom-checkbox"></span>
+            </div>
+            <div class="particles-config">
+            <div class="particles-count-field field">
+                <label for="particles-count">Particles Count</label>
+                <div class="tooltip-wrapper">
+                <input type="range" id="particles-count" min="0" max="200" step="10" value="100">
+                <div class="tooltip">Value</div></div>
+            </div>
+            <div class="particles-speed-field field">
+                <label for="particles-speed">Particles Speed</label>
+                <div class="tooltip-wrapper">
+                <input type="range" id="particles-speed" min="0" max="1" step="0.1" value="1">
+                <div class="tooltip">Value</div></div>
+            </div>
+            <div class="particles-color-field field">
+                <label for="particles-color">Particles Color</label>
+                <div class="color-wrapper"><input class="no-text" id="particles-color" type="color"></div>
+            </div>
+            </div>
             <div class="theme-selector-field field">
                 <label for="theme-selector">Theme</label>
                 <select id="theme-selector">
                     <option value="codex">Codex</option>
                     <option value="original">Original</option>
                 </select>
-            </div>
-            <div class="particles-button-field field checkbox-wrapper">
-                <label for="particles-button">Enable Background Particles</label>
-                <input id="particles-button" type="checkbox" class="no-text">
-                <span class="custom-checkbox"></span>
             </div>
             <div class="button-group">
                 <button id="save-theme-config">Save</button>
