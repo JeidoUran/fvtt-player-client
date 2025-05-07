@@ -568,6 +568,7 @@ function toggleConfigureGame(event: MouseEvent) {
     document.getElementById("open-config")?.addEventListener("click", () => toggleMenu(".app-configuration"));
     document.getElementById("open-theme")?.addEventListener("click", () => toggleMenu(".theme-configuration"));
     document.getElementById("open-help")?.addEventListener("click", () => toggleMenu(".help"));
+    document.getElementById("close-help")?.addEventListener("click", () => toggleMenu(".help"));
     document.getElementById("open-share")?.addEventListener("click", async () => {
         await toggleMenu("#share-menu", async () => {
             const shareInput  = document.getElementById("share-input")  as HTMLTextAreaElement;

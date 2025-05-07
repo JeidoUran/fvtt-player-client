@@ -286,6 +286,7 @@ table, th, td {
     pointer-events: all;
     box-shadow: 0 0 5px black;
     display: none;
+    flex-direction: column;
 }
 
 .help td {
@@ -499,6 +500,19 @@ a {
 .button-group {
     display: flex;
     flex-direction: column;
+}
+
+.game-button-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0.5rem;
+    margin-top: 0.3rem;
+}
+
+.game-button-group button {
+    flex: 1 1 0;
+    max-width: 10vw;
 }
 
 .background-image-field,
@@ -759,6 +773,7 @@ select {
 .download-link a {
   font-size: 0.95rem;
   padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   font-family: var(--font-secondary);
 }
 
@@ -860,4 +875,8 @@ input[type="range"] {
     flex: 1 1 0;
     min-width: 0;
     white-space: nowrap;
+}
+
+.theme-selector-field {
+    margin-bottom: 0.5rem;
 }
