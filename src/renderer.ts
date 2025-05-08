@@ -1,11 +1,12 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from './particles';
-import { AppConfigSchema, ThemeConfigSchema } from './schemas';
+import { AppConfigSchema, ThemeConfigSchema, ParticleOptions } from './schemas';
 import { showNotification } from './notifications';
 import { safePrompt } from './safePrompt';
 
 let appVersion: string;
 let preventMenuClose = false;
+let lastParticleOptions: ParticleOptions | null = null;
 let games: GameConfig[] = [];
 
 function compareSemver(a: string, b: string): number {
@@ -1011,20 +1012,29 @@ function applyThemeConfig(config: ThemeConfig) {
     const checkbox = (document.querySelector("#particles-button") as HTMLInputElement)!;
     checkbox.checked = enabled;
     
-    if (enabled) {
-      if (!particles.isParticlesRunning()) {
-        particles.configureParticles({
-          count: opts.count,
-          speedYMin: opts.speedYMin,
-          speedYMax: opts.speedYMax,
-          color: rgbaParticles,
-        });
+    if (!enabled) {
+        if (particles.isParticlesRunning()) {
+          particles.stopParticles();
+        }
+        lastParticleOptions = null;
+        return;
+    }
+
+    const sameOpts =
+    lastParticleOptions !== null &&
+    opts.count     === lastParticleOptions.count &&
+    opts.speedYMin === lastParticleOptions.speedYMin &&
+    opts.speedYMax === lastParticleOptions.speedYMax &&
+    opts.color     === lastParticleOptions.color &&
+    opts.alpha     === lastParticleOptions.alpha;
+
+    if (!particles.isParticlesRunning() || !sameOpts) {
+        if (particles.isParticlesRunning()) {
+          particles.stopParticles();
+        }
+        particles.configureParticles(opts);
         particles.startParticles();
-      }
-    } else {
-      if (particles.isParticlesRunning()) {
-        particles.stopParticles();
-      }
+        lastParticleOptions = { ...opts };
     }
 }
 
