@@ -489,28 +489,21 @@ ipcMain.handle("dialog:choose-font", async () => {
 });
 
 function getAppConfig(): AppConfig {
+    // Charge l’app config uniquement depuis userData.json
     try {
-        const json = fs.readFileSync(path.join(app.getAppPath(), "config.json")).toString();
-        console.log(json);
-        let appConfig = JSON.parse(json) as AppConfig;
         const userData = getUserData();
-        appConfig = {...appConfig, ...userData.app, games: [...appConfig.games, ...userData.app.games]};
-        if (appConfig.ignoreCertificateErrors) {
-            app.commandLine.appendSwitch("ignore-certificate-errors");
-        }
-        return appConfig;
-    } catch (e) {
+        return userData.app ?? ({} as AppConfig);
+    } catch {
         return {} as AppConfig;
     }
 }
 
 function getThemeConfig(): ThemeConfig {
+    // Charge le theme uniquement depuis userData.json
     try {
-        const json = fs.readFileSync(path.join(app.getAppPath(), "config.json")).toString();
-        console.log(json);
-        let themeConfig = JSON.parse(json) as ThemeConfig;
-        return themeConfig;
-    } catch (e) {
+        const userData = getUserData();
+        return userData.theme ?? ({} as ThemeConfig);
+    } catch {
         return {} as ThemeConfig;
     }
 }
