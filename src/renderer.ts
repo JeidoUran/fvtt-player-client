@@ -231,7 +231,7 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     }
 
     preventMenuClose = false;
-
+    const existingConfig = await window.api.localThemeConfig();
     const closeUserConfig = e.target.closest(".theme-configuration") as HTMLDivElement;
     const background = (closeUserConfig.querySelector("#background-image") as HTMLInputElement).value;
     const accentColor = (closeUserConfig.querySelector("#accent-color") as HTMLInputElement).value;
@@ -275,35 +275,28 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     if (primaryFontSelect.value === "__custom") {
         config.fontPrimaryUrl = customPrimary.value.trim();
         config.fontPrimary    = "__custom";
-      } else {
-        config.fontPrimary    = primaryFontSelect.value;  
+    } else if (primaryFontSelect.value === "__file") {
+        config.fontPrimary    = "__file";
+        config.fontPrimaryName     = existingConfig.fontPrimaryName;
+        config.fontPrimaryFilePath = existingConfig.fontPrimaryFilePath;
+    } else {
+        config.fontPrimary    = primaryFontSelect.value;
         config.fontPrimaryUrl = "";
-      }
+    }
 
-      if (secondaryFontSelect.value === "__custom") {
+    if (secondaryFontSelect.value === "__custom") {
         config.fontSecondaryUrl = customSecondary.value.trim();
         config.fontSecondary    = "__custom";
-      } else {
-        config.fontSecondary    = secondaryFontSelect.value;  
+    } else if (secondaryFontSelect.value === "__file") {
+        config.fontSecondary    = "__file";
+        config.fontSecondaryName     = existingConfig.fontSecondaryName;
+        config.fontSecondaryFilePath = existingConfig.fontSecondaryFilePath;
+    } else {
+        config.fontSecondary    = secondaryFontSelect.value;
         config.fontSecondaryUrl = "";
-      }
+    }
 
-    const rawConfig: unknown = {
-        accentColor:            config.accentColor,
-        backgroundColor:        config.backgroundColor,
-        background:             config.background,
-        textColor:              config.textColor,
-        buttonColorAlpha:       config.buttonColorAlpha,
-        buttonColor:            config.buttonColor,
-        buttonColorHoverAlpha:  config.buttonColorHoverAlpha,
-        buttonColorHover:       config.buttonColorHover,
-        particlesEnabled:       config.particlesEnabled,
-        particleOptions:        config.particleOptions,
-        fontPrimary:            config.fontPrimary,
-        fontPrimaryUrl:         config.fontPrimaryUrl,
-        fontSecondary:          config.fontSecondary,
-        fontSecondaryUrl:       config.fontSecondaryUrl,
-    };
+    const rawConfig: unknown = { ...config };
 
     const result = ThemeConfigSchema.safeParse(rawConfig);
     if (!result.success) {
@@ -384,28 +377,149 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     const primaryFontSelect = document.querySelector<HTMLSelectElement>("#primary-font-selector")!;
     const primaryCustomField = document.getElementById("primary-custom-font")!;
+    const primaryImportField = document.getElementById("primary-import-font")!;
     if (themeConfig.fontPrimary === "__custom") {
         primaryCustomField.style.display = "flex";
+    } else if (themeConfig.fontPrimary === "__file") {
+        primaryImportField.style.display = "block";
     }
     primaryFontSelect.addEventListener("change", () => {
-      if (primaryFontSelect.value === "__custom") {
-        primaryCustomField.style.display = "flex";
-      } else {
-        primaryCustomField.style.display = "none";
-      }
+        if (primaryFontSelect.value === "__custom") {
+            primaryCustomField.style.display = "flex";
+            primaryImportField.style.display = "none";
+        } else if (primaryFontSelect.value === "__file") {
+            primaryCustomField.style.display = "none";
+            primaryImportField.style.display = "block";
+        } else {
+            primaryCustomField.style.display = "none";
+            primaryImportField.style.display = "none";
+        }
     });
 
     const secondaryFontSelect = document.querySelector<HTMLSelectElement>("#secondary-font-selector")!;
     const secondaryCustomField = document.getElementById("secondary-custom-font")!;
+    const secondaryImportField = document.getElementById("secondary-import-font")!;
+
     if (themeConfig.fontSecondary === "__custom") {
         secondaryCustomField.style.display = "flex";
+    } else if (themeConfig.fontSecondary === "__file") {
+        secondaryImportField.style.display = "block";
     }
     secondaryFontSelect.addEventListener("change", () => {
-      if (secondaryFontSelect.value === "__custom") {
-        secondaryCustomField.style.display = "flex";
-      } else {
-        secondaryCustomField.style.display = "none";
+        if (secondaryFontSelect.value === "__custom") {
+            secondaryCustomField.style.display = "flex";
+            secondaryImportField.style.display = "none";
+        } else if (secondaryFontSelect.value === "__file") {
+            secondaryCustomField.style.display = "none";
+            secondaryImportField.style.display = "block";
+        } else {
+            secondaryCustomField.style.display = "none";
+            secondaryImportField.style.display = "none";
+        }
+    });
+
+    const loadPrimaryFontFileBtn = document.getElementById("primary-import-font")!;
+
+    loadPrimaryFontFileBtn.addEventListener("click", async () => {
+      const fontPath = await window.api.chooseFontFile();
+      if (!fontPath) return;
+    
+      // Read the raw bytes, base64-encoded
+      const b64 = await window.api.readFontFile(fontPath);
+      if (!b64) {
+        showNotification("Failed to load font file.");
+        return;
       }
+    
+      // Derive a font name and MIME type
+      const filename = fontPath.split(/[\\/]/).pop()!;
+      const fontName = filename.replace(/\.[^.]+$/, "");
+      const ext      = filename.split(".").pop()!.toLowerCase();
+      const mime     = ext === "ttf" ? "font/ttf"
+                   : ext === "otf" ? "font/otf"
+                   : ext === "woff" ? "font/woff"
+                   : ext === "woff2"? "font/woff2"
+                   : "application/octet-stream";
+    
+      // Build the data: URI
+      const dataUri = `data:${mime};base64,${b64}`;
+    
+      // Inject @font-face
+      const rule = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${dataUri}") format("${ext}");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      const style = document.createElement("style");
+      style.textContent = rule;
+      document.head.append(style);
+    
+      // Apply immediately
+      document.documentElement.style.setProperty("--font-primary", `"${fontName}", sans-serif`);
+    
+      // Persist to config
+      themeConfig.fontPrimary         = "__file";
+      themeConfig.fontPrimaryName     = fontName;
+      themeConfig.fontPrimaryFilePath = dataUri;
+      
+      await window.api.saveThemeConfig(themeConfig);
+    
+      showNotification("Primary font loaded successfully");
+    });
+
+    const loadSecondaryFontFileBtn = document.getElementById("secondary-import-font")!;
+
+    loadSecondaryFontFileBtn.addEventListener("click", async () => {
+      const fontPath = await window.api.chooseFontFile();
+      if (!fontPath) return;
+    
+      // Read the raw bytes, base64-encoded
+      const b64 = await window.api.readFontFile(fontPath);
+      if (!b64) {
+        showNotification("Failed to load font file.");
+        return;
+      }
+    
+      // Derive a font name and MIME type
+      const filename = fontPath.split(/[\\/]/).pop()!;
+      const fontName = filename.replace(/\.[^.]+$/, "");
+      const ext      = filename.split(".").pop()!.toLowerCase();
+      const mime     = ext === "ttf" ? "font/ttf"
+                   : ext === "otf" ? "font/otf"
+                   : ext === "woff" ? "font/woff"
+                   : ext === "woff2"? "font/woff2"
+                   : "application/octet-stream";
+    
+      // Build the data: URI
+      const dataUri = `data:${mime};base64,${b64}`;
+    
+      // Inject @font-face
+      const rule = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${dataUri}") format("${ext}");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      const style = document.createElement("style");
+      style.textContent = rule;
+      document.head.append(style);
+    
+      // Apply immediately
+      document.documentElement.style.setProperty("--font-secondary", `"${fontName}", sans-serif`);
+    
+      // Persist to config
+      themeConfig.fontSecondary         = "__file";
+      themeConfig.fontSecondaryName     = fontName;
+      themeConfig.fontSecondaryFilePath = dataUri;
+      
+      await window.api.saveThemeConfig(themeConfig);
+    
+      showNotification("Secondary font loaded successfully");
     });
 
     const particlesConfig = document.querySelector<HTMLElement>(".particles-config")!;
@@ -640,15 +754,30 @@ function toggleConfigureGame(event: MouseEvent) {
 // Export Settings
 async function exportSettings() {
     const app = await window.api.localAppConfig();
-    const theme = await window.api.localThemeConfig();
-    const full = { app, theme };
+    const rawTheme = await window.api.localThemeConfig();
+    // On enlève les champs internes liés aux fichiers de police
+    const {
+        fontPrimaryName,
+        fontPrimaryFilePath,
+        fontSecondaryName,
+        fontSecondaryFilePath,
+        ...cleanTheme
+    } = rawTheme;
+    const full = { app, theme: cleanTheme };
     document.getElementById("share-output")!.textContent = JSON.stringify(full, null, 2);
 };
 
 // Export Theme
 async function exportTheme() {
-    const themeConfig = await window.api.localThemeConfig();
-    document.getElementById("share-output")!.textContent = JSON.stringify(themeConfig, null, 2);
+    const rawTheme = await window.api.localThemeConfig();
+    const {
+        fontPrimaryName,
+        fontPrimaryFilePath,
+        fontSecondaryName,
+        fontSecondaryFilePath,
+        ...cleanTheme
+    } = rawTheme;
+    document.getElementById("share-output")!.textContent = JSON.stringify(cleanTheme, null, 2);
 };
 
 // Apply import
@@ -665,6 +794,11 @@ async function applyShareImport() {
     
     // full settings import
     if (data.app && data.theme && typeof data.app === 'object') {
+        // removing local font name and path first
+        delete data.theme.fontPrimaryName;
+        delete data.theme.fontPrimaryFilePath;
+        delete data.theme.fontSecondaryName;
+        delete data.theme.fontSecondaryFilePath;
         await window.api.saveAppConfig(data.app);
         await window.api.saveThemeConfig(data.theme);
         applyAppConfig(data.app);
@@ -678,8 +812,13 @@ async function applyShareImport() {
     if (typeof data.backgroundColor !== 'undefined'
         && typeof data.textColor       !== 'undefined'
         && typeof data.accentColor     !== 'undefined') {
-         const themeOnly = data as ThemeConfig;
-         await window.api.saveThemeConfig(themeOnly);
+       const themeOnly = data as ThemeConfig;
+         // removing local font name and path first
+         delete themeOnly.fontPrimaryName;
+         delete themeOnly.fontPrimaryFilePath;
+         delete themeOnly.fontSecondaryName;
+         delete themeOnly.fontSecondaryFilePath;
+         await window.api.saveThemeConfig(themeOnly);  
          applyThemeConfig(themeOnly);
          themeStylesheet.href = `styles/${themeOnly.theme}.css`;
          return showNotification("Theme imported");
@@ -704,6 +843,11 @@ async function importFromFile() {
     
       // full settings import
       if (data.app && data.theme && typeof data.app === 'object') {
+        // removing local font name and path first
+        delete data.theme.fontPrimaryName;
+        delete data.theme.fontPrimaryFilePath;
+        delete data.theme.fontSecondaryName;
+        delete data.theme.fontSecondaryFilePath;
         await window.api.saveAppConfig(data.app);
         await window.api.saveThemeConfig(data.theme);
         applyAppConfig(data.app);
@@ -717,8 +861,13 @@ async function importFromFile() {
       if (typeof data.backgroundColor !== 'undefined'
         && typeof data.textColor       !== 'undefined'
         && typeof data.accentColor     !== 'undefined') {
-         const themeOnly = data as ThemeConfig;
-         await window.api.saveThemeConfig(themeOnly);
+        const themeOnly = data as ThemeConfig;
+        // removing local font name and path first
+        delete themeOnly.fontPrimaryName;
+        delete themeOnly.fontPrimaryFilePath;
+        delete themeOnly.fontSecondaryName;
+        delete themeOnly.fontSecondaryFilePath;
+        await window.api.saveThemeConfig(themeOnly);
          applyThemeConfig(themeOnly);
          themeStylesheet.href = `styles/${themeOnly.theme}.css`;
          return showNotification("Theme imported");
@@ -884,8 +1033,10 @@ function applyThemeConfig(config: ThemeConfig) {
 
   const primaryFontSelect = document.querySelector<HTMLSelectElement>("#primary-font-selector")!;
   const customPrimaryField   = document.querySelector<HTMLInputElement>("#primary-custom-font")!;
+  const primaryImportField = document.getElementById("primary-import-font")!;
   const secondaryFontSelect  = document.querySelector<HTMLSelectElement>("#secondary-font-selector")!;
   const customSecondaryField = document.querySelector<HTMLInputElement>("#secondary-custom-font")!;
+  const secondaryImportField = document.getElementById("secondary-import-font")!;
 
   const particlesConfig = (document.querySelector(".particles-config") as HTMLElement)!;
   const particlesCheckbox = (document.querySelector("#particles-button") as HTMLInputElement)!;
@@ -899,31 +1050,105 @@ function applyThemeConfig(config: ThemeConfig) {
   particlesCheckbox.checked = particlesCheckboxEnabled;
 
   customPrimaryField.style.display   = primaryFontSelect.value   === "__custom" ? "flex" : "none";
+  primaryImportField.style.display   = primaryFontSelect.value   === "__file"   ? "block" : "none";
   customSecondaryField.style.display = secondaryFontSelect.value === "__custom" ? "flex" : "none";
+  secondaryImportField.style.display = secondaryFontSelect.value === "__file"   ? "block" : "none";
   
   particlesConfig.style.display = particlesCheckboxEnabled ? "block" : "none";
 
+  // Primary font modes: Google, Local file (data URI), or built-in
   if (config.fontPrimary === "__custom" && config.fontPrimaryUrl) {
+    // Google Fonts via <link>
     useGoogleFont(config.fontPrimaryUrl, "primary");
     const fam = extractFamilyName(config.fontPrimaryUrl);
-    document.documentElement.style.setProperty("--font-primary", fam ? `'${fam}',sans-serif` : "");
-  } else {
+    document.documentElement.style.setProperty(
+      "--font-primary",
+      fam ? `'${fam}',sans-serif` : ""
+    );
+
+  } else if (config.fontPrimary === "__file" && config.fontPrimaryFilePath) {
+    // Local file font injected as data URI
     useGoogleFont("", "primary");
-    if (config.fontPrimary && config.fontPrimary !== "__custom") {
-      document.documentElement.style.setProperty("--font-primary", config.fontPrimary);
+    // Assume config.fontPrimaryFilePath contains full data: URI
+    // Derive a name from FontConfig or store in config.fontPrimaryName if you like
+    const fontName = config.fontPrimaryName ?? "LocalFont"; 
+    // Inject the @font-face rule if not already present
+    if (!document.getElementById(`ff-${fontName}`)) {
+      const style = document.createElement("style");
+      style.id = `ff-${fontName}`;
+      style.textContent = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${config.fontPrimaryFilePath}") format("truetype");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      document.head.append(style);
+    }
+    // Finally set the CSS variable
+    document.documentElement.style.setProperty(
+      "--font-primary",
+      `"${fontName}",sans-serif`
+    );
+
+  } else {
+    // Built-in font names or none
+    useGoogleFont("", "primary");
+    if (config.fontPrimary && config.fontPrimary !== "__custom" && config.fontPrimary !== "__file") {
+      document.documentElement.style.setProperty(
+        "--font-primary",
+        config.fontPrimary
+      );
     } else {
       document.documentElement.style.removeProperty("--font-primary");
     }
   }
 
+  // Secondary font modes: Google, Local file (data URI), or built-in
   if (config.fontSecondary === "__custom" && config.fontSecondaryUrl) {
+    // Google Fonts via <link>
     useGoogleFont(config.fontSecondaryUrl, "secondary");
     const fam = extractFamilyName(config.fontSecondaryUrl);
-    document.documentElement.style.setProperty("--font-secondary", fam ? `'${fam}',sans-serif` : "");
-  } else {
+    document.documentElement.style.setProperty(
+      "--font-secondary",
+      fam ? `'${fam}',sans-serif` : ""
+    );
+
+  } else if (config.fontSecondary === "__file" && config.fontSecondaryFilePath) {
+    // Local file font injected as data URI
     useGoogleFont("", "secondary");
-    if (config.fontSecondary && config.fontSecondary !== "__custom") {
-      document.documentElement.style.setProperty("--font-secondary", config.fontSecondary);
+    // Assume config.fontSecondaryFilePath contains full data: URI
+    // Derive a name from FontConfig or store in config.fontSecondaryName if you like
+    const fontName = config.fontSecondaryName ?? "LocalFont"; 
+    // Inject the @font-face rule if not already present
+    if (!document.getElementById(`ff-${fontName}`)) {
+      const style = document.createElement("style");
+      style.id = `ff-${fontName}`;
+      style.textContent = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${config.fontSecondaryFilePath}") format("truetype");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      document.head.append(style);
+    }
+    // Finally set the CSS variable
+    document.documentElement.style.setProperty(
+      "--font-secondary",
+      `"${fontName}",sans-serif`
+    );
+
+  } else {
+    // Built-in font names or none
+    useGoogleFont("", "secondary");
+    if (config.fontSecondary && config.fontSecondary !== "__custom" && config.fontSecondary !== "__file") {
+      document.documentElement.style.setProperty(
+        "--font-secondary",
+        config.fontSecondary
+      );
     } else {
       document.documentElement.style.removeProperty("--font-secondary");
     }

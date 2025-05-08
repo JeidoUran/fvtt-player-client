@@ -1,6 +1,6 @@
 // noinspection ES6MissingAwait,JSIgnoredPromiseFromCall
 
-import { app, BrowserWindow, ipcMain, safeStorage, session, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, safeStorage, session, nativeImage, dialog } from 'electron';
 import { enableRichPresence, disableRichPresence } from './richPresenceControl';
 import { startRichPresenceSocket, closeRichPresenceSocket } from './richPresenceSocket';
 import { UserDataSchema } from './schemas';
@@ -463,6 +463,25 @@ ipcMain.on("save-user-data", (_e, data: SaveUserData) => {
 ipcMain.handle("get-user-data", (_, gameId: GameId) => getLoginDetails(gameId))
 
 ipcMain.handle("app-version", () => app.getVersion())
+
+ipcMain.handle("dialog:choose-font", async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: "Select a font file",
+      filters: [{ name: "Fonts", extensions: ["ttf","otf","woff","woff2"] }],
+      properties: ["openFile"]
+    });
+    return canceled || filePaths.length === 0 ? null : filePaths[0];
+  });
+  
+  ipcMain.handle("read-font-file", async (_e, fontPath: string) => {
+    try {
+      const buffer = fs.readFileSync(fontPath);
+      return buffer.toString("base64");
+    } catch (err) {
+      console.error("read-font-file failed:", err);
+      return null;
+    }
+});
 
 function getAppConfig(): AppConfig {
     try {

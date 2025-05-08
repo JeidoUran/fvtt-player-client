@@ -315,6 +315,10 @@ table, th, td {
     min-width: 30vw;
 }
 
+.theme-configuration {
+    min-width: 25vw;
+}
+
 .app-configuration,
 .theme-configuration {
     box-shadow: 0 0 5px black;
@@ -1046,4 +1050,9 @@ input[type="range"] {
   
   .theme-selector-field {
     margin-bottom: 0.5rem;
+}
+
+#primary-import-font,
+#secondary-import-font {
+    padding: 0.5rem
 }

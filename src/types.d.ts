@@ -40,8 +40,12 @@ type ThemeConfig = {
     textColor: string;
     fontPrimary?: string;
     fontPrimaryUrl?: string;
+    fontPrimaryName?: string;
+    fontPrimaryFilePath?: string;
     fontSecondary?: string;
     fontSecondaryUrl?: string;
+    fontSecondaryName?: string;
+    fontSecondaryFilePath?: string;
     accentColor: string;
     buttonColorAlpha: number;
     buttonColor: string;

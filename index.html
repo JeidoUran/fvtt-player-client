@@ -127,11 +127,15 @@
                     <option value="Verdana,Geneva,sans-serif" style="font-family: Verdana,Geneva,sans-serif">Verdana</option>
                     <option value="Open Sans,sans-serif" style="font-family: Open Sans,sans-serif">Open Sans</option>
                     <option value="Comic Sans MS,sans-serif" style="font-family: Comic Sans MS,sans-serif">Comic Sans MS</option>
-                    <option value="__custom">Custom</option>
+                    <option value="__custom" style="font-family: 'Sorts Mill Goudy', serif;">Import Google Font</option>
+                    <option value="__file" style="font-family: 'Sorts Mill Goudy', serif;">Import File</option>
                 </select>
             </div>
             <div class="primary-custom-font-field" id="primary-custom-font-field">
-                <input id="primary-custom-font" style="display: none;" placeholder="Custom Primary Font URL" type="text" value="">
+                <input id="primary-custom-font" style="display: none;" placeholder="Primary Google Font URL" type="text" value="">
+            </div>
+            <div class="button-row">
+                <button id="primary-import-font" style="display: none;">Import File</button>
             </div>
             <div class="secondary-font-selector-field field">
                 <label for="secondary-font-selector">Secondary Font</label>
@@ -147,11 +151,15 @@
                     <option value="Verdana,Geneva,sans-serif" style="font-family: Verdana,Geneva,sans-serif">Verdana</option>
                     <option value="Open Sans,sans-serif" style="font-family: Open Sans,sans-serif">Open Sans</option>
                     <option value="Comic Sans MS,sans-serif" style="font-family: Comic Sans MS,sans-serif">Comic Sans MS</option>
-                    <option value="__custom">Custom</option>
+                    <option value="__custom" style="font-family: 'Sorts Mill Goudy', serif;">Import Google Font</option>
+                    <option value="__file" style="font-family: 'Sorts Mill Goudy', serif;">Import File</option>
                 </select>
             </div>
             <div class="secondary-custom-font-field">
-                <input id="secondary-custom-font" style="display: none;" placeholder="Custom Secondary Font URL" type="text" value="">
+                <input id="secondary-custom-font" style="display: none;" placeholder="Secondary Google Font URL" type="text" value="">
+            </div>
+            <div class="button-row">
+                <button id="secondary-import-font" style="display: none;">Import File</button>
             </div>
             <div class="text-color-field field">
                 <label for="text-color">Text Color</label>
@@ -282,7 +290,7 @@
                         <input class="game-name-edit input-large" placeholder="Game Name" type="text" value="">
                     </div>
                     <div class="game-url-field field-large">
-                        <input class="game-url-edit input-large" placeholder="URL" type="text" value="">
+                        <input class="game-url-edit input-large" placeholder="Game URL" type="text" value="">
                     </div>
                     <div class="user-name-field field-large">
                         <input class="user-name input-large" placeholder="User Name" type="text" value="">

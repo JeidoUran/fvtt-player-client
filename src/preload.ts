@@ -45,6 +45,8 @@ export type ContextBridgeApi = {
     safePrompt(message: string, options?: { mode: 'confirm' | 'alert' }): Promise<boolean>;
     onShowPrompt: (handler: (event: { id: number; message: string; options?: { mode: 'confirm' | 'alert' } }) => void) => void;
     sendPromptResponse: (id: number, answer: boolean) => void;
+    chooseFontFile(): Promise<string | null>;
+    readFontFile(path: string): Promise<string | null>;
 }
 const exposedApi: ContextBridgeApi = {
     // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -120,7 +122,9 @@ const exposedApi: ContextBridgeApi = {
       },
       sendPromptResponse: (id, answer) => {
         ipcRenderer.send(`prompt-response-${id}`, answer);
-    }
+    },
+    chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font") as Promise<string | null>,
+    readFontFile:   (path: string) => ipcRenderer.invoke("read-font-file", path)   as Promise<string | null>,
 }
 
 contextBridge.exposeInMainWorld("api", exposedApi);
@@ -138,5 +142,6 @@ contextBridge.exposeInMainWorld('richPresence', {
     },
     enable: () => {
       ipcRenderer.send('enable-discord-rpc');
-    }
+    },
+    chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font"),
 });
