@@ -23,7 +23,7 @@ const defaultOpts: Required<ParticleOptions> = {
   count: 100,
   color: 'rgba(99,176,196,0.15)',
   speedYMin: 0.1,
-  speedYMax: 0.4,
+  speedYMax: 0.3,
   radiusMin: 1,
   radiusMax: 3,
   ampMin: 5,

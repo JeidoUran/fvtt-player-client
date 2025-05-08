@@ -452,18 +452,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         themeConfig.background = "";
         themeConfig.backgrounds = [];
-        themeConfig.backgroundColor = "#0e1a23ff";
-        themeConfig.textColor = "#88c0a9ff";
-        themeConfig.accentColor = "#98e4f7ff";
+        themeConfig.backgroundColor = "#0e1a23";
+        themeConfig.textColor = "#88c0a9";
+        themeConfig.accentColor = "#98e4f7";
         themeConfig.buttonColorAlpha = 0.65;
         themeConfig.buttonColor = "#14141e";
-        themeConfig.accentColor = "#98e4f7ff";
+        themeConfig.accentColor = "#98e4f7";
         themeConfig.buttonColorHoverAlpha = 0.95;
         themeConfig.buttonColorHover = "#28283c";
         themeConfig.fontPrimary = "";
         themeConfig.fontPrimaryUrl = "";
         themeConfig.fontSecondary = "";
         themeConfig.fontSecondaryUrl = "";
+        themeConfig.particleOptions.speedYMax = 0.3;
+        themeConfig.particleOptions.speedYMin = 0.1;
         
         document.body.style.backgroundColor = "";
         applyThemeConfig(themeConfig);
