@@ -145,7 +145,7 @@ document.querySelector("#save-app-config").addEventListener("click", async (e) =
     const result = ThemeConfigSchema.safeParse(rawConfig);
     if (!result.success) {
         console.error(result.error.format());
-        await safePrompt("Invalid client values detected. No changes were saved — please review your inputs and try again.", { mode: "alert" });
+        await safePrompt("Invalid client values detected. Changes were not applied.", { mode: "alert" });
         const appConfig = await window.api.localAppConfig();
         applyAppConfig(appConfig);
         return;
@@ -305,7 +305,7 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     const result = ThemeConfigSchema.safeParse(rawConfig);
     if (!result.success) {
         console.error(result.error.format());
-        await safePrompt("Invalid client values detected. No changes were saved — please review your inputs and try again.", { mode: "alert" });
+        await safePrompt("Invalid client values detected. Changes were not applied.", { mode: "alert" });
         const themeConfig = await window.api.localThemeConfig();
         applyThemeConfig(themeConfig);
         return;
@@ -951,11 +951,15 @@ function applyThemeConfig(config: ThemeConfig) {
 
     const rgbaParticles = hexToRgba(opts.colorHex, opts.alpha);
 
+    document.body.style.backgroundImage = "";
+    const bgInput = document.querySelector("#background-image") as HTMLInputElement;
     if (config.background) {
         document.body.style.backgroundImage = `url(${config.background})`;
-        (document.querySelector("#background-image") as HTMLInputElement).value = config.background;
+        bgInput.value = config.background;
+    } else {
+        bgInput.value = "";
     }
-    if (config.backgrounds && config.backgrounds.length > 0) {
+    if (!config.background && config.backgrounds?.length) {
         const i = Math.floor(Math.random() * config.backgrounds.length);
         document.body.style.backgroundImage = `url(${config.backgrounds[i]})`;
     }
