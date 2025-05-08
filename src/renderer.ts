@@ -1,6 +1,7 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from './particles';
 import { AppConfigSchema, ThemeConfigSchema, ParticleOptions } from './schemas';
+import { mergeAppData, mergeThemeData } from './mergeData';
 import { showNotification } from './notifications';
 import { safePrompt } from './safePrompt';
 
@@ -802,34 +803,26 @@ async function applyShareImport() {
     
     // full settings import
     if (data.app && data.theme && typeof data.app === 'object') {
-        // removing local font name and path first
-        delete data.theme.fontPrimaryName;
-        delete data.theme.fontPrimaryFilePath;
-        delete data.theme.fontSecondaryName;
-        delete data.theme.fontSecondaryFilePath;
-        await window.api.saveAppConfig(data.app);
-        await window.api.saveThemeConfig(data.theme);
-        applyAppConfig(data.app);
-        applyThemeConfig(data.theme);
-        themeStylesheet.href = `styles/${data.theme.baseTheme}.css`;
+        const mergedApp = await mergeAppData(data.app);
+        const mergedTheme = await mergeThemeData(data.theme);
+        await window.api.saveAppConfig(mergedApp);
+        await window.api.saveThemeConfig(mergedTheme);
+        applyAppConfig(mergedApp);
+        applyThemeConfig(mergedTheme);
+        themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
         await createGameList();
         return showNotification("Settings imported");
-      }
+    }
     
     // theme-only import
     if (typeof data.backgroundColor !== 'undefined'
         && typeof data.textColor       !== 'undefined'
         && typeof data.accentColor     !== 'undefined') {
-       const themeOnly = data as ThemeConfig;
-         // removing local font name and path first
-         delete themeOnly.fontPrimaryName;
-         delete themeOnly.fontPrimaryFilePath;
-         delete themeOnly.fontSecondaryName;
-         delete themeOnly.fontSecondaryFilePath;
-         await window.api.saveThemeConfig(themeOnly);  
-         applyThemeConfig(themeOnly);
-         themeStylesheet.href = `styles/${themeOnly.baseTheme}.css`;
-         return showNotification("Theme imported");
+       const mergedTheme = await mergeThemeData(data);
+       await window.api.saveThemeConfig(mergedTheme);
+       applyThemeConfig(mergedTheme);
+       themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+       return showNotification("Theme imported");
     }
     
     await safePrompt("Could not recognise text format.", { mode: 'alert' });
@@ -851,16 +844,13 @@ async function importFromFile() {
     
       // full settings import
       if (data.app && data.theme && typeof data.app === 'object') {
-        // removing local font name and path first
-        delete data.theme.fontPrimaryName;
-        delete data.theme.fontPrimaryFilePath;
-        delete data.theme.fontSecondaryName;
-        delete data.theme.fontSecondaryFilePath;
-        await window.api.saveAppConfig(data.app);
-        await window.api.saveThemeConfig(data.theme);
-        applyAppConfig(data.app);
-        applyThemeConfig(data.theme);
-        themeStylesheet.href = `styles/${data.theme.baseTheme}.css`;
+        const mergedApp = await mergeAppData(data.app);
+        const mergedTheme = await mergeThemeData(data.theme);
+        await window.api.saveAppConfig(mergedApp);
+        await window.api.saveThemeConfig(mergedTheme);
+        applyAppConfig(mergedApp);
+        applyThemeConfig(mergedTheme);
+        themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
         await createGameList();
         return showNotification("Settings imported");
       }
@@ -869,16 +859,11 @@ async function importFromFile() {
       if (typeof data.backgroundColor !== 'undefined'
         && typeof data.textColor       !== 'undefined'
         && typeof data.accentColor     !== 'undefined') {
-        const themeOnly = data as ThemeConfig;
-        // removing local font name and path first
-        delete themeOnly.fontPrimaryName;
-        delete themeOnly.fontPrimaryFilePath;
-        delete themeOnly.fontSecondaryName;
-        delete themeOnly.fontSecondaryFilePath;
-        await window.api.saveThemeConfig(themeOnly);
-         applyThemeConfig(themeOnly);
-         themeStylesheet.href = `styles/${themeOnly.baseTheme}.css`;
-         return showNotification("Theme imported");
+            const mergedTheme = await mergeThemeData(data);
+            await window.api.saveThemeConfig(mergedTheme);
+            applyThemeConfig(mergedTheme);
+            themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+            return showNotification("Theme imported");
     }
     
       await safePrompt("Could not recognise file format.", { mode: 'alert' });
