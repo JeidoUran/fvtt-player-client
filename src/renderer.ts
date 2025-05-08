@@ -1,6 +1,6 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from './particles';
-import { AppConfigSchema, ThemeConfigSchema } from './schemas';
+import { ThemeConfigSchema } from './schemas';
 
 let appVersion: string;
 let preventMenuClose = false;
@@ -24,8 +24,8 @@ function compareSemver(a: string, b: string): number {
 }
 
 /**
- * Injecte ou retire dynamiquement une Google Font via un <link> dans le <head>.
- * key sert juste à différencier le <link> (par ex. "primary" ou "secondary").
+ * Dynamically inject or remove a Google Font from a <link> in <head>.
+ * key is here to differentiate <link> (ex. "primary" or "secondary").
  */
 function useGoogleFont(url: string, key: string) {
     const existing = document.getElementById(`gf-${key}`);
@@ -39,7 +39,7 @@ function useGoogleFont(url: string, key: string) {
   }
   
   /**
-   * Extrait le family name depuis une URL Google Fonts.
+   * Extracts family name from a Google Fonts URL.
    * Ex: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700" → "Roboto"
    */
   function extractFamilyName(url: string): string {
@@ -362,11 +362,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const primaryFontSelect = document.querySelector<HTMLSelectElement>("#primary-font-selector")!;
     const primaryCustomField = document.getElementById("primary-custom-font")!;
     if (themeConfig.fontPrimary === "__custom") {
-        primaryCustomField.style.display = "flex";  // ou "block" selon ton layout
+        primaryCustomField.style.display = "flex";
     }
     primaryFontSelect.addEventListener("change", () => {
       if (primaryFontSelect.value === "__custom") {
-        primaryCustomField.style.display = "flex";  // ou "block" selon ton layout
+        primaryCustomField.style.display = "flex";
       } else {
         primaryCustomField.style.display = "none";
       }
@@ -375,11 +375,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const secondaryFontSelect = document.querySelector<HTMLSelectElement>("#secondary-font-selector")!;
     const secondaryCustomField = document.getElementById("secondary-custom-font")!;
     if (themeConfig.fontSecondary === "__custom") {
-        secondaryCustomField.style.display = "flex";  // ou "block" selon ton layout
+        secondaryCustomField.style.display = "flex";
     }
     secondaryFontSelect.addEventListener("change", () => {
       if (secondaryFontSelect.value === "__custom") {
-        secondaryCustomField.style.display = "flex";  // ou "block" selon ton layout
+        secondaryCustomField.style.display = "flex";
       } else {
         secondaryCustomField.style.display = "none";
       }
@@ -626,7 +626,7 @@ async function exportTheme() {
     document.getElementById("share-output")!.textContent = JSON.stringify(themeConfig, null, 2);
 };
 
-// Appliquer l’import (paramétrable selon ce qu’on colle)
+// Apply import
 async function applyShareImport() {
     const themeStylesheet = document.getElementById("theme-stylesheet") as HTMLLinkElement;
     const txt = (document.getElementById("share-input") as HTMLTextAreaElement).value;
@@ -705,25 +705,25 @@ async function importFromFile() {
 };
 
 async function saveToFile() {
-    // 1) Récupère le JSON déjà affiché dans <pre id="share-output">
+    // Gets the JSON data displayed in share-output
     const outputEl = document.getElementById("share-output") as HTMLElement;
     const text = outputEl.textContent ?? "";
     if (!text) {
         return showNotification("Nothing to save");
     }
 
-    // 2) Crée un Blob JSON
+    // Create a JSON Blob
     const blob = new Blob([text], { type: "application/json" });
 
-    // 3) Crée un URL temporaire
+    // Create temporary URL
     const url = URL.createObjectURL(blob);
 
-    // 4) Crée dynamiquement un <a> pour forcer le download
+    // Dynamically create a <a> to force a download
     const a = document.createElement("a");
     a.href = url;
 
-    // Choisis un nom de fichier selon le contenu du JSON
-    // On teste si c'est un export complet (app+theme) ou un thème seul
+    // Picks a file name depending on JSON content
+    // Checks if it's a full export (app+theme) or theme only
     let filename = "export";
     try {
         const data = JSON.parse(text);
@@ -737,7 +737,7 @@ async function saveToFile() {
     }
     a.download = `${filename}.json`;
 
-    // 5) Lance le download et nettoie
+    // Download and clean up
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1050,7 +1050,6 @@ function applyThemeConfig(config: ThemeConfig) {
     checkbox.checked = enabled;
     
     if (enabled) {
-      // si on passe de arrêté à démarré
       if (!particles.isParticlesRunning()) {
         particles.configureParticles({
           count: opts.count,
@@ -1061,7 +1060,6 @@ function applyThemeConfig(config: ThemeConfig) {
         particles.startParticles();
       }
     } else {
-      // si on passe de démarré à arrêté
       if (particles.isParticlesRunning()) {
         particles.stopParticles();
       }
@@ -1079,24 +1077,6 @@ function hexToRgba(hex: string, alpha: number): string {
     const g = (bigint >> 8) & 255;
     const b = bigint & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function rgbaToHex(rgba: string): string {
-    const match = rgba.match(/rgba?\(\s*([0-9]+)[ ,]+([0-9]+)[ ,]+([0-9]+)(?:[ ,]+([0-9.]+))?\s*\)/);
-    if (!match) {
-      console.warn(`rgbaToHex: format invalide (“${rgba}”), on retourne "#000000"`);
-      return "#000000";
-    }
-    const r = parseInt(match[1], 10);
-    const g = parseInt(match[2], 10);
-    const b = parseInt(match[3], 10);
-  
-    const toHex = (c: number) => {
-      const hex = c.toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
-    };
-  
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 function addStyle(styleString: string) {
@@ -1168,54 +1148,6 @@ async function getServerInfo(game: GameConfig): Promise<ServerStatusData | null>
     }
 }
 
-function renderTooltips() {
-    const layer = document.getElementById("tooltip-layer");
-    if (!layer) return;
-    
-    document.querySelectorAll(".tooltip-wrapper").forEach(wrapper => {
-        const tooltip = wrapper.querySelector<HTMLElement>(".tooltip");
-        if (!tooltip) return;
-    
-        // tente de repérer un input range à l'intérieur
-        const input = wrapper.querySelector<HTMLInputElement>("input[type=range]");
-    
-        wrapper.addEventListener("mouseenter", () => {
-        const rect = wrapper.getBoundingClientRect();
-        const clone = tooltip.cloneNode(true) as HTMLElement;
-        clone.classList.add("active-tooltip");
-        clone.style.display       = "block";
-        clone.style.position      = "fixed";
-        clone.style.pointerEvents = "none";
-        clone.style.transform      = "translateX(-50%)";
-        clone.style.left          = `${rect.left + rect.width/2}px`;
-        clone.style.top           = `${rect.bottom + 5}px`;
-    
-        const baseText = tooltip.textContent?.trim() ?? "";
-
-        // Si c'est un range, on met à jour la valeur live
-        let onInput: (() => void) | null = null;
-        if (input) {
-            clone.textContent = `${baseText}: ${input.value}`;
-            onInput = () => { clone.textContent = `${baseText}: ${input.value}`; };
-            input.addEventListener("input", onInput);
-        }
-    
-        layer.appendChild(clone);
-    
-        // Au mouseleave, on nettoie clone et listener
-        wrapper.addEventListener("mouseleave", () => {
-            clone.remove();
-            if (input && onInput) {
-            input.removeEventListener("input", onInput);
-            }
-        }, { once: true });
-        });
-    });
-}
-      
-      
-  
-
 async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
     const serverInfo = await getServerInfo(game);
 
@@ -1266,6 +1198,51 @@ async function refreshAllServerInfos() {
         console.error("Error in updateServerInfos:", err);
       }
     }
+}
+
+function renderTooltips() {
+    const layer = document.getElementById("tooltip-layer");
+    if (!layer) return;
+    
+    document.querySelectorAll(".tooltip-wrapper").forEach(wrapper => {
+        const tooltip = wrapper.querySelector<HTMLElement>(".tooltip");
+        if (!tooltip) return;
+    
+        // tries to find an input of type range
+        const input = wrapper.querySelector<HTMLInputElement>("input[type=range]");
+    
+        wrapper.addEventListener("mouseenter", () => {
+        const rect = wrapper.getBoundingClientRect();
+        const clone = tooltip.cloneNode(true) as HTMLElement;
+        clone.classList.add("active-tooltip");
+        clone.style.display       = "block";
+        clone.style.position      = "fixed";
+        clone.style.pointerEvents = "none";
+        clone.style.transform      = "translateX(-50%)";
+        clone.style.left          = `${rect.left + rect.width/2}px`;
+        clone.style.top           = `${rect.bottom + 5}px`;
+    
+        const baseText = tooltip.textContent?.trim() ?? "";
+
+        // If input type is range, tooltip is live updated
+        let onInput: (() => void) | null = null;
+        if (input) {
+            clone.textContent = `${baseText}: ${input.value}`;
+            onInput = () => { clone.textContent = `${baseText}: ${input.value}`; };
+            input.addEventListener("input", onInput);
+        }
+    
+        layer.appendChild(clone);
+    
+        // On mouseleave, clean clone and listener
+        wrapper.addEventListener("mouseleave", () => {
+            clone.remove();
+            if (input && onInput) {
+            input.removeEventListener("input", onInput);
+            }
+        }, { once: true });
+        });
+    });
 }
 
 async function createGameList() {
