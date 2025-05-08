@@ -15,9 +15,47 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 
 /* Remove the comment (//) from the line below to ignore certificate errors (useful for self-signed certificates) */
 
-getAppConfig();
-getThemeConfig();
 //app.commandLine.appendSwitch("ignore-certificate-errors");
+
+async function migrateUserData(): Promise<boolean> {
+    const userDataPath = path.join(app.getPath('userData'), 'userData.json');
+    let rawData: any = {};
+    try {
+        rawData = JSON.parse(fs.readFileSync(userDataPath, 'utf-8'));
+    } catch {
+        rawData = {};
+    }
+    try {
+        const themeKeys = [
+          'background','backgrounds','backgroundColor',
+          'textColor','accentColor','buttonColorAlpha',
+          'buttonColor','theme','particlesEnabled'
+        ] as const;
+    
+        const dataObj = (typeof rawData === "object" && rawData !== null)
+          ? { ...(rawData as Record<string, any>) }
+          : {};
+    
+        let migrated = false;
+        dataObj.theme = dataObj.theme ?? {};
+        if (dataObj.app) {
+          for (const key of themeKeys) {
+            if ((dataObj.app as any)[key] !== undefined) {
+              (dataObj.theme as any)[key] = (dataObj.app as any)[key];
+              delete (dataObj.app as any)[key];
+              migrated = true;
+            }
+          }
+        }
+        if (migrated) {
+          fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
+        }
+        rawData = dataObj;
+        return migrated;
+      } catch (e) {
+        console.warn("[getUserData] Migration échouée :", e);
+      }
+}
 
 export function getUserData(): UserData {
     const userDataPath = path.join(app.getPath("userData"), "userData.json");
@@ -28,37 +66,6 @@ export function getUserData(): UserData {
       rawData = JSON.parse(fs.readFileSync(userDataPath, "utf-8"));
     } catch {
       rawData = {};
-    }
-  
-    // 2️⃣ Migration
-    try {
-      const themeKeys = [
-        'background','backgrounds','backgroundColor',
-        'textColor','accentColor','buttonColorAlpha',
-        'buttonColor','theme','particlesEnabled'
-      ] as const;
-  
-      const dataObj = (typeof rawData === "object" && rawData !== null)
-        ? { ...(rawData as Record<string, any>) }
-        : {};
-  
-      let migrated = false;
-      dataObj.theme = dataObj.theme ?? {};
-      if (dataObj.app) {
-        for (const key of themeKeys) {
-          if ((dataObj.app as any)[key] !== undefined) {
-            (dataObj.theme as any)[key] = (dataObj.app as any)[key];
-            delete (dataObj.app as any)[key];
-            migrated = true;
-          }
-        }
-      }
-      if (migrated) {
-        fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
-      }
-      rawData = dataObj;
-    } catch (e) {
-      console.warn("[getUserData] Migration échouée :", e);
     }
   
     // 3️⃣ Validation + backup + nettoyage à chaque appel
@@ -107,16 +114,6 @@ export function getUserData(): UserData {
       return {} as UserData;
     }
   }
-
-
-
-
-{
-    const userData = getUserData();
-    if (userData.cachePath) {
-        app.setPath("sessionData", userData.cachePath);
-    }
-}
 
 const windows = new Set<BrowserWindow>();
 
@@ -400,9 +397,30 @@ function createWindow(): BrowserWindow {
     return window;
 }
 
-app.whenReady().then(() => {
-    createWindow();
-});
+app.whenReady().then(async () => {
+    // 1) Migrate userData before everything else
+    const didMigrate = await migrateUserData();
+  
+    // 2) Configure cache/session
+    const userData = getUserData();
+    if (userData.cachePath) {
+      app.setPath("sessionData", userData.cachePath);
+    }
+  
+    // 3) Create window
+    const win = createWindow();
+  
+    // 4) Notify of successful migration, listening did-finish-load
+    if (didMigrate) {
+      win.webContents.once("did-finish-load", () => {
+        win.webContents.send(
+          "show-notification",
+          'Your user data has been successfully migrated'
+        );
+      });
+    }
+  });
+  
 
 ipcMain.on("enable-discord-rpc", (event) => {
     startRichPresenceSocket();

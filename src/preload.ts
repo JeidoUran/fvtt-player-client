@@ -2,7 +2,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: no nodejs in preload
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-import {contextBridge, ipcRenderer} from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 window.addEventListener("DOMContentLoaded", () => {
     const replaceText = (selector: string, text: string) => {
@@ -41,6 +41,7 @@ export type ContextBridgeApi = {
     clearCache: () => void;
     saveAppConfig: (data: AppConfig) => void;
     saveThemeConfig: (data: ThemeConfig) => void;
+    showNotification(callback: (message: string) => void): void;
 }
 const exposedApi: ContextBridgeApi = {
     // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -94,9 +95,15 @@ const exposedApi: ContextBridgeApi = {
     },
     saveThemeConfig(data: ThemeConfig) {
         ipcRenderer.send("save-theme-config", data);
-    }
-
-
+    },
+    showNotification(callback: (message: string) => void): void {
+        ipcRenderer.on(
+          'show-notification',
+          (_event: IpcRendererEvent, message: string) => {
+            callback(message);
+          }
+        );
+      }
 }
 
 contextBridge.exposeInMainWorld("api", exposedApi);
