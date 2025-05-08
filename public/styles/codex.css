@@ -726,6 +726,7 @@ textarea {
 
 .confirm-button {
     padding: 0.75rem 2.25rem;
+    width: 7em;
 }
 
 .server-infos {
