@@ -385,34 +385,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    const particlesConfig = document.querySelector('.particles-config') as HTMLDivElement;
-
-    if (!themeConfig.particlesEnabled) {
-        particlesConfig.style.height = "0px";
-        particlesConfig.classList.add('hidden');
+    const particlesConfig = document.querySelector<HTMLElement>(".particles-config")!;
+    const particlesCheckbox = document.querySelector<HTMLInputElement>("#particles-button")!;
+    if (themeConfig.particlesEnabled == true) {
+        particlesConfig.style.display = "block";
     }
-
-    const particlesCheckbox = document.getElementById("particles-button") as HTMLInputElement;
-    particlesCheckbox.addEventListener("change", async () => {
-            const enabled = particlesCheckbox.checked;
-            if (enabled) {
-                particlesConfig.classList.remove('hidden');
-                particlesConfig.style.height = "0px"; // Start collapsed but visible
-        
-                requestAnimationFrame(() => {
-                    const scrollHeight = particlesConfig.scrollHeight;
-                    particlesConfig.style.height = `${scrollHeight + 15}px`; // Animate expansion
-                });
-            } else {
-                particlesConfig.style.height = "0px"; // Collapse
-                particlesConfig.addEventListener('transitionend', function handler(e) {
-                    if (e.propertyName === 'height') {
-                        particlesConfig.classList.add('hidden');
-                        particlesConfig.removeEventListener('transitionend', handler);
-                    }
-                });
-            }
-        });
+    particlesCheckbox.addEventListener("change", () => {
+      if (particlesCheckbox.checked == true) {
+        particlesConfig.style.display = "block";
+      } else {
+        particlesConfig.style.display = "none";
+      }
+    });
 
     const selectedTheme = themeConfig.theme ?? "codex";
     themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
@@ -939,23 +923,27 @@ function applyAppConfig(config: AppConfig) {
 
 function applyThemeConfig(config: ThemeConfig) {
 
-  // ——— CUSTOM FONTS ——————————————————————————————————
   const primaryFontSelect = document.querySelector<HTMLSelectElement>("#primary-font-selector")!;
   const customPrimaryField   = document.querySelector<HTMLInputElement>("#primary-custom-font")!;
   const secondaryFontSelect  = document.querySelector<HTMLSelectElement>("#secondary-font-selector")!;
   const customSecondaryField = document.querySelector<HTMLInputElement>("#secondary-custom-font")!;
 
-  // 1) On initialise la valeur du <select> et de l'input custom depuis le config
+  const particlesConfig = (document.querySelector(".particles-config") as HTMLElement)!;
+  const particlesCheckbox = (document.querySelector("#particles-button") as HTMLInputElement)!;
+
   primaryFontSelect.value     = config.fontPrimary    ?? "";
   customPrimaryField.value    = config.fontPrimaryUrl ?? "";
   secondaryFontSelect.value   = config.fontSecondary ?? "";
   customSecondaryField.value  = config.fontSecondaryUrl ?? "";
 
-  // 2) On affiche/masque le champ custom en fonction du select
+  const particlesCheckboxEnabled = config.particlesEnabled ?? true;
+  particlesCheckbox.checked = particlesCheckboxEnabled;
+
   customPrimaryField.style.display   = primaryFontSelect.value   === "__custom" ? "flex" : "none";
   customSecondaryField.style.display = secondaryFontSelect.value === "__custom" ? "flex" : "none";
+  
+  particlesConfig.style.display = particlesCheckboxEnabled ? "block" : "none";
 
-  // 3) On injecte la font Google ou on remet par défaut
   if (config.fontPrimary === "__custom" && config.fontPrimaryUrl) {
     useGoogleFont(config.fontPrimaryUrl, "primary");
     const fam = extractFamilyName(config.fontPrimaryUrl);
