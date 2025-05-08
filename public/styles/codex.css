@@ -108,8 +108,8 @@ input[type=color] {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     background-color: transparent;
     cursor: pointer;
     border: none;
@@ -120,7 +120,7 @@ input[type=color] {
 .color-wrapper {
     border: 1px solid var(--color-text-primary);
     border-radius: 4px;
-    height: 26px;
+    height: 32px;
 }
 
 input[type=color]::-webkit-color-swatch {
@@ -311,14 +311,6 @@ table, th, td {
     font-size: 22px;
 }
 
-.app-configuration {
-    min-width: 30vw;
-}
-
-.theme-configuration {
-    min-width: 25vw;
-}
-
 .app-configuration,
 .theme-configuration {
     box-shadow: 0 0 5px black;
@@ -330,6 +322,8 @@ table, th, td {
     background: var(--color-background);
     pointer-events: all;
     border-radius: 12px;
+    width: 30vw;
+    max-height: 70vh;
 }
 
 .app-configuration.show,
@@ -598,6 +592,7 @@ select {
     padding: 0.25rem 1rem;
     font-size: 1rem;
     border-radius: 6px;
+    width: 15em;
 }
 
 select option {
@@ -1054,5 +1049,12 @@ input[type="range"] {
 
 #primary-import-font,
 #secondary-import-font {
-    padding: 0.5rem
+    padding: 0.5rem;
+    margin: 0 0.75rem;
+}
+
+.overflow {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.25rem;
 }
