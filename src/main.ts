@@ -19,7 +19,8 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 
 let mainWindow: BrowserWindow; 
 
-async function migrateUserData(): Promise<boolean> {
+type MigrationStatus = "skipped" | "success" | "failure";
+async function migrateUserData(): Promise<MigrationStatus> {
     const userDataPath = path.join(app.getPath('userData'), 'userData.json');
     let rawData: any = {};
     try {
@@ -51,12 +52,14 @@ async function migrateUserData(): Promise<boolean> {
         }
         if (migrated) {
             fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
+            rawData = dataObj;
+            return "success";
+        } else {
+            return "skipped";
         }
-        rawData = dataObj;
-        return migrated;
       } catch (e) {
         console.warn("[getUserData] Migration failed :", e);
-        return false;
+        return "failure";
       }
 }
 
@@ -76,7 +79,7 @@ export function getUserData(): UserData {
       const validation = UserDataSchema.safeParse(rawData);
       if (!validation.success) {
         askPrompt(`Invalid configuration detected: a backup of your previous settings has been created, and any invalid values have been reset to their defaults.`, { mode: 'alert' });
-        // 3a) Backup
+        // Backup
         try {
           const bakPath = userDataPath.replace(/\.json$/, ".bak.json");
           fs.copyFileSync(userDataPath, bakPath);
@@ -98,7 +101,7 @@ export function getUserData(): UserData {
           }
         }
   
-        // 3c) Write fixed JSON
+        // Write fixed JSON
         try {
           fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
           rawData = dataObj;
@@ -418,23 +421,21 @@ function createWindow(): BrowserWindow {
 
 app.whenReady().then(async () => {
 
+    const migrationResult = await migrateUserData();
+    console.log(">> migrateUserData returned:", migrationResult);
     mainWindow = createWindow();  
 
-    // Migrate userData
-    const didMigrate = await migrateUserData();
-  
     // Configure cache/session
     const userData = getUserData();
-    if (userData.cachePath) {
-        app.setPath("sessionData", userData.cachePath);
-    }
-  
+    if (userData.cachePath) app.setPath("sessionData", userData.cachePath);
+
     // Notify of successful migration, listening did-finish-load
     mainWindow.webContents.once('did-finish-load', async () => {
-        if (didMigrate) {
-            mainWindow.webContents.send("show-notification", 'Your user data has been successfully migrated');
-        } else {
-            await askPrompt(`Could not migrate your user data`, { mode: 'alert' });
+        if (migrationResult === "success") {
+            mainWindow.webContents.send('show-notification', 'Your user data has been successfully migrated');
+            console.log("Migration successful");
+        } else if (migrationResult === "failure") {
+            await askPrompt('Could not migrate your user data.', { mode: 'alert' });
         }
     });
 });
