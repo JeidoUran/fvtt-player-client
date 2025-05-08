@@ -1,5 +1,6 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from './particles';
+import { AppConfigSchema, ThemeConfigSchema } from './schemas';
 
 let appVersion: string;
 let preventMenuClose = false;
@@ -180,7 +181,7 @@ document.querySelector("#clear-cache").addEventListener("click", async () => {
     showNotification("Cache cleared");
 });
 
-document.querySelector("#save-theme-config").addEventListener("click", (e) => {
+document.querySelector("#save-theme-config").addEventListener("click", async (e) => {
     if (!(e.target instanceof Element))
         return;
     
@@ -250,6 +251,23 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
         }
     } as ThemeConfig;
 
+    const rawConfig: unknown = {
+        accentColor:            config.accentColor,
+        backgroundColor:        config.backgroundColor,
+        background:             config.background,
+        textColor:              config.textColor,
+        buttonColorAlpha:       config.buttonColorAlpha,
+        buttonColor:            config.buttonColor,
+        buttonColorHoverAlpha:  config.buttonColorHoverAlpha,
+        buttonColorHover:       config.buttonColorHover,
+        particlesEnabled:       config.particlesEnabled,
+        particleOptions:        config.particleOptions,
+        fontPrimary:            config.fontPrimary,
+        fontPrimaryUrl:         config.fontPrimaryUrl,
+        fontSecondary:          config.fontSecondary,
+        fontSecondaryUrl:       config.fontSecondaryUrl,
+      };
+
     if (primaryFontSelect.value === "__custom") {
         config.fontPrimaryUrl = customPrimary.value.trim();
         config.fontPrimary    = "__custom";
@@ -265,11 +283,19 @@ document.querySelector("#save-theme-config").addEventListener("click", (e) => {
         config.fontSecondary    = secondaryFontSelect.value;  
         config.fontSecondaryUrl = "";
       }
+      const result = ThemeConfigSchema.safeParse(rawConfig);
+      if (!result.success) {
+        console.error(result.error.format());
+        await safePrompt("One or more theme value are invalid. Changes were not saved.", { mode: "alert" });
+        return;
+    }
     
     console.log(config);
-    window.api.saveThemeConfig(config);
-    applyThemeConfig(config);
-    showNotification("Changes saved");
+    const validConfig = result.data as ThemeConfig;
+
+    await window.api.saveThemeConfig(validConfig);
+    applyThemeConfig(validConfig);
+    showNotification("Theme saved");
 });
 
 const cancelThemeButton = document.querySelector("#cancel-theme-config") as HTMLButtonElement;

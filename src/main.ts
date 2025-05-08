@@ -3,6 +3,7 @@
 import { app, BrowserWindow, ipcMain, safeStorage, session, nativeImage } from 'electron';
 import { enableRichPresence, disableRichPresence } from './richPresenceControl';
 import { startRichPresenceSocket, closeRichPresenceSocket } from './richPresenceSocket';
+import { UserDataSchema } from './schemas';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -18,43 +19,97 @@ getAppConfig();
 getThemeConfig();
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
-function getUserData(): UserData {
+export function getUserData(): UserData {
     const userDataPath = path.join(app.getPath("userData"), "userData.json");
+    let rawData: unknown = {};
+  
+    // 1️⃣ Lire en toute sécurité
     try {
-        const raw = fs.readFileSync(userDataPath).toString();
-        const data = JSON.parse(raw) as UserData;
-
-        // List of ThemeConfig keys
-        const themeKeys: (keyof ThemeConfig)[] = [
-          "background", "backgrounds", "backgroundColor",
-          "textColor", "accentColor", "buttonColorAlpha",
-          "buttonColor", "theme", "particlesEnabled"
-        ];
-
-        let migrated = false;
-        data.theme = data.theme || {} as ThemeConfig;
-
-        if (data.app) {
-          for (const key of themeKeys) {
-            if ((data.app as any)[key] !== undefined) {
-              // moving value
-              (data.theme as any)[key] = (data.app as any)[key];
-              delete (data.app as any)[key];
-              migrated = true;
-            }
+      rawData = JSON.parse(fs.readFileSync(userDataPath, "utf-8"));
+    } catch {
+      rawData = {};
+    }
+  
+    // 2️⃣ Migration
+    try {
+      const themeKeys = [
+        'background','backgrounds','backgroundColor',
+        'textColor','accentColor','buttonColorAlpha',
+        'buttonColor','theme','particlesEnabled'
+      ] as const;
+  
+      const dataObj = (typeof rawData === "object" && rawData !== null)
+        ? { ...(rawData as Record<string, any>) }
+        : {};
+  
+      let migrated = false;
+      dataObj.theme = dataObj.theme ?? {};
+      if (dataObj.app) {
+        for (const key of themeKeys) {
+          if ((dataObj.app as any)[key] !== undefined) {
+            (dataObj.theme as any)[key] = (dataObj.app as any)[key];
+            delete (dataObj.app as any)[key];
+            migrated = true;
           }
         }
-
-        if (migrated) {
-          // rewrite file
-          fs.writeFileSync(userDataPath, JSON.stringify(data, null, 2));
-        }
-
-        return data;
+      }
+      if (migrated) {
+        fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
+      }
+      rawData = dataObj;
     } catch (e) {
-        return {} as UserData;
+      console.warn("[getUserData] Migration échouée :", e);
     }
-}
+  
+    // 3️⃣ Validation + backup + nettoyage à chaque appel
+    try {
+      const validation = UserDataSchema.safeParse(rawData);
+      if (!validation.success) {
+        // 3a) Backup
+        try {
+          const bakPath = userDataPath.replace(/\.json$/, ".bak.json");
+          fs.copyFileSync(userDataPath, bakPath);
+        } catch { /**/ }
+  
+        // 3b) Supprimer seulement les clés fautives
+        const dataObj = { ...(rawData as Record<string, any>) };
+        for (const err of validation.error.errors) {
+          if (!err.path.length) continue;
+          let obj: any = dataObj;
+          for (let i = 0; i < err.path.length - 1; i++) {
+            const p = err.path[i];
+            if (obj && typeof obj[p] === "object") obj = obj[p];
+            else { obj = null; break; }
+          }
+          const last = err.path.at(-1);
+          if (obj && typeof last === "string") {
+            delete obj[last];
+          }
+        }
+  
+        // 3c) Écrire le JSON corrigé
+        try {
+          fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
+          rawData = dataObj;
+        } catch {
+          console.warn("[getUserData] Impossible d’écrire userData nettoyé");
+        }
+      }
+    } catch (e) {
+      console.warn("[getUserData] Validation Zod impossible :", e);
+    }
+  
+    // 4️⃣ Dernier parse (sans réécriture) ou fallback en mémoire
+    try {
+      return UserDataSchema.parse(rawData) as UserData;
+    } catch (e) {
+      console.error("[getUserData] Parsing final a échoué, on renvoie un UserData vide :", e);
+      return {} as UserData;
+    }
+  }
+
+
+
 
 {
     const userData = getUserData();
@@ -477,14 +532,24 @@ function getLoginDetails(gameId: GameId): GameUserDataDecrypted {
     };
 }
 
-function saveUserData(gameId: GameId, data: GameUserData) {
-    const currentData = getUserData();
-    if (currentData[gameId]) {
-        if (data.user === "") data.user = currentData[gameId].user;
-        if (data.password.length === 0) data.password = currentData[gameId].password;
-        if (data.adminPassword.length === 0) data.adminPassword = currentData[gameId].adminPassword;
+function writeUserDataFile(data: unknown) {
+    const result = UserDataSchema.safeParse(data);
+    if (!result.success) {
+      console.error("Invalid write attempt :", result.error.format());
+      return false;
     }
-    const newData: UserData = {...currentData, [gameId]: data};
-    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(newData));
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"),
+                       JSON.stringify(result.data, null, 2));
+    return true;
+}
+  
+  function saveUserData(gameId: GameId, data: GameUserData) {
+    const current = getUserData();
+    // … ton merge habituel …
+    const newData: UserData = { ...current, [gameId]: data };
+    if (!writeUserDataFile(newData)) {
+      // ici tu peux choisir de rollback ou d’alerter l’utilisateur
+      console.warn("Could not write userData. Data was not saved.");
+    }
 }
 
