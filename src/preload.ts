@@ -42,6 +42,9 @@ export type ContextBridgeApi = {
     saveAppConfig: (data: AppConfig) => void;
     saveThemeConfig: (data: ThemeConfig) => void;
     showNotification(callback: (message: string) => void): void;
+    safePrompt(message: string, options?: { mode: 'confirm' | 'alert' }): Promise<boolean>;
+    onShowPrompt: (handler: (event: { id: number; message: string; options?: { mode: 'confirm' | 'alert' } }) => void) => void;
+    sendPromptResponse: (id: number, answer: boolean) => void;
 }
 const exposedApi: ContextBridgeApi = {
     // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -103,7 +106,21 @@ const exposedApi: ContextBridgeApi = {
             callback(message);
           }
         );
-      }
+    },
+    safePrompt: (message, options) => {
+        return ipcRenderer.invoke('safe-prompt', message, options) as Promise<boolean>;
+    },
+    onShowPrompt: (handler) => {
+        ipcRenderer.on(
+          'show-prompt',
+          (_e: IpcRendererEvent, event: { id: number; message: string; options?: { mode: 'confirm' | 'alert' } }) => {
+            handler(event);
+          }
+        );
+      },
+      sendPromptResponse: (id, answer) => {
+        ipcRenderer.send(`prompt-response-${id}`, answer);
+    }
 }
 
 contextBridge.exposeInMainWorld("api", exposedApi);

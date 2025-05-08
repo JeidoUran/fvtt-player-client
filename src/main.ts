@@ -17,6 +17,8 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
+let mainWindow: BrowserWindow; 
+
 async function migrateUserData(): Promise<boolean> {
     const userDataPath = path.join(app.getPath('userData'), 'userData.json');
     let rawData: any = {};
@@ -48,12 +50,13 @@ async function migrateUserData(): Promise<boolean> {
           }
         }
         if (migrated) {
-          fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
+            fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
         }
         rawData = dataObj;
         return migrated;
       } catch (e) {
-        console.warn("[getUserData] Migration échouée :", e);
+        console.warn("[getUserData] Migration failed :", e);
+        return false;
       }
 }
 
@@ -61,24 +64,25 @@ export function getUserData(): UserData {
     const userDataPath = path.join(app.getPath("userData"), "userData.json");
     let rawData: unknown = {};
   
-    // 1️⃣ Lire en toute sécurité
+    // Secure read
     try {
       rawData = JSON.parse(fs.readFileSync(userDataPath, "utf-8"));
     } catch {
       rawData = {};
     }
   
-    // 3️⃣ Validation + backup + nettoyage à chaque appel
+    // Validate + clean + backup on each call
     try {
       const validation = UserDataSchema.safeParse(rawData);
       if (!validation.success) {
+        askPrompt(`Invalid configuration detected: a backup of your previous settings has been created, and any invalid values have been reset to their defaults.`, { mode: 'alert' });
         // 3a) Backup
         try {
           const bakPath = userDataPath.replace(/\.json$/, ".bak.json");
           fs.copyFileSync(userDataPath, bakPath);
         } catch { /**/ }
   
-        // 3b) Supprimer seulement les clés fautives
+        // 3b) Only delete erroneous keys
         const dataObj = { ...(rawData as Record<string, any>) };
         for (const err of validation.error.errors) {
           if (!err.path.length) continue;
@@ -94,26 +98,41 @@ export function getUserData(): UserData {
           }
         }
   
-        // 3c) Écrire le JSON corrigé
+        // 3c) Write fixed JSON
         try {
           fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
           rawData = dataObj;
         } catch {
-          console.warn("[getUserData] Impossible d’écrire userData nettoyé");
+          console.warn("[getUserData] Could not write cleaned userData");
         }
       }
     } catch (e) {
-      console.warn("[getUserData] Validation Zod impossible :", e);
+      console.warn("[getUserData] Zod Validation Failed :", e);
     }
   
-    // 4️⃣ Dernier parse (sans réécriture) ou fallback en mémoire
+    // Last parse otherwise fallback to memory
     try {
       return UserDataSchema.parse(rawData) as UserData;
     } catch (e) {
-      console.error("[getUserData] Parsing final a échoué, on renvoie un UserData vide :", e);
+      console.error("[getUserData] Final parsing failed, regenerating a clean userData :", e);
       return {} as UserData;
     }
-  }
+}
+
+/**
+ * Displays safePrompt in renderer and retrieve answer
+ */
+function askPrompt(message: string, options?: { mode: 'confirm' | 'alert' }): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+      const id = Date.now();
+      // On écoute la réponse du renderer
+      ipcMain.once(`prompt-response-${id}`, (_e, answer: boolean) => {
+        resolve(answer);
+      });
+      // On demande au renderer d'afficher la boîte
+      mainWindow.webContents.send('show-prompt', { id, message, options });
+    });
+}
 
 const windows = new Set<BrowserWindow>();
 
@@ -144,7 +163,7 @@ function getSession(): Electron.Session {
 
 function createWindow(): BrowserWindow {
     const localSession = getSession();
-    let window = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         show: false, width: 800, height: 600, webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             nodeIntegration: false,
@@ -155,7 +174,7 @@ function createWindow(): BrowserWindow {
 
     });
 
-    window.webContents.on('page-favicon-updated', (_event, favicons) => {
+    mainWindow.webContents.on('page-favicon-updated', (_event, favicons) => {
         if (!favicons.length) return;
         const faviconUrl = favicons[0];
     
@@ -165,7 +184,7 @@ function createWindow(): BrowserWindow {
             const filePath = fileURLToPath(faviconUrl);
             const icon = nativeImage.createFromPath(filePath);
             if (!icon.isEmpty()) {
-              window.setIcon(icon);
+                mainWindow.setIcon(icon);
               console.log('[Favicon] Restored from local file :', filePath);
             } else {
               console.warn('[Favicon] nativeImage empty for:', filePath);
@@ -180,7 +199,7 @@ function createWindow(): BrowserWindow {
             .then(buf => {
               const icon = nativeImage.createFromBuffer(Buffer.from(buf));
               if (!icon.isEmpty()) {
-                window.setIcon(icon);
+                mainWindow.setIcon(icon);
                 console.log('[Favicon] Restored from external URL :', faviconUrl);
               }
             })
@@ -189,75 +208,75 @@ function createWindow(): BrowserWindow {
       });
 
     // Fix Popouts
-    window.webContents.setUserAgent(window.webContents.getUserAgent().replace("Electron", ""));
-    window.webContents.on('did-start-loading', () => {
-        const wd = windowsData[window.webContents.id];
+    mainWindow.webContents.setUserAgent(mainWindow.webContents.getUserAgent().replace("Electron", ""));
+    mainWindow.webContents.on('did-start-loading', () => {
+        const wd = windowsData[mainWindow.webContents.id];
         if (wd?.selectedServerName) {
-            window.setTitle(wd.selectedServerName + ' * Loading...');
+            mainWindow.setTitle(wd.selectedServerName + ' * Loading...');
         } else {
-            window.setTitle(window.webContents.getTitle() + ' * Loading...');
+            mainWindow.setTitle(mainWindow.webContents.getTitle() + ' * Loading...');
         }
         
-        window.setProgressBar(2, {mode: 'indeterminate'}) // second parameter optional
+        mainWindow.setProgressBar(2, {mode: 'indeterminate'}) // second parameter optional
     });
 
-    window.webContents.on('did-finish-load', () => {
-        const wd = windowsData[window.webContents.id];
+    mainWindow.webContents.on('did-finish-load', () => {
+        const wd = windowsData[mainWindow.webContents.id];
         if (wd?.selectedServerName) {
-            window.setTitle(wd.selectedServerName);
+            mainWindow.setTitle(wd.selectedServerName);
         } else {
-            window.setTitle(window.webContents.getTitle());
+            mainWindow.setTitle(mainWindow.webContents.getTitle());
         }
-        window.setProgressBar(-1);
+        mainWindow.setProgressBar(-1);
     });
-    window.webContents.on('did-stop-loading', () => {
-        const wd = windowsData[window.webContents.id];
+    mainWindow.webContents.on('did-stop-loading', () => {
+        const wd = windowsData[mainWindow.webContents.id];
         if (wd?.selectedServerName) {
-            window.setTitle(wd.selectedServerName);
+            mainWindow.setTitle(wd.selectedServerName);
         } else {
-            window.setTitle(window.webContents.getTitle());
+            mainWindow.setTitle(mainWindow.webContents.getTitle());
         }
-        window.setProgressBar(-1);
+        mainWindow.setProgressBar(-1);
     });
-    window.webContents.setWindowOpenHandler(() => {
+    mainWindow.webContents.setWindowOpenHandler(() => {
         return {
             action: 'allow',
             overrideBrowserWindowOptions: {
-                parent: window,
+                parent: mainWindow,
                 autoHideMenuBar: true,
             }
         }
     });
 
-    window.menuBarVisible = false;
+    mainWindow.menuBarVisible = false;
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-        window.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {
-        window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
     }
 
-    window.webContents.on('before-input-event', (event, input) => {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
         if (input.key === 'F12') {
-            window.webContents.toggleDevTools();
+            mainWindow.webContents.toggleDevTools();
             event.preventDefault();
         } else if (input.key === 'F5' && input.control) {
-            window.webContents.reloadIgnoringCache()
+            mainWindow.webContents.reloadIgnoringCache()
             event.preventDefault();
         } else if (input.key === 'F5') {
-            window.webContents.reload()
+            mainWindow.webContents.reload()
             event.preventDefault();
         }
     });
     
     // Inject Server button on /game page
-    window.webContents.on("did-start-navigation", (e) => {
+    mainWindow.webContents.on("did-start-navigation", (e) => {
         if (e.isSameDocument) return;
         if (e.url.startsWith("about")) return;
     
         if (e.url.endsWith("/game")) {
             console.log("[FVTT Client] Navigation detected: /game");
     
-            window.webContents.executeJavaScript(`
+            mainWindow.webContents.executeJavaScript(`
                 console.log("[FVTT Client] Injecting script for /game...");
     
                 async function waitForFoundryReady() {
@@ -300,12 +319,12 @@ function createWindow(): BrowserWindow {
     });
     
     
-    window.webContents.on("did-finish-load", () => {
-        const url = window.webContents.getURL();
+    mainWindow.webContents.on("did-finish-load", () => {
+        const url = mainWindow.webContents.getURL();
         if (!url.endsWith("/join") && !url.endsWith("/auth") && !url.endsWith("/setup"))
             return;
         if (url.endsWith("/setup")) {
-            window.webContents.executeJavaScript(`
+            mainWindow.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="icon" data-action="returnServerSelect" id="server-button" data-tooltip="Return to Server Select"><i class="fas fa-server"></i></button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -316,7 +335,7 @@ function createWindow(): BrowserWindow {
             `);
         }
         if (url.endsWith("/auth")) {
-            window.webContents.executeJavaScript(`
+            mainWindow.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="bright" id="server-button"> <i class="fa-solid fa-server"></i>Return to Server Select</button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -327,7 +346,7 @@ function createWindow(): BrowserWindow {
             `);
         }
         if (url.endsWith("/join")) {
-            window.webContents.executeJavaScript(`
+            mainWindow.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="bright" id="server-button"> <i class="fa-solid fa-server"></i>Return to Server Select</button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -340,9 +359,9 @@ function createWindow(): BrowserWindow {
 
         if (!url.endsWith("/join") && !url.endsWith("/auth"))
             return;
-        const userData = getLoginDetails(windowsData[window.webContents.id].gameId);
+        const userData = getLoginDetails(windowsData[mainWindow.webContents.id].gameId);
         if (!userData.user) return;
-        window.webContents.executeJavaScript(`
+        mainWindow.webContents.executeJavaScript(`
             async function waitForLoad() {
                 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
                 while (!document.querySelector('select[name="userid"]') && !document.querySelector('input[name="adminPassword"]')) {
@@ -368,7 +387,7 @@ function createWindow(): BrowserWindow {
                     preventDefault: () => {
                     }, target: document.getElementById("join-game")
                 }
-                if (${windowsData[window.webContents.id].autoLogin}) {
+                if (${windowsData[mainWindow.webContents.id].autoLogin}) {
                     ui.join._onSubmit(fakeEvent);
                 } else {
                     document.querySelector(".form-footer button[name=join]").addEventListener("click", () => {
@@ -380,46 +399,45 @@ function createWindow(): BrowserWindow {
             waitForLoad();
 
         `);
-        windowsData[window.webContents.id].autoLogin = false;
+        windowsData[mainWindow.webContents.id].autoLogin = false;
 
     });
 
-    window.once('ready-to-show', () => {
-        window.maximize();
-        window.show();
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.maximize();
+        mainWindow.show();
     });
-    window.on('closed', () => {
-        windows.delete(window);
-        window = null;
+    mainWindow.on('closed', () => {
+        windows.delete(mainWindow);
+        mainWindow = null;
     });
-    windows.add(window);
-    windowsData[window.webContents.id] = {autoLogin: true} as WindowData;
-    return window;
+    windows.add(mainWindow);
+    windowsData[mainWindow.webContents.id] = {autoLogin: true} as WindowData;
+    return mainWindow;
 }
 
 app.whenReady().then(async () => {
-    // 1) Migrate userData before everything else
+
+    mainWindow = createWindow();  
+
+    // Migrate userData
     const didMigrate = await migrateUserData();
   
-    // 2) Configure cache/session
+    // Configure cache/session
     const userData = getUserData();
     if (userData.cachePath) {
-      app.setPath("sessionData", userData.cachePath);
+        app.setPath("sessionData", userData.cachePath);
     }
   
-    // 3) Create window
-    const win = createWindow();
-  
-    // 4) Notify of successful migration, listening did-finish-load
-    if (didMigrate) {
-      win.webContents.once("did-finish-load", () => {
-        win.webContents.send(
-          "show-notification",
-          'Your user data has been successfully migrated'
-        );
-      });
-    }
-  });
+    // Notify of successful migration, listening did-finish-load
+    mainWindow.webContents.once('did-finish-load', async () => {
+        if (didMigrate) {
+            mainWindow.webContents.send("show-notification", 'Your user data has been successfully migrated');
+        } else {
+            await askPrompt(`Could not migrate your user data`, { mode: 'alert' });
+        }
+    });
+});
   
 
 ipcMain.on("enable-discord-rpc", (event) => {

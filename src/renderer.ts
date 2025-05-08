@@ -2,6 +2,7 @@
 import * as particles from './particles';
 import { ThemeConfigSchema } from './schemas';
 import { showNotification } from './notifications';
+import { safePrompt } from './safePrompt';
 
 let appVersion: string;
 let preventMenuClose = false;
@@ -62,13 +63,19 @@ window.api.showNotification((message: string) => {
     showNotification(message);
 });
 
+window.api.onShowPrompt(({ id, message, options }) => {
+    safePrompt(message, options).then(answer => {
+      window.api.sendPromptResponse(id, answer);
+    });
+});
+
 document.querySelector("#add-game").addEventListener("click", async () => {
     const gameUrlField = document.querySelector("#game-url") as HTMLInputElement;
     const gameNameField = document.querySelector("#game-name") as HTMLInputElement;
     const gameUrl = gameUrlField.value;
     const gameName = gameNameField.value;
     if (!gameUrl || !gameName) {
-        await safePrompt("Please enter a game name and URL", { mode: 'alert' });
+        await safePrompt("Please enter a game name and URL.", { mode: 'alert' });
         return;
     }
     const newGameItem = {name: gameName, url: gameUrl, id: Math.round(Math.random() * 1000000)} as GameConfig;
@@ -138,7 +145,7 @@ document.querySelector("#save-app-config").addEventListener("click", async (e) =
     const result = ThemeConfigSchema.safeParse(rawConfig);
     if (!result.success) {
         console.error(result.error.format());
-        await safePrompt("One or more theme value are invalid. Changes were not saved.", { mode: "alert" });
+        await safePrompt("Invalid client values detected. No changes were saved — please review your inputs and try again.", { mode: "alert" });
         const appConfig = await window.api.localAppConfig();
         applyAppConfig(appConfig);
         return;
@@ -298,7 +305,7 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     const result = ThemeConfigSchema.safeParse(rawConfig);
     if (!result.success) {
         console.error(result.error.format());
-        await safePrompt("One or more theme value are invalid. Changes were not saved.", { mode: "alert" });
+        await safePrompt("Invalid client values detected. No changes were saved — please review your inputs and try again.", { mode: "alert" });
         const themeConfig = await window.api.localThemeConfig();
         applyThemeConfig(themeConfig);
         return;
@@ -438,7 +445,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (resetAppearanceButton) {
     resetAppearanceButton.addEventListener("click", async () => {
-        const confirmed = await safePrompt("Are you sure you want to reset the theme settings? This will erase your custom colors, fonts and backgrounds (games and client settings are not affected).");
+        const confirmed = await safePrompt("Are you sure you want to reset all theme settings? This will erase your custom colors, fonts and backgrounds (games and client settings are not affected).");
         if (!confirmed) return;
 
         themeConfig.background = "";
@@ -466,7 +473,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (resetClientButton) {
         resetClientButton.addEventListener("click", async () => {
-        const confirmed = await safePrompt("Are you sure you want to reset the client settings? This will erase your cache, certificate and Discord settings (games and themes are not affected).");
+        const confirmed = await safePrompt("Are you sure you want to reset all client settings? This will erase your cache, certificate and Discord settings (games and themes are not affected).");
         if (!confirmed) return;
 
         appConfig.cachePath = undefined;
@@ -647,7 +654,7 @@ async function applyShareImport() {
     try {
         data = JSON.parse(txt);
     } catch {
-        await safePrompt("Invalid JSON data", { mode: 'alert' });
+        await safePrompt("Invalid JSON data.", { mode: 'alert' });
         return;
     }
     
@@ -673,7 +680,7 @@ async function applyShareImport() {
          return showNotification("Theme imported");
     }
     
-    await safePrompt("Could not recognise format", { mode: 'alert' });
+    await safePrompt("Could not recognise text format.", { mode: 'alert' });
 };              
                 
 async function importFromFile() {
@@ -686,7 +693,7 @@ async function importFromFile() {
       try {
         data = JSON.parse(txt);
       } catch {
-        await safePrompt("Invalid JSON data", { mode: 'alert' });
+        await safePrompt("Invalid JSON data.", { mode: 'alert' });
         return;
       }
     
@@ -712,7 +719,7 @@ async function importFromFile() {
          return showNotification("Theme imported");
     }
     
-      await safePrompt("Format non reconnu (Settings ou Theme attendu)", { mode: 'alert' });
+      await safePrompt("Could not recognise file format.", { mode: 'alert' });
     };
     fileInput.click();
 };
