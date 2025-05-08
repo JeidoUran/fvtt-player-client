@@ -18,7 +18,7 @@ Original Wiki https://wiki.theripper93.com/free/vtt-desktop-client
 | Foundry v13 Compatibility                    |                                ❌                                |                               ❌                              |    ✔️    |
 | Discord Rich Presence                        |                                ❌                                |                               ❌                              |    ✔️    |
 | Server status on game buttons                |                                ❌                                |                               ❌                              |    ✔️    |
-| Theme switcher                               |                                ❌                                |                               ❌                              |    ✔️    |
+| Theme editor                                 |                                ❌                                |                               ❌                              |    ✔️    |
 
 ## Discord Rich Presence
 
@@ -26,49 +26,11 @@ In order to enable and use Rich Presence, you also need to have the module [Foun
 ![image](https://github.com/user-attachments/assets/877fd3c7-f212-4b1e-8d6e-e5bfce7a2ce5)
 ![image](https://github.com/user-attachments/assets/aad94072-6e39-4138-88a0-28fbc687d02c)
 
-## Theme Switcher
+## Customization
 
 A new theme, "Codex", has been added. It was made after my campaign's website, while keeping general usability in mind. That being said, users who prefer the original theme can find it in the **Client Configuration**, under **Theme**. I made sure to keep it as simple and lightweight as possible while integrating the new features. You may also disable the particles floating in the background. For now, "Codex" and "Original" are the only themes available, but I am considering adding more ways to customise them on top of what's currently available.
 
-## Customization
-
-You can pre-configure and customize the client by editing the `config.json` file.
-From where the executable is located,
-you can find the `config.json` file by navigating to the `resources/app` folder.
-You can edit the file with any text editor.
-
-Example config:
-
-```json
-{
-  "games": [
-    {
-      "name": "This is the name of my game",
-      "url": "https://atlus.com/etrian5/"
-    }
-  ],
-    "accentColor": "#98e4f7",
-    "backgroundColor": "#0e1a23",
-    "background": "",
-    "textColor": "#88c0a9",
-    "backgrounds": [],
-    "theme": "codex",
-    "cachePath": "",
-    "autoCacheClear": false,
-    "ignoreCertificateErrors": false,
-    "discordRP": false,
-    "particlesEnabled": true
-}
-```
-
-## Getting data from `localStorage` to put into `config.json`
-
-```js
-JSON.stringify({
-    ...JSON.parse(window.localStorage.getItem("appConfig") || "{}"),
-    games: JSON.parse(window.localStorage.getItem("gameList") || "[]")
-})
-```
+## Sharing
 
 ## Acknowledgments and attributions
 Special thanks to theripper93 and OmegaRogue for creating this client. I am no developper and without their amazing work it would have been impossible to make those updates.
