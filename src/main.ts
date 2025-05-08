@@ -1,6 +1,6 @@
 // noinspection ES6MissingAwait,JSIgnoredPromiseFromCall
 
-import { app, BrowserWindow, ipcMain, safeStorage, session, nativeImage, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, safeStorage, session, nativeImage, dialog, shell } from 'electron';
 import { enableRichPresence, disableRichPresence } from './richPresenceControl';
 import { startRichPresenceSocket, closeRichPresenceSocket } from './richPresenceSocket';
 import { UserDataSchema } from './schemas';
@@ -546,7 +546,13 @@ ipcMain.handle("select-path", (e) => {
         return path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
     }
 });
-ipcMain.handle("cache-path", () => app.getPath("sessionData"))
+ipcMain.handle("cache-path", () => app.getPath("sessionData"));
+
+ipcMain.handle("open-user-data-folder", () => {
+    const userDataDir = app.getPath("userData");
+    return shell.openPath(userDataDir);
+});
+
 ipcMain.on("cache-path", (_, cachePath: string) => {
     const currentData = getUserData();
     currentData.cachePath = cachePath;

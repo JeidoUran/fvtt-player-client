@@ -47,6 +47,7 @@ export type ContextBridgeApi = {
     sendPromptResponse: (id: number, answer: boolean) => void;
     chooseFontFile(): Promise<string | null>;
     readFontFile(path: string): Promise<string | null>;
+    openUserDataFolder: () => Promise<string>;
 }
 const exposedApi: ContextBridgeApi = {
     // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -125,6 +126,7 @@ const exposedApi: ContextBridgeApi = {
     },
     chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font") as Promise<string | null>,
     readFontFile:   (path: string) => ipcRenderer.invoke("read-font-file", path)   as Promise<string | null>,
+    openUserDataFolder: () => ipcRenderer.invoke("open-user-data-folder") as Promise<string>,
 }
 
 contextBridge.exposeInMainWorld("api", exposedApi);
@@ -144,4 +146,5 @@ contextBridge.exposeInMainWorld('richPresence', {
       ipcRenderer.send('enable-discord-rpc');
     },
     chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font"),
+    openUserDataFolder: () => ipcRenderer.invoke("open-user-data-folder"),
 });

@@ -372,6 +372,18 @@ document.addEventListener("click", (event) => {
     }
 });
 
+const openUserDataBtn = document.getElementById("open-user-data") as HTMLButtonElement | null;
+
+if (openUserDataBtn) {
+  openUserDataBtn.addEventListener("click", async () => {
+    try {
+      await window.api.openUserDataFolder();
+    } catch (err) {
+      console.error("Impossible d’ouvrir le dossier userData :", err);
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     const themeStylesheet = document.getElementById("theme-stylesheet") as HTMLLinkElement;
     const themeSelector = document.getElementById("theme-selector") as HTMLSelectElement;
