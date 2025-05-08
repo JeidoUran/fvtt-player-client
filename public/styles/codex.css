@@ -623,8 +623,8 @@ textarea {
     opacity: 0;
     position: absolute;
     right: 7.5px;
-    height: 26px;
-    width: 26px;
+    height: 32px;
+    width: 32px;
     cursor: pointer;
     z-index: 1;
   }
@@ -634,8 +634,8 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 26px;
-    width: 26px;
+    height: 30px;
+    width: 30px;
     background-color: #111;
     border: 2px solid var(--accent-color, #aaa);
     border-radius: 4px;
@@ -655,8 +655,8 @@ textarea {
   
   .checkbox-wrapper .custom-checkbox::after {
     content: "";
-    width: 5px;
-    height: 10px;
+    width: 7px;
+    height: 13px;
     border: solid #fff;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
