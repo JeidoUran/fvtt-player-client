@@ -13,8 +13,8 @@ export const GameIdSchema = z.union([z.string(), z.number()]);
 
 // GameConfig
 export const GameConfigSchema = z.object({
-  name: z.string(),
-  url: z.string().url(),
+  name: z.string().optional(),
+  url: z.string().optional(),
   id: GameIdSchema.optional(),
   cssId: z.string().optional(),
 });
