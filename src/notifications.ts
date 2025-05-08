@@ -1,4 +1,6 @@
 // src/notifications.ts
+let hideTimeoutId: number | null = null;
+
 export function showNotification(message: string): void {
     const notificationArea = document.getElementById("notification-area");
     if (!notificationArea) return;
@@ -6,7 +8,12 @@ export function showNotification(message: string): void {
     notificationArea.textContent = message;
     notificationArea.style.opacity = "1";
   
-    setTimeout(() => {
+    if (hideTimeoutId !== null) {
+      clearTimeout(hideTimeoutId);
+    }
+
+    hideTimeoutId = window.setTimeout(() => {
       notificationArea.style.opacity = "0";
+      hideTimeoutId = null;
     }, 3000);
 }
