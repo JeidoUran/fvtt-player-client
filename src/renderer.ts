@@ -93,7 +93,7 @@ const gameItemList = document.querySelector("#game-list");
 const gameItemTemplate = document.querySelector("template").content.querySelector("li");
 
 
-document.querySelector("#save-app-config").addEventListener("click", (e) => {
+document.querySelector("#save-app-config").addEventListener("click", async (e) => {
     if (!(e.target instanceof Element))
         return;
     
@@ -135,9 +135,27 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
         discordRP,
     } as AppConfig;
 
+    const rawConfig: unknown = {
+        cachePath:                config.cachePath,
+        autoCacheClear:           config.autoCacheClear,
+        ignoreCertificateErrors:  config.ignoreCertificateErrors,
+        discordRP:                config.discordRP,
+    };
+
+    const result = ThemeConfigSchema.safeParse(rawConfig);
+    if (!result.success) {
+        console.error(result.error.format());
+        await safePrompt("One or more theme value are invalid. Changes were not saved.", { mode: "alert" });
+        const appConfig = await window.api.localAppConfig();
+        applyAppConfig(appConfig);
+        return;
+    }
+
     console.log(config);
-    window.api.saveAppConfig(config);
-    applyAppConfig(config);
+    const validConfig = result.data as AppConfig;
+
+    await window.api.saveAppConfig(validConfig);
+    applyAppConfig(validConfig);
     showNotification("Changes saved");
 });
 
@@ -282,12 +300,14 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
         fontPrimaryUrl:         config.fontPrimaryUrl,
         fontSecondary:          config.fontSecondary,
         fontSecondaryUrl:       config.fontSecondaryUrl,
-      };
+    };
 
-      const result = ThemeConfigSchema.safeParse(rawConfig);
-      if (!result.success) {
+    const result = ThemeConfigSchema.safeParse(rawConfig);
+    if (!result.success) {
         console.error(result.error.format());
         await safePrompt("One or more theme value are invalid. Changes were not saved.", { mode: "alert" });
+        const themeConfig = await window.api.localThemeConfig();
+        applyThemeConfig(themeConfig);
         return;
     }
     
