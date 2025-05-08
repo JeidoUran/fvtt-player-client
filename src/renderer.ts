@@ -234,6 +234,7 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     preventMenuClose = false;
     const existingConfig = await window.api.localThemeConfig();
     const closeUserConfig = e.target.closest(".theme-configuration") as HTMLDivElement;
+    const themeSelector = document.querySelector("#theme-selector") as HTMLSelectElement;
     const background = (closeUserConfig.querySelector("#background-image") as HTMLInputElement).value;
     const accentColor = (closeUserConfig.querySelector("#accent-color") as HTMLInputElement).value;
     const backgroundColor = (closeUserConfig.querySelector("#background-color") as HTMLInputElement).value;
@@ -254,7 +255,9 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     const secondaryFontSelect = document.querySelector("#secondary-font-selector") as HTMLSelectElement;
     const customPrimary = document.querySelector<HTMLInputElement>("#primary-custom-font")!;
     const customSecondary = document.querySelector<HTMLInputElement>("#secondary-custom-font")!;
+    const selectedBase = themeSelector?.value || existingConfig.baseTheme;
     const config = {
+        baseTheme: selectedBase,
         accentColor,
         backgroundColor,
         background,
@@ -306,7 +309,7 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     const result = ThemeConfigSchema.safeParse(rawConfig);
     if (!result.success) {
         console.error(result.error.format());
-        await safePrompt("Invalid client values detected. Changes were not applied.", { mode: "alert" });
+        await safePrompt("Invalid theme values detected. Changes were not applied.", { mode: "alert" });
         const themeConfig = await window.api.localThemeConfig();
         applyThemeConfig(themeConfig);
         return;
