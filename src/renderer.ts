@@ -268,7 +268,7 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
             count: particlesCount,
             speedYMin: particlesSpeed / 2,
             speedYMax: particlesSpeed,
-            colorHex: particlesColor,
+            color: particlesColor,
             alpha:   particlesColorAlpha
         }
     } as ThemeConfig;
@@ -584,6 +584,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         themeConfig.fontPrimaryUrl = "";
         themeConfig.fontSecondary = "";
         themeConfig.fontSecondaryUrl = "";
+        themeConfig.particleOptions.color = '#63b0c4';
+        themeConfig.particleOptions.alpha = 0.15;
+        themeConfig.particleOptions.count = 100;
         themeConfig.particleOptions.speedYMax = 0.3;
         themeConfig.particleOptions.speedYMin = 0.1;
         
@@ -1157,22 +1160,12 @@ function applyThemeConfig(config: ThemeConfig) {
     alphaHoverInput.valueAsNumber = 0.95;
     (document.querySelector("#button-color-hover") as HTMLInputElement).value = "#28283c";
 
-    const defaults = {
-        count: 100,
-        speedYMin: 0.1,
-        speedYMax: 0.3,
-        colorHex: '#63b0c4',
-        alpha: 0.15
-    };
-
-    const opts = { ...defaults, ...config.particleOptions };
+    const opts = config.particleOptions!;
     
     (document.querySelector("#particles-count") as HTMLInputElement).valueAsNumber = opts.count;
     (document.querySelector("#particles-speed") as HTMLInputElement).valueAsNumber = opts.speedYMax;
-    (document.querySelector("#particles-color") as HTMLInputElement).value = opts.colorHex;
+    (document.querySelector("#particles-color") as HTMLInputElement).value = opts.color;
     (document.querySelector("#particles-color-alpha") as HTMLInputElement).valueAsNumber = opts.alpha;
-
-    const rgbaParticles = hexToRgba(opts.colorHex, opts.alpha);
 
     document.body.style.backgroundImage = "";
     const bgInput = document.querySelector("#background-image") as HTMLInputElement;
@@ -1256,7 +1249,7 @@ function applyThemeConfig(config: ThemeConfig) {
     }
 }
 
-function hexToRgba(hex: string, alpha: number): string {
+export function hexToRgba(hex: string, alpha: number): string {
     // removes ‘#’ and handles #RGB
     let h = hex.replace(/^#/, '');
     if (h.length === 3) {

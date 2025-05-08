@@ -1,3 +1,5 @@
+import { hexToRgba } from "./renderer";
+
 // Canvas and context variables
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
@@ -21,7 +23,8 @@ interface Particle {
 // Default options (will be merged with user options)
 const defaultOpts: Required<ParticleOptions> = {
   count: 100,
-  color: 'rgba(99,176,196,0.15)',
+  color: '#63b0c4',
+  alpha: 0.15,
   speedYMin: 0.1,
   speedYMax: 0.3,
   radiusMin: 1,
@@ -102,7 +105,7 @@ function animateFrame() {
   time += 0.01;
 
   // Use configured color
-  ctx.fillStyle = opts.color;
+  ctx.fillStyle = hexToRgba(opts.color, opts.alpha);
 
   particles.forEach(p => {
     p.y -= p.speedY;

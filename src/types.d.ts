@@ -25,6 +25,7 @@ type AppConfig = {
 interface ParticleOptions {
     count?: number;
     color?: string;
+    alpha?: number;
     speedYMin?: number;
     speedYMax?: number;
     radiusMin?: number;
