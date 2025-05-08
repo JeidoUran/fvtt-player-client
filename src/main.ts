@@ -50,6 +50,11 @@ async function migrateUserData(): Promise<MigrationStatus> {
             }
           }
         }
+        if (rawData.theme && rawData.theme.theme !== undefined) {
+            rawData.theme.baseTheme = rawData.theme.theme;
+            delete rawData.theme.theme;
+            migrated = true;
+        }
         if (migrated) {
             fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
             rawData = dataObj;

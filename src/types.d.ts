@@ -51,7 +51,7 @@ type ThemeConfig = {
     buttonColor: string;
     buttonColorHoverAlpha: number;
     buttonColorHover: string;
-    theme?: string;
+    baseTheme?: string;
     particlesEnabled?: boolean;
     particleOptions?: ParticleOptions;
 }

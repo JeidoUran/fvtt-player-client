@@ -63,7 +63,7 @@ export const ThemeConfigSchema = z.object({
     buttonColorHover:       z.string().default("#28283c"),
     particlesEnabled:       z.boolean().default(true),
     particleOptions:        ParticleOptionsSchema,
-    theme:                  z.string().default("codex"),
+    baseTheme:                  z.string().default("codex"),
     fontPrimary:            z.string().default(""),
     fontPrimaryUrl:         optionalUrl.default(""),
     fontPrimaryName:        z.string().optional(),

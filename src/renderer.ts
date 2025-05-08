@@ -539,7 +539,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    const selectedTheme = themeConfig.theme ?? "codex";
+    const selectedTheme = themeConfig.baseTheme ?? "codex";
     themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
     themeSelector.value = selectedTheme;
 
@@ -554,7 +554,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             themeConfigMenu.classList.add('show');
         }
 
-      themeConfig.theme = newTheme;
+      themeConfig.baseTheme = newTheme;
       preventMenuClose = true;
       await window.api.saveThemeConfig(themeConfig);
       showNotification("Theme changed");
@@ -811,7 +811,7 @@ async function applyShareImport() {
         await window.api.saveThemeConfig(data.theme);
         applyAppConfig(data.app);
         applyThemeConfig(data.theme);
-        themeStylesheet.href = `styles/${data.theme.theme}.css`;
+        themeStylesheet.href = `styles/${data.theme.baseTheme}.css`;
         await createGameList();
         return showNotification("Settings imported");
       }
@@ -828,7 +828,7 @@ async function applyShareImport() {
          delete themeOnly.fontSecondaryFilePath;
          await window.api.saveThemeConfig(themeOnly);  
          applyThemeConfig(themeOnly);
-         themeStylesheet.href = `styles/${themeOnly.theme}.css`;
+         themeStylesheet.href = `styles/${themeOnly.baseTheme}.css`;
          return showNotification("Theme imported");
     }
     
@@ -860,7 +860,7 @@ async function importFromFile() {
         await window.api.saveThemeConfig(data.theme);
         applyAppConfig(data.app);
         applyThemeConfig(data.theme);
-        themeStylesheet.href = `styles/${data.theme.theme}.css`;
+        themeStylesheet.href = `styles/${data.theme.baseTheme}.css`;
         await createGameList();
         return showNotification("Settings imported");
       }
@@ -877,7 +877,7 @@ async function importFromFile() {
         delete themeOnly.fontSecondaryFilePath;
         await window.api.saveThemeConfig(themeOnly);
          applyThemeConfig(themeOnly);
-         themeStylesheet.href = `styles/${themeOnly.theme}.css`;
+         themeStylesheet.href = `styles/${themeOnly.baseTheme}.css`;
          return showNotification("Theme imported");
     }
     
@@ -1463,7 +1463,7 @@ async function createGameList() {
         buttonColor: "#14141e",
         buttonColorHoverAlpha: 0.95,
         buttonColorHover: "#28283c",
-        theme: undefined,
+        baseTheme: undefined,
         particlesEnabled: true,
       };
       
