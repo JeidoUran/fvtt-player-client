@@ -282,6 +282,8 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     } else {
         config.fontPrimary    = primaryFontSelect.value;
         config.fontPrimaryUrl = "";
+        config.fontPrimaryFilePath = "";
+        config.fontPrimaryName = "";
     }
 
     if (secondaryFontSelect.value === "__custom") {
@@ -294,6 +296,8 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
     } else {
         config.fontSecondary    = secondaryFontSelect.value;
         config.fontSecondaryUrl = "";
+        config.fontSecondaryFilePath = "";
+        config.fontSecondaryName = "";
     }
 
     const rawConfig: unknown = { ...config };
