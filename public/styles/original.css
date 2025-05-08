@@ -308,9 +308,16 @@ table, th, td {
     padding: 0;
 }
 
+.app-configuration {
+    min-width: 35vw;
+}
+
+.theme-configuration {
+    width: 30vw;
+}
+
 .app-configuration,
 .theme-configuration {
-    min-width: 35vw;
     max-height: 70vh;
     box-shadow: 0 0 5px black;
     flex-direction: column;
