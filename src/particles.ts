@@ -122,3 +122,7 @@ function animateFrame() {
 
   animationId = requestAnimationFrame(animateFrame);
 }
+
+export function isParticlesRunning(): boolean {
+    return isRunning;
+}

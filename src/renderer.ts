@@ -1057,20 +1057,26 @@ function applyThemeConfig(config: ThemeConfig) {
     const rgbaHover = hexToRgba(config.buttonColorHover, config.buttonColorHoverAlpha);
     document.documentElement.style.setProperty('--color-button-hover-rgba', rgbaHover);
     
-    particles.configureParticles({
-        count: opts.count,
-        speedYMin: opts.speedYMin,
-        speedYMax: opts.speedYMax,
-        color: rgbaParticles,
-    });
-    
     const enabled = config.particlesEnabled ?? true;
-    const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
+    const checkbox = (document.querySelector("#particles-button") as HTMLInputElement)!;
     checkbox.checked = enabled;
+    
     if (enabled) {
+      // si on passe de arrêté à démarré
+      if (!particles.isParticlesRunning()) {
+        particles.configureParticles({
+          count: opts.count,
+          speedYMin: opts.speedYMin,
+          speedYMax: opts.speedYMax,
+          color: rgbaParticles,
+        });
         particles.startParticles();
+      }
     } else {
+      // si on passe de démarré à arrêté
+      if (particles.isParticlesRunning()) {
         particles.stopParticles();
+      }
     }
 }
 
