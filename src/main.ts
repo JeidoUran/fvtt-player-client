@@ -1,8 +1,9 @@
 // noinspection ES6MissingAwait,JSIgnoredPromiseFromCall
 
-import { app, BrowserWindow, ipcMain, safeStorage, session, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, safeStorage, session, nativeImage, dialog, shell } from 'electron';
 import { enableRichPresence, disableRichPresence } from './richPresenceControl';
 import { startRichPresenceSocket, closeRichPresenceSocket } from './richPresenceSocket';
+import { UserDataSchema } from './schemas';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -14,23 +15,131 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 
 /* Remove the comment (//) from the line below to ignore certificate errors (useful for self-signed certificates) */
 
-getAppConfig();
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
-function getUserData(): UserData {
+let mainWindow: BrowserWindow; 
+
+type MigrationStatus = "skipped" | "success" | "failure";
+async function migrateUserData(): Promise<MigrationStatus> {
+    const userDataPath = path.join(app.getPath('userData'), 'userData.json');
+    let rawData: any = {};
     try {
-        const json = fs.readFileSync(path.join(app.getPath("userData"), "userData.json")).toString();
-        return JSON.parse(json);
+        rawData = JSON.parse(fs.readFileSync(userDataPath, 'utf-8'));
+    } catch {
+        rawData = {};
+    }
+    try {
+        const themeKeys = [
+          'background','backgrounds','backgroundColor',
+          'textColor','accentColor','buttonColorAlpha',
+          'buttonColor','theme','particlesEnabled'
+        ] as const;
+    
+        const dataObj = (typeof rawData === "object" && rawData !== null)
+          ? { ...(rawData as Record<string, any>) }
+          : {};
+    
+        let migrated = false;
+        dataObj.theme = dataObj.theme ?? {};
+        if (dataObj.app) {
+          for (const key of themeKeys) {
+            if ((dataObj.app as any)[key] !== undefined) {
+              (dataObj.theme as any)[key] = (dataObj.app as any)[key];
+              delete (dataObj.app as any)[key];
+              migrated = true;
+            }
+          }
+        }
+        if (rawData.theme && rawData.theme.theme !== undefined) {
+            rawData.theme.baseTheme = rawData.theme.theme;
+            delete rawData.theme.theme;
+            migrated = true;
+        }
+        if (migrated) {
+            fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
+            rawData = dataObj;
+            return "success";
+        } else {
+            return "skipped";
+        }
+      } catch (e) {
+        console.warn("[getUserData] Migration failed :", e);
+        return "failure";
+      }
+}
+
+export function getUserData(): UserData {
+    const userDataPath = path.join(app.getPath("userData"), "userData.json");
+    let rawData: unknown = {};
+  
+    // Secure read
+    try {
+      rawData = JSON.parse(fs.readFileSync(userDataPath, "utf-8"));
+    } catch {
+      rawData = {};
+    }
+  
+    // Validate + clean + backup on each call
+    try {
+      const validation = UserDataSchema.safeParse(rawData);
+      if (!validation.success) {
+        askPrompt(`Invalid configuration detected: a backup of your previous settings has been created, and any invalid values have been reset to their defaults.`, { mode: 'alert' });
+        // Backup
+        try {
+          const bakPath = userDataPath.replace(/\.json$/, ".bak.json");
+          fs.copyFileSync(userDataPath, bakPath);
+        } catch { /**/ }
+  
+        // 3b) Only delete erroneous keys
+        const dataObj = { ...(rawData as Record<string, any>) };
+        for (const err of validation.error.errors) {
+          if (!err.path.length) continue;
+          let obj: any = dataObj;
+          for (let i = 0; i < err.path.length - 1; i++) {
+            const p = err.path[i];
+            if (obj && typeof obj[p] === "object") obj = obj[p];
+            else { obj = null; break; }
+          }
+          const last = err.path.at(-1);
+          if (obj && typeof last === "string") {
+            delete obj[last];
+          }
+        }
+  
+        // Write fixed JSON
+        try {
+          fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
+          rawData = dataObj;
+        } catch {
+          console.warn("[getUserData] Could not write cleaned userData");
+        }
+      }
     } catch (e) {
-        return {};
+      console.warn("[getUserData] Zod Validation Failed :", e);
+    }
+  
+    // Last parse otherwise fallback to memory
+    try {
+      return UserDataSchema.parse(rawData) as UserData;
+    } catch (e) {
+      console.error("[getUserData] Final parsing failed, regenerating a clean userData :", e);
+      return {} as UserData;
     }
 }
 
-{
-    const userData = getUserData();
-    if (userData.cachePath) {
-        app.setPath("sessionData", userData.cachePath);
-    }
+/**
+ * Displays safePrompt in renderer and retrieve answer
+ */
+function askPrompt(message: string, options?: { mode: 'confirm' | 'alert' }): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+      const id = Date.now();
+      // On écoute la réponse du renderer
+      ipcMain.once(`prompt-response-${id}`, (_e, answer: boolean) => {
+        resolve(answer);
+      });
+      // On demande au renderer d'afficher la boîte
+      mainWindow.webContents.send('show-prompt', { id, message, options });
+    });
 }
 
 const windows = new Set<BrowserWindow>();
@@ -62,7 +171,7 @@ function getSession(): Electron.Session {
 
 function createWindow(): BrowserWindow {
     const localSession = getSession();
-    let window = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         show: false, width: 800, height: 600, webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             nodeIntegration: false,
@@ -73,7 +182,7 @@ function createWindow(): BrowserWindow {
 
     });
 
-    window.webContents.on('page-favicon-updated', (_event, favicons) => {
+    mainWindow.webContents.on('page-favicon-updated', (_event, favicons) => {
         if (!favicons.length) return;
         const faviconUrl = favicons[0];
     
@@ -83,7 +192,7 @@ function createWindow(): BrowserWindow {
             const filePath = fileURLToPath(faviconUrl);
             const icon = nativeImage.createFromPath(filePath);
             if (!icon.isEmpty()) {
-              window.setIcon(icon);
+                mainWindow.setIcon(icon);
               console.log('[Favicon] Restored from local file :', filePath);
             } else {
               console.warn('[Favicon] nativeImage empty for:', filePath);
@@ -98,7 +207,7 @@ function createWindow(): BrowserWindow {
             .then(buf => {
               const icon = nativeImage.createFromBuffer(Buffer.from(buf));
               if (!icon.isEmpty()) {
-                window.setIcon(icon);
+                mainWindow.setIcon(icon);
                 console.log('[Favicon] Restored from external URL :', faviconUrl);
               }
             })
@@ -107,75 +216,75 @@ function createWindow(): BrowserWindow {
       });
 
     // Fix Popouts
-    window.webContents.setUserAgent(window.webContents.getUserAgent().replace("Electron", ""));
-    window.webContents.on('did-start-loading', () => {
-        const wd = windowsData[window.webContents.id];
+    mainWindow.webContents.setUserAgent(mainWindow.webContents.getUserAgent().replace("Electron", ""));
+    mainWindow.webContents.on('did-start-loading', () => {
+        const wd = windowsData[mainWindow.webContents.id];
         if (wd?.selectedServerName) {
-            window.setTitle(wd.selectedServerName + ' * Loading...');
+            mainWindow.setTitle(wd.selectedServerName + ' * Loading...');
         } else {
-            window.setTitle(window.webContents.getTitle() + ' * Loading...');
+            mainWindow.setTitle(mainWindow.webContents.getTitle() + ' * Loading...');
         }
         
-        window.setProgressBar(2, {mode: 'indeterminate'}) // second parameter optional
+        mainWindow.setProgressBar(2, {mode: 'indeterminate'}) // second parameter optional
     });
 
-    window.webContents.on('did-finish-load', () => {
-        const wd = windowsData[window.webContents.id];
+    mainWindow.webContents.on('did-finish-load', () => {
+        const wd = windowsData[mainWindow.webContents.id];
         if (wd?.selectedServerName) {
-            window.setTitle(wd.selectedServerName);
+            mainWindow.setTitle(wd.selectedServerName);
         } else {
-            window.setTitle(window.webContents.getTitle());
+            mainWindow.setTitle(mainWindow.webContents.getTitle());
         }
-        window.setProgressBar(-1);
+        mainWindow.setProgressBar(-1);
     });
-    window.webContents.on('did-stop-loading', () => {
-        const wd = windowsData[window.webContents.id];
+    mainWindow.webContents.on('did-stop-loading', () => {
+        const wd = windowsData[mainWindow.webContents.id];
         if (wd?.selectedServerName) {
-            window.setTitle(wd.selectedServerName);
+            mainWindow.setTitle(wd.selectedServerName);
         } else {
-            window.setTitle(window.webContents.getTitle());
+            mainWindow.setTitle(mainWindow.webContents.getTitle());
         }
-        window.setProgressBar(-1);
+        mainWindow.setProgressBar(-1);
     });
-    window.webContents.setWindowOpenHandler(() => {
+    mainWindow.webContents.setWindowOpenHandler(() => {
         return {
             action: 'allow',
             overrideBrowserWindowOptions: {
-                parent: window,
+                parent: mainWindow,
                 autoHideMenuBar: true,
             }
         }
     });
 
-    window.menuBarVisible = false;
+    mainWindow.menuBarVisible = false;
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-        window.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {
-        window.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
     }
 
-    window.webContents.on('before-input-event', (event, input) => {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
         if (input.key === 'F12') {
-            window.webContents.toggleDevTools();
+            mainWindow.webContents.toggleDevTools();
             event.preventDefault();
         } else if (input.key === 'F5' && input.control) {
-            window.webContents.reloadIgnoringCache()
+            mainWindow.webContents.reloadIgnoringCache()
             event.preventDefault();
         } else if (input.key === 'F5') {
-            window.webContents.reload()
+            mainWindow.webContents.reload()
             event.preventDefault();
         }
     });
     
     // Inject Server button on /game page
-    window.webContents.on("did-start-navigation", (e) => {
+    mainWindow.webContents.on("did-start-navigation", (e) => {
         if (e.isSameDocument) return;
         if (e.url.startsWith("about")) return;
     
         if (e.url.endsWith("/game")) {
             console.log("[FVTT Client] Navigation detected: /game");
     
-            window.webContents.executeJavaScript(`
+            mainWindow.webContents.executeJavaScript(`
                 console.log("[FVTT Client] Injecting script for /game...");
     
                 async function waitForFoundryReady() {
@@ -218,12 +327,12 @@ function createWindow(): BrowserWindow {
     });
     
     
-    window.webContents.on("did-finish-load", () => {
-        const url = window.webContents.getURL();
+    mainWindow.webContents.on("did-finish-load", () => {
+        const url = mainWindow.webContents.getURL();
         if (!url.endsWith("/join") && !url.endsWith("/auth") && !url.endsWith("/setup"))
             return;
         if (url.endsWith("/setup")) {
-            window.webContents.executeJavaScript(`
+            mainWindow.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="icon" data-action="returnServerSelect" id="server-button" data-tooltip="Return to Server Select"><i class="fas fa-server"></i></button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -234,7 +343,7 @@ function createWindow(): BrowserWindow {
             `);
         }
         if (url.endsWith("/auth")) {
-            window.webContents.executeJavaScript(`
+            mainWindow.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="bright" id="server-button"> <i class="fa-solid fa-server"></i>Return to Server Select</button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -245,7 +354,7 @@ function createWindow(): BrowserWindow {
             `);
         }
         if (url.endsWith("/join")) {
-            window.webContents.executeJavaScript(`
+            mainWindow.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="bright" id="server-button"> <i class="fa-solid fa-server"></i>Return to Server Select</button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -258,9 +367,9 @@ function createWindow(): BrowserWindow {
 
         if (!url.endsWith("/join") && !url.endsWith("/auth"))
             return;
-        const userData = getLoginDetails(windowsData[window.webContents.id].gameId);
+        const userData = getLoginDetails(windowsData[mainWindow.webContents.id].gameId);
         if (!userData.user) return;
-        window.webContents.executeJavaScript(`
+        mainWindow.webContents.executeJavaScript(`
             async function waitForLoad() {
                 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
                 while (!document.querySelector('select[name="userid"]') && !document.querySelector('input[name="adminPassword"]')) {
@@ -286,7 +395,7 @@ function createWindow(): BrowserWindow {
                     preventDefault: () => {
                     }, target: document.getElementById("join-game")
                 }
-                if (${windowsData[window.webContents.id].autoLogin}) {
+                if (${windowsData[mainWindow.webContents.id].autoLogin}) {
                     ui.join._onSubmit(fakeEvent);
                 } else {
                     document.querySelector(".form-footer button[name=join]").addEventListener("click", () => {
@@ -298,26 +407,44 @@ function createWindow(): BrowserWindow {
             waitForLoad();
 
         `);
-        windowsData[window.webContents.id].autoLogin = false;
+        windowsData[mainWindow.webContents.id].autoLogin = false;
 
     });
 
-    window.once('ready-to-show', () => {
-        window.maximize();
-        window.show();
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.maximize();
+        mainWindow.show();
     });
-    window.on('closed', () => {
-        windows.delete(window);
-        window = null;
+    mainWindow.on('closed', () => {
+        windows.delete(mainWindow);
+        mainWindow = null;
     });
-    windows.add(window);
-    windowsData[window.webContents.id] = {autoLogin: true} as WindowData;
-    return window;
+    windows.add(mainWindow);
+    windowsData[mainWindow.webContents.id] = {autoLogin: true} as WindowData;
+    return mainWindow;
 }
 
-app.whenReady().then(() => {
-    createWindow();
+app.whenReady().then(async () => {
+
+    const migrationResult = await migrateUserData();
+
+    mainWindow = createWindow();  
+
+    // Configure cache/session
+    const userData = getUserData();
+    if (userData.cachePath) app.setPath("sessionData", userData.cachePath);
+
+    // Notify of successful migration, listening did-finish-load
+    mainWindow.webContents.once('did-finish-load', async () => {
+        if (migrationResult === "success") {
+            mainWindow.webContents.send('show-notification', 'Your user data has been successfully migrated');
+            console.log("Migration successful");
+        } else if (migrationResult === "failure") {
+            await askPrompt('Could not migrate your user data.', { mode: 'alert' });
+        }
+    });
 });
+  
 
 ipcMain.on("enable-discord-rpc", (event) => {
     startRichPresenceSocket();
@@ -342,26 +469,49 @@ ipcMain.handle("get-user-data", (_, gameId: GameId) => getLoginDetails(gameId))
 
 ipcMain.handle("app-version", () => app.getVersion())
 
-function getAppConfig(): AppConfig {
+ipcMain.handle("dialog:choose-font", async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: "Select a font file",
+      filters: [{ name: "Fonts", extensions: ["ttf","otf","woff","woff2"] }],
+      properties: ["openFile"]
+    });
+    return canceled || filePaths.length === 0 ? null : filePaths[0];
+  });
+  
+  ipcMain.handle("read-font-file", async (_e, fontPath: string) => {
     try {
-        const json = fs.readFileSync(path.join(app.getAppPath(), "config.json")).toString();
-        console.log(json);
-        let appConfig = JSON.parse(json) as AppConfig;
+      const buffer = fs.readFileSync(fontPath);
+      return buffer.toString("base64");
+    } catch (err) {
+      console.error("read-font-file failed:", err);
+      return null;
+    }
+});
+
+function getAppConfig(): AppConfig {
+    // Charge l’app config uniquement depuis userData.json
+    try {
         const userData = getUserData();
-        appConfig = {...appConfig, ...userData.app, games: [...appConfig.games, ...userData.app.games]};
-        if (appConfig.ignoreCertificateErrors) {
-            app.commandLine.appendSwitch("ignore-certificate-errors");
-        }
-        return appConfig;
-    } catch (e) {
+        return userData.app ?? ({} as AppConfig);
+    } catch {
         return {} as AppConfig;
+    }
+}
+
+function getThemeConfig(): ThemeConfig {
+    // Charge le theme uniquement depuis userData.json
+    try {
+        const userData = getUserData();
+        return userData.theme ?? ({} as ThemeConfig);
+    } catch {
+        return {} as ThemeConfig;
     }
 }
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
     const currentData = getUserData();
     currentData.app = {...currentData.app, ...data};
-    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData));
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData, null,  2), 'utf-8');
 });
 ipcMain.handle("app-config", getAppConfig);
 ipcMain.handle("local-app-config", () => {
@@ -373,6 +523,21 @@ ipcMain.handle("local-app-config", () => {
     }
 });
 
+ipcMain.on("save-theme-config", (_e, data: ThemeConfig) => {
+    const currentData = getUserData();
+    currentData.theme = {...currentData.theme, ...data};
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData, null,  2), 'utf-8');
+});
+ipcMain.handle("theme-config", getThemeConfig);
+ipcMain.handle("local-theme-config", () => {
+    try {
+        const userData = getUserData();
+        return userData.theme ?? {} as ThemeConfig;
+    } catch (e) {
+        return {} as ThemeConfig;
+    }
+});
+
 ipcMain.handle("select-path", (e) => {
     windowsData[e.sender.id].autoLogin = true;
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -381,11 +546,17 @@ ipcMain.handle("select-path", (e) => {
         return path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`);
     }
 });
-ipcMain.handle("cache-path", () => app.getPath("sessionData"))
+ipcMain.handle("cache-path", () => app.getPath("sessionData"));
+
+ipcMain.handle("open-user-data-folder", () => {
+    const userDataDir = app.getPath("userData");
+    return shell.openPath(userDataDir);
+});
+
 ipcMain.on("cache-path", (_, cachePath: string) => {
     const currentData = getUserData();
     currentData.cachePath = cachePath;
-    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData));
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData, null,  2), 'utf-8');
 });
 
 ipcMain.on("return-select", (e) => {
@@ -421,14 +592,24 @@ function getLoginDetails(gameId: GameId): GameUserDataDecrypted {
     };
 }
 
-function saveUserData(gameId: GameId, data: GameUserData) {
-    const currentData = getUserData();
-    if (currentData[gameId]) {
-        if (data.user === "") data.user = currentData[gameId].user;
-        if (data.password.length === 0) data.password = currentData[gameId].password;
-        if (data.adminPassword.length === 0) data.adminPassword = currentData[gameId].adminPassword;
+function writeUserDataFile(data: unknown) {
+    const result = UserDataSchema.safeParse(data);
+    if (!result.success) {
+      console.error("Invalid write attempt :", result.error.format());
+      return false;
     }
-    const newData: UserData = {...currentData, [gameId]: data};
-    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(newData));
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"),
+                       JSON.stringify(result.data, null, 2), 'utf-8');
+    return true;
+}
+  
+  function saveUserData(gameId: GameId, data: GameUserData) {
+    const current = getUserData();
+    // … ton merge habituel …
+    const newData: UserData = { ...current, [gameId]: data };
+    if (!writeUserDataFile(newData)) {
+      // ici tu peux choisir de rollback ou d’alerter l’utilisateur
+      console.warn("Could not write userData. Data was not saved.");
+    }
 }
 

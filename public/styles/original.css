@@ -1,7 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy&display=swap');
+
 :root {
-    --color-background: #003049ff;
-    --color-accent: #f77f00ff;
-    --color-text-primary: #eae2b7ff;
+    --color-background: #003049;
+    --color-accent: #f77f00;
+    --color-text-primary: #eae2b7;
+    --opacity-button: 0.00;
+    --color-button: #000000;
+    --color-button-rgba: #00000000;
+    --opacity-button-hover : 0.00;
+    --color-button-hover: #000000;
+    --color-button-hover-rgba: #00000000;
+    --font-primary: "Open Sans", sans-serif;
+    --font-secondary: "Open Sans", sans-serif;
 }
 
 #particles {
@@ -28,7 +39,6 @@ body {
 .content {
     user-select: none;
     position: absolute;
-
     color: var(--color-text-primary);
     font-family: "Open Sans", sans-serif;
     font-size: 16px;
@@ -44,7 +54,7 @@ body {
     overflow-y: auto;
 }
 
-input:not([type=color], [type=checkbox]) {
+input:not([type=color], [type=checkbox], [type=range]) {
     background-color: transparent;
     backdrop-filter: blur(5px);
     border: none;
@@ -56,6 +66,7 @@ input:not([type=color], [type=checkbox]) {
     margin: 0.5rem;
     outline: none;
     transition: all 0.3s ease-in-out;
+    font-family: var(--font-secondary);
 }
 
 .checkbox-wrapper {
@@ -86,7 +97,6 @@ input[type=checkbox]:checked:before {
     border: 4px solid #FFCB9A;
     background-color: #445768;
 }
-
 
 input[type=checkbox]:before {
     display: block;
@@ -134,7 +144,14 @@ input[type=color] {
     height: 3em;
     background-color: transparent;
     cursor: pointer;
+    border: none;
+    /* border: 1px solid var(--color-text-primary);
+    border-radius: 4px; */
+}
+
+.color-wrapper {
     border: 1px solid var(--color-text-primary);
+    height: 40px;
 }
 
 input[type=color]::-webkit-color-swatch {
@@ -150,7 +167,7 @@ input:focus {
 }
 
 button {
-    background-color: transparent;
+    background-color: var(--color-button-rgba);
     backdrop-filter: blur(5px);
     border: 2px solid var(--color-text-primary);
     color: var(--color-text-primary);
@@ -159,12 +176,16 @@ button {
     padding: 0.5rem;
     margin: 0.5rem;
     outline: none;
-    transition: all 0.3s ease-in-out;
     cursor: pointer;
 }
 
-button:hover {
+button:not(.game-button) {
+    font-family: var(--font-primary);
+}
+
+button:not(.game-button):not(.configure-game):hover {
     border: 2px solid var(--color-accent);
+    background: var(--color-button-hover-rgba);
 }
 
 #info {
@@ -188,14 +209,14 @@ button:hover {
     justify-content: center;
     align-items: center;
     margin: 0.5rem 0;
-    /*padding: 0.5rem;*/
-    background-color: transparent;
+    /* padding: 0.5rem; */
+    background-color: var(--color-button-rgba);
     border: 2px solid var(--color-text-primary);
     color: var(--color-text-primary);
     width: 100%;
     overflow: hidden;
     transition: all 0.3s ease-in-out;
-    backdrop-filter: blur(5px);
+    /* backdrop-filter: blur(5px); */
 }
 
 .hidden {
@@ -215,6 +236,10 @@ button:hover {
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease-in-out;
+}
+
+.particles-config {
+    overflow: hidden;
 }
 
 table, th, td {
@@ -237,13 +262,31 @@ table, th, td {
 .field {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0 0.35rem;
+    font-family: var(--font-secondary);
 }
+
+.field .range-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: right;
+  }
+  .field .color-wrapper {
+    flex: 0 0 auto;
+    margin-left: 1rem;
+  }
+  
+  .field label {
+    margin-right: 1rem;
+  }
 
 .help {
     background: var(--color-background);
     pointer-events: all;
     box-shadow: 0 0 5px black;
     display: none;
+    flex-direction: column;
 }
 
 .help td {
@@ -254,9 +297,28 @@ table, th, td {
     position: absolute;
     top: 2rem;
     right: 2rem;
+    display: flex;
+    height: 3.5rem;
+}
+
+.button-controls button {
+    flex: 0 0 auto;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    padding: 0;
 }
 
 .app-configuration {
+    min-width: 35vw;
+}
+
+.theme-configuration {
+    width: 30vw;
+}
+
+.app-configuration,
+.theme-configuration {
+    max-height: 70vh;
     box-shadow: 0 0 5px black;
     flex-direction: column;
     border: 2px solid var(--color-text-primary);
@@ -265,19 +327,23 @@ table, th, td {
     pointer-events: all;
 }
 
-.app-configuration.show {
+.app-configuration.show,
+.theme-configuration.show {
     opacity: 1;
 }
 
-.app-configuration.hidden2 {
+.app-configuration.hidden2,
+.theme-configuration.hidden2 {
     opacity: 0;
 }
 
-.config-export.show {
+.share-menu.show {
+    transform: scale(1);
     opacity: 1;
 }
 
-.config-export.hidden2 {
+.share-menu.hidden2 {
+    transform: scale(0.98);
     opacity: 0;
 }
 
@@ -297,17 +363,53 @@ table, th, td {
     display: flex;
 }
 
-.config-export {
-    box-shadow: 0 0 5px black;
+::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
+}
+  
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+  
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-text-primary);
+}
+  
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255,255,255,0.25);
+}
+
+.share-menu {
+    width: 30vw;
+    height: 70vh;
     flex-direction: column;
+    box-shadow: 0 0 5px black;
     border: 2px solid var(--color-text-primary);
     padding: 0.5rem;
     background: var(--color-background);
     pointer-events: all;
 }
 
-.config-export code {
+.share-output, .share-input {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    color: inherit;
+    border: none;
+    padding: 0.5rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+code.share-output {
     user-select: text;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.share-input {
+    resize: vertical;
 }
 
 .update-available {
@@ -353,12 +455,14 @@ a {
 }
 
 .game-button {
+    background-color: transparent;
     cursor: pointer;
     flex-grow: 1;
     text-align: left;
     border: none;
     padding: 0.5rem;
     margin: 0;
+    font-family: var(--font-primary);
 }
 
 .game-button:hover {
@@ -373,7 +477,6 @@ a {
 .configure-game {
     height: 100%;
     width: 100%;
-    opacity: 0.3;
     border: none;
     align-items: center;
     justify-content: center;
@@ -382,38 +485,64 @@ a {
     font-weight: 700;
     padding: 0.2rem;
     margin: 0 0.5rem 0 auto;
-    transition: all 0.3s ease-in-out;
     cursor: pointer;
+    background-color: transparent;
 }
 
 .configure-game:hover {
     cursor: pointer;
-    opacity: 1;
     border: none;
+}
+
+.configure-game .fa-gear {
+    opacity: 0.3;
+}
+
+.configure-game .fa-gear:hover {
+    opacity: 1;
 }
 
 .button-group {
     display: flex;
+    flex-direction: column;
+}
+
+.game-button-group {
+    display: flex;
     align-items: center;
     justify-content: space-around;
+    gap: 0.5rem;
+    margin-top: 0.3rem;
+}
+
+.game-button-group button {
+    flex: 1 1 0;
+    max-width: 10vw;
 }
 
 .background-image-field,
-.cache-path-field {
+.cache-path-field,
+.primary-custom-font-field,
+.secondary-custom-font-field {
     display: flex;
-    width: 100%;
-    margin-top: 0.5rem;
+    width: auto;
 }
 
 .background-image-field input[type="text"],
-.cache-path-field input[type="text"] {
+.cache-path-field input[type="text"],
+.primary-custom-font-field input[type="text"],
+.secondary-custom-font-field input[type="text"] {
     flex: 1 1 auto;
-    width: 100%;
+    width: auto;
     padding: 0.5rem;
+    margin: 0 0.5rem 0.25rem;
+    font-size: 1.2rem;
 }
 
-select#theme-selector {
+select {
+    font-family: var(--font-primary);
     width: 150px;
+    height: 1.75rem;
 }
 
 #notification-area {
@@ -428,6 +557,7 @@ select#theme-selector {
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
+    font-family: var(--font-primary);
 }
 
 #custom-confirm {
@@ -458,6 +588,7 @@ select#theme-selector {
     text-align: center;
     max-width: 500px;
     width: 90%;
+    font-family: var(--font-secondary);
 }
 
 .confirm-buttons {
@@ -479,10 +610,18 @@ select#theme-selector {
     padding: 0.25rem 0 0.5rem;
 }
 
+.game-main-button:hover {
+	background: var(--color-button-hover-rgba);
+}
+
 .config-main-button {
     position: relative;
     display: flex;
     align-items: stretch;
+}
+
+.game-title-bar .config-button-wrapper:hover {
+	background: var(--color-button-hover-rgba);
 }
 
 .config-button-wrapper {
@@ -538,7 +677,7 @@ select#theme-selector {
     white-space: nowrap;
     pointer-events: none;
     z-index: 9999;
-    font-family: "Open Sans", sans-serif;
+    font-family: var(--font-secondary);
 }
 
 #tooltip-layer {
@@ -632,15 +771,123 @@ select#theme-selector {
     flex: 1 1 auto;
     width: 100%;
     margin: 0.5rem 2rem;
+    font-size: 1.4rem;
 }
 
 .download-link,
 .download-link a {
   font-size: 0.95rem;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-secondary);
 }
 
 .download-link a {
   color: #3ae7e7;
   text-decoration: none;
   transition: all 0.3s ease;
+}
+
+/*********** Baseline, reset styles ***********/
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    margin-top: 0.4rem;
+  }
+  
+  /* Removes default focus */
+  input[type="range"]:focus {
+    outline: none;
+    border-bottom: none;
+  }
+  
+  /******** Chrome, Safari, Opera and Edge Chromium styles ********/
+  /* slider track */
+  input[type="range"]::-webkit-slider-runnable-track {
+    background-color: var(--color-text-primary);
+    height: 0.5rem;
+  }
+  
+  /* slider thumb */
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    margin-top: -6px; /* Centers thumb on the track */
+    background-color: var(--color-accent);
+    border-radius: 1rem;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+  
+  input[type="range"]:focus::-webkit-slider-thumb {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0.125rem;
+  }
+
+  .tab-button {
+    flex: 1 1 0;
+    min-width: 0;
+    cursor: pointer;
+  }
+
+.tab-button.active {
+    background: var(--color-button-hover-rgba);
+    border: 2px solid var(--color-accent);
+}
+
+.tab-content {
+    flex: 1 1 auto;
+    display: none;
+    flex-direction: column;
+  }
+
+.tab-content.active {
+	display: flex;
+	opacity: 1;
+}
+
+.tab-content textarea,
+.tab-content pre {
+  flex: 1 1 auto;
+  background: rgba(0,0,0,0.2);
+  color: inherit;
+  border: 1px solid var(--color-text-primary);
+  padding: 0.75rem;
+  font-family: monospace;
+  resize: none;
+  margin: 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.button-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+    min-width: max-content;
+}
+
+.button-row button {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.theme-selector-field {
+    margin-bottom: 0.5rem;
+}
+
+.overflow {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 1rem;
 }

@@ -1,8 +1,13 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from './particles';
+import { AppConfigSchema, ThemeConfigSchema, ParticleOptions } from './schemas';
+import { mergeAppData, mergeThemeData } from './mergeData';
+import { showNotification } from './notifications';
+import { safePrompt } from './safePrompt';
 
 let appVersion: string;
 let preventMenuClose = false;
+let lastParticleOptions: ParticleOptions | null = null;
 let games: GameConfig[] = [];
 
 function compareSemver(a: string, b: string): number {
@@ -22,23 +27,49 @@ function compareSemver(a: string, b: string): number {
     return 0
 }
 
+/**
+ * Dynamically inject or remove a Google Font from a <link> in <head>.
+ * key is here to differentiate <link> (ex. "primary" or "secondary").
+ */
+function useGoogleFont(url: string, key: string) {
+    const existing = document.getElementById(`gf-${key}`);
+    if (existing) existing.remove();
+    if (!url) return;
+    const link = document.createElement("link");
+    link.id   = `gf-${key}`;
+    link.rel  = "stylesheet";
+    link.href = url;
+    document.head.append(link);
+  }
+  
+  /**
+   * Extracts family name from a Google Fonts URL.
+   * Ex: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700" → "Roboto"
+   */
+  function extractFamilyName(url: string): string {
+    try {
+      const params = new URL(url).searchParams.get("family");
+      return params?.split(":")[0].replace(/_/g, " ") ?? "";
+    } catch {
+      return "";
+    }
+  }
+
 async function updateGameList(task: (appConfig: AppConfig) => void) {
     const appConfig = await window.api.localAppConfig();
     task(appConfig);
     window.api.saveAppConfig(appConfig);
 }
 
-function showNotification(message: string) {
-    const notificationArea = document.getElementById("notification-area");
-    if (!notificationArea) return;
-  
-    notificationArea.textContent = message;
-    notificationArea.style.opacity = "1";
-  
-    setTimeout(() => {
-      notificationArea.style.opacity = "0";
-    }, 3000);
-}
+window.api.showNotification((message: string) => {
+    showNotification(message);
+});
+
+window.api.onShowPrompt(({ id, message, options }) => {
+    safePrompt(message, options).then(answer => {
+      window.api.sendPromptResponse(id, answer);
+    });
+});
 
 document.querySelector("#add-game").addEventListener("click", async () => {
     const gameUrlField = document.querySelector("#game-url") as HTMLInputElement;
@@ -46,7 +77,7 @@ document.querySelector("#add-game").addEventListener("click", async () => {
     const gameUrl = gameUrlField.value;
     const gameName = gameNameField.value;
     if (!gameUrl || !gameName) {
-        await safePrompt("Please enter a game name and URL", { mode: 'alert' });
+        await safePrompt("Please enter a game name and URL.", { mode: 'alert' });
         return;
     }
     const newGameItem = {name: gameName, url: gameUrl, id: Math.round(Math.random() * 1000000)} as GameConfig;
@@ -60,19 +91,11 @@ document.querySelector("#add-game").addEventListener("click", async () => {
     showNotification("Game added");
 });
 
-document.querySelector("#copy-button").addEventListener("click", async () => {
-    const config = await window.api.localAppConfig();
-    const text = JSON.stringify(config, null, 4);
-    navigator.clipboard.writeText(text);
-    showNotification("Settings copied");
-});
-
-
 const gameItemList = document.querySelector("#game-list");
 const gameItemTemplate = document.querySelector("template").content.querySelector("li");
 
 
-document.querySelector("#save-app-config").addEventListener("click", (e) => {
+document.querySelector("#save-app-config").addEventListener("click", async (e) => {
     if (!(e.target instanceof Element))
         return;
     
@@ -103,30 +126,40 @@ document.querySelector("#save-app-config").addEventListener("click", (e) => {
     preventMenuClose = false;
 
     const closeUserConfig = e.target.closest(".app-configuration") as HTMLDivElement;
-    const background = (closeUserConfig.querySelector("#background-image") as HTMLInputElement).value;
-    const accentColor = (closeUserConfig.querySelector("#accent-color") as HTMLInputElement).value;
-    const backgroundColor = (closeUserConfig.querySelector("#background-color") as HTMLInputElement).value;
-    const textColor = (closeUserConfig.querySelector("#text-color") as HTMLInputElement).value;
     const cachePath = (closeUserConfig.querySelector("#cache-path") as HTMLInputElement).value;
     const autoCacheClear = (closeUserConfig.querySelector("#clear-cache-on-close") as HTMLInputElement).checked;
     const ignoreCertificateErrors = (closeUserConfig.querySelector("#insecure-ssl") as HTMLInputElement).checked;
     const discordRP = (closeUserConfig.querySelector("#discord-rp") as HTMLInputElement).checked;
-    const particlesEnabled = (closeUserConfig.querySelector("#particles-button") as HTMLInputElement).checked;
     const config = {
-        accentColor,
-        backgroundColor,
-        background,
-        textColor,
         cachePath,
         autoCacheClear,
         ignoreCertificateErrors,
         discordRP,
-        particlesEnabled
     } as AppConfig;
 
+    const rawConfig: unknown = {
+        games:                    games,
+        cachePath:                config.cachePath,
+        autoCacheClear:           config.autoCacheClear,
+        ignoreCertificateErrors:  config.ignoreCertificateErrors,
+        discordRP:                config.discordRP,
+        customCSS:                config.customCSS,
+    };
+
+    const result = AppConfigSchema.safeParse(rawConfig);
+    if (!result.success) {
+        console.error(result.error.format());
+        await safePrompt("Invalid client values detected. Changes were not applied.", { mode: "alert" });
+        const appConfig = await window.api.localAppConfig();
+        applyAppConfig(appConfig);
+        return;
+    }
+
     console.log(config);
-    window.api.saveAppConfig(config);
-    applyAppConfig(config);
+    const validConfig = result.data as AppConfig;
+
+    await window.api.saveAppConfig(validConfig);
+    applyAppConfig(validConfig);
     showNotification("Changes saved");
 });
 
@@ -170,6 +203,159 @@ document.querySelector("#clear-cache").addEventListener("click", async () => {
     showNotification("Cache cleared");
 });
 
+document.querySelector("#save-theme-config").addEventListener("click", async (e) => {
+    if (!(e.target instanceof Element))
+        return;
+    
+    const themeConfigMenu = document.querySelector(".theme-configuration") as HTMLDivElement;
+    
+    if (themeConfigMenu && !preventMenuClose) {
+        themeConfigMenu.classList.add('hidden2');
+
+        const computedStyle = window.getComputedStyle(themeConfigMenu);
+        const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+
+        if (transitionDuration > 0) {
+            themeConfigMenu.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'opacity') {
+                    themeConfigMenu.classList.remove('show');
+                    themeConfigMenu.classList.remove('flex-display');
+                    themeConfigMenu.classList.add('hidden-display');
+                    themeConfigMenu.removeEventListener('transitionend', handler);
+                }
+            });
+        } else {
+            themeConfigMenu.classList.remove('show');
+            themeConfigMenu.classList.remove('flex-display');
+            themeConfigMenu.classList.add('hidden-display');
+        }
+    }
+
+    preventMenuClose = false;
+    const existingConfig = await window.api.localThemeConfig();
+    const closeUserConfig = e.target.closest(".theme-configuration") as HTMLDivElement;
+    const themeSelector = document.querySelector("#theme-selector") as HTMLSelectElement;
+    const background = (closeUserConfig.querySelector("#background-image") as HTMLInputElement).value;
+    const accentColor = (closeUserConfig.querySelector("#accent-color") as HTMLInputElement).value;
+    const backgroundColor = (closeUserConfig.querySelector("#background-color") as HTMLInputElement).value;
+    const textColor = (closeUserConfig.querySelector("#text-color") as HTMLInputElement).value;
+    const buttonColorAlphaInput = closeUserConfig.querySelector("#button-color-alpha") as HTMLInputElement;
+    const buttonColorAlpha = buttonColorAlphaInput.valueAsNumber;
+    const buttonColor = (closeUserConfig.querySelector("#button-color") as HTMLInputElement).value;
+    const buttonColorHoverAlphaInput = closeUserConfig.querySelector("#button-color-hover-alpha") as HTMLInputElement;
+    const buttonColorHoverAlpha = buttonColorHoverAlphaInput.valueAsNumber;
+    const buttonColorHover = (closeUserConfig.querySelector("#button-color-hover") as HTMLInputElement).value;
+    const particlesEnabled = (closeUserConfig.querySelector("#particles-button") as HTMLInputElement).checked;
+    const particlesCount = Number((closeUserConfig.querySelector("#particles-count") as HTMLInputElement).value);
+    const particlesSpeed = Number((closeUserConfig.querySelector("#particles-speed") as HTMLInputElement).value);
+    const particlesColorAlphaInput = closeUserConfig.querySelector("#particles-color-alpha") as HTMLInputElement;
+    const particlesColorAlpha = particlesColorAlphaInput.valueAsNumber;
+    const particlesColor = (closeUserConfig.querySelector("#particles-color") as HTMLInputElement).value;
+    const primaryFontSelect = document.querySelector("#primary-font-selector") as HTMLSelectElement;
+    const secondaryFontSelect = document.querySelector("#secondary-font-selector") as HTMLSelectElement;
+    const customPrimary = document.querySelector<HTMLInputElement>("#primary-custom-font")!;
+    const customSecondary = document.querySelector<HTMLInputElement>("#secondary-custom-font")!;
+    const selectedBase = themeSelector?.value || existingConfig.baseTheme;
+    const config = {
+        baseTheme: selectedBase,
+        accentColor,
+        backgroundColor,
+        background,
+        textColor,
+        buttonColorAlpha,
+        buttonColor,
+        buttonColorHoverAlpha,
+        buttonColorHover,
+        particlesEnabled,
+        particleOptions: {
+            count: particlesCount,
+            speedYMin: particlesSpeed / 2,
+            speedYMax: particlesSpeed,
+            color: particlesColor,
+            alpha:   particlesColorAlpha
+        }
+    } as ThemeConfig;
+
+    if (primaryFontSelect.value === "__custom") {
+        config.fontPrimaryUrl = customPrimary.value.trim();
+        config.fontPrimary    = "__custom";
+    } else if (primaryFontSelect.value === "__file") {
+        config.fontPrimary    = "__file";
+        config.fontPrimaryName     = existingConfig.fontPrimaryName;
+        config.fontPrimaryFilePath = existingConfig.fontPrimaryFilePath;
+    } else {
+        config.fontPrimary    = primaryFontSelect.value;
+        config.fontPrimaryUrl = "";
+        config.fontPrimaryFilePath = "";
+        config.fontPrimaryName = "";
+    }
+
+    if (secondaryFontSelect.value === "__custom") {
+        config.fontSecondaryUrl = customSecondary.value.trim();
+        config.fontSecondary    = "__custom";
+    } else if (secondaryFontSelect.value === "__file") {
+        config.fontSecondary    = "__file";
+        config.fontSecondaryName     = existingConfig.fontSecondaryName;
+        config.fontSecondaryFilePath = existingConfig.fontSecondaryFilePath;
+    } else {
+        config.fontSecondary    = secondaryFontSelect.value;
+        config.fontSecondaryUrl = "";
+        config.fontSecondaryFilePath = "";
+        config.fontSecondaryName = "";
+    }
+
+    const rawConfig: unknown = { ...config };
+
+    const result = ThemeConfigSchema.safeParse(rawConfig);
+    if (!result.success) {
+        console.error(result.error.format());
+        await safePrompt("Invalid theme values detected. Changes were not applied.", { mode: "alert" });
+        const themeConfig = await window.api.localThemeConfig();
+        applyThemeConfig(themeConfig);
+        return;
+    }
+    
+    console.log(config);
+    const validConfig = result.data as ThemeConfig;
+
+    await window.api.saveThemeConfig(validConfig);
+    applyThemeConfig(validConfig);
+    showNotification("Theme saved");
+});
+
+const cancelThemeButton = document.querySelector("#cancel-theme-config") as HTMLButtonElement;
+
+if (cancelThemeButton) {
+    cancelThemeButton.addEventListener("click", async () => {
+        const themeConfig = await window.api.localThemeConfig();
+        applyThemeConfig(themeConfig);
+        showNotification("Changes canceled");
+    
+        const themeConfigMenu = document.querySelector(".theme-configuration") as HTMLDivElement;
+        if (themeConfigMenu) {
+            themeConfigMenu.classList.add('hidden2');
+
+            const computedStyle = window.getComputedStyle(themeConfigMenu);
+            const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
+    
+            if (transitionDuration > 0) {
+                themeConfigMenu.addEventListener('transitionend', function handler(e) {
+                    if (e.propertyName === 'opacity') {
+                        themeConfigMenu.classList.remove('show');
+                        themeConfigMenu.classList.remove('flex-display');
+                        themeConfigMenu.classList.add('hidden-display');
+                        themeConfigMenu.removeEventListener('transitionend', handler);
+                    }
+                });
+            } else {
+                themeConfigMenu.classList.remove('show');
+                themeConfigMenu.classList.remove('flex-display');
+                themeConfigMenu.classList.add('hidden-display');
+            }
+        }
+    });
+}
+
 document.addEventListener("click", (event) => {
     const target = (event.target as HTMLElement).closest(".toggle-password") as HTMLButtonElement | null;
     if (!target) return;
@@ -186,6 +372,18 @@ document.addEventListener("click", (event) => {
     }
 });
 
+const openUserDataBtn = document.getElementById("open-user-data") as HTMLButtonElement | null;
+
+if (openUserDataBtn) {
+  openUserDataBtn.addEventListener("click", async () => {
+    try {
+      await window.api.openUserDataFolder();
+    } catch (err) {
+      console.error("Impossible d’ouvrir le dossier userData :", err);
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     const themeStylesheet = document.getElementById("theme-stylesheet") as HTMLLinkElement;
     const themeSelector = document.getElementById("theme-selector") as HTMLSelectElement;
@@ -194,78 +392,242 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Theme selector or stylesheet not found.");
       return;
     }
-  
     const appConfig: AppConfig = await window.api.localAppConfig();
+    const themeConfig: ThemeConfig = await window.api.localThemeConfig();
+    
+    const primaryFontSelect = document.querySelector<HTMLSelectElement>("#primary-font-selector")!;
+    const primaryCustomField = document.getElementById("primary-custom-font")!;
+    const primaryImportField = document.getElementById("primary-import-font")!;
+    if (themeConfig.fontPrimary === "__custom") {
+        primaryCustomField.style.display = "flex";
+    } else if (themeConfig.fontPrimary === "__file") {
+        primaryImportField.style.display = "block";
+    }
+    primaryFontSelect.addEventListener("change", () => {
+        if (primaryFontSelect.value === "__custom") {
+            primaryCustomField.style.display = "flex";
+            primaryImportField.style.display = "none";
+        } else if (primaryFontSelect.value === "__file") {
+            primaryCustomField.style.display = "none";
+            primaryImportField.style.display = "block";
+        } else {
+            primaryCustomField.style.display = "none";
+            primaryImportField.style.display = "none";
+        }
+    });
 
-    const selectedTheme = appConfig.theme ?? "codex";
+    const secondaryFontSelect = document.querySelector<HTMLSelectElement>("#secondary-font-selector")!;
+    const secondaryCustomField = document.getElementById("secondary-custom-font")!;
+    const secondaryImportField = document.getElementById("secondary-import-font")!;
+
+    if (themeConfig.fontSecondary === "__custom") {
+        secondaryCustomField.style.display = "flex";
+    } else if (themeConfig.fontSecondary === "__file") {
+        secondaryImportField.style.display = "block";
+    }
+    secondaryFontSelect.addEventListener("change", () => {
+        if (secondaryFontSelect.value === "__custom") {
+            secondaryCustomField.style.display = "flex";
+            secondaryImportField.style.display = "none";
+        } else if (secondaryFontSelect.value === "__file") {
+            secondaryCustomField.style.display = "none";
+            secondaryImportField.style.display = "block";
+        } else {
+            secondaryCustomField.style.display = "none";
+            secondaryImportField.style.display = "none";
+        }
+    });
+
+    const loadPrimaryFontFileBtn = document.getElementById("primary-import-font")!;
+
+    loadPrimaryFontFileBtn.addEventListener("click", async () => {
+      const fontPath = await window.api.chooseFontFile();
+      if (!fontPath) return;
+    
+      // Read the raw bytes, base64-encoded
+      const b64 = await window.api.readFontFile(fontPath);
+      if (!b64) {
+        showNotification("Failed to load font file.");
+        return;
+      }
+    
+      // Derive a font name and MIME type
+      const filename = fontPath.split(/[\\/]/).pop()!;
+      const fontName = filename.replace(/\.[^.]+$/, "");
+      const ext      = filename.split(".").pop()!.toLowerCase();
+      const mime     = ext === "ttf" ? "font/ttf"
+                   : ext === "otf" ? "font/otf"
+                   : ext === "woff" ? "font/woff"
+                   : ext === "woff2"? "font/woff2"
+                   : "application/octet-stream";
+    
+      // Build the data: URI
+      const dataUri = `data:${mime};base64,${b64}`;
+    
+      // Inject @font-face
+      const rule = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${dataUri}") format("${ext}");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      const style = document.createElement("style");
+      style.textContent = rule;
+      document.head.append(style);
+    
+      // Apply immediately
+      document.documentElement.style.setProperty("--font-primary", `"${fontName}", sans-serif`);
+    
+      // Persist to config
+      themeConfig.fontPrimary         = "__file";
+      themeConfig.fontPrimaryName     = fontName;
+      themeConfig.fontPrimaryFilePath = dataUri;
+      
+      await window.api.saveThemeConfig(themeConfig);
+    
+      showNotification("Primary font loaded successfully");
+    });
+
+    const loadSecondaryFontFileBtn = document.getElementById("secondary-import-font")!;
+
+    loadSecondaryFontFileBtn.addEventListener("click", async () => {
+      const fontPath = await window.api.chooseFontFile();
+      if (!fontPath) return;
+    
+      // Read the raw bytes, base64-encoded
+      const b64 = await window.api.readFontFile(fontPath);
+      if (!b64) {
+        showNotification("Failed to load font file.");
+        return;
+      }
+    
+      // Derive a font name and MIME type
+      const filename = fontPath.split(/[\\/]/).pop()!;
+      const fontName = filename.replace(/\.[^.]+$/, "");
+      const ext      = filename.split(".").pop()!.toLowerCase();
+      const mime     = ext === "ttf" ? "font/ttf"
+                   : ext === "otf" ? "font/otf"
+                   : ext === "woff" ? "font/woff"
+                   : ext === "woff2"? "font/woff2"
+                   : "application/octet-stream";
+    
+      // Build the data: URI
+      const dataUri = `data:${mime};base64,${b64}`;
+    
+      // Inject @font-face
+      const rule = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${dataUri}") format("${ext}");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      const style = document.createElement("style");
+      style.textContent = rule;
+      document.head.append(style);
+    
+      // Apply immediately
+      document.documentElement.style.setProperty("--font-secondary", `"${fontName}", sans-serif`);
+    
+      // Persist to config
+      themeConfig.fontSecondary         = "__file";
+      themeConfig.fontSecondaryName     = fontName;
+      themeConfig.fontSecondaryFilePath = dataUri;
+      
+      await window.api.saveThemeConfig(themeConfig);
+    
+      showNotification("Secondary font loaded successfully");
+    });
+
+    const particlesConfig = document.querySelector<HTMLElement>(".particles-config")!;
+    const particlesCheckbox = document.querySelector<HTMLInputElement>("#particles-button")!;
+    if (themeConfig.particlesEnabled == true) {
+        particlesConfig.style.display = "block";
+    }
+    particlesCheckbox.addEventListener("change", () => {
+      if (particlesCheckbox.checked == true) {
+        particlesConfig.style.display = "block";
+      } else {
+        particlesConfig.style.display = "none";
+      }
+    });
+
+    const selectedTheme = themeConfig.baseTheme ?? "codex";
     themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
     themeSelector.value = selectedTheme;
 
     themeSelector.addEventListener("change", async () => {
       const newTheme = themeSelector.value;
       themeStylesheet.setAttribute("href", `styles/${newTheme}.css`);
-      const appConfigMenu = document.querySelector('.app-configuration') as HTMLDivElement;
-        if (appConfigMenu) {
-            appConfigMenu.classList.add('flex-display');
-            appConfigMenu.classList.remove('hidden2');
-            appConfigMenu.classList.remove('hidden-display');
-            appConfigMenu.classList.add('show');
+      const themeConfigMenu = document.querySelector('.theme-configuration') as HTMLDivElement;
+        if (themeConfigMenu) {
+            themeConfigMenu.classList.add('flex-display');
+            themeConfigMenu.classList.remove('hidden2');
+            themeConfigMenu.classList.remove('hidden-display');
+            themeConfigMenu.classList.add('show');
         }
 
-      appConfig.theme = newTheme;
+      themeConfig.baseTheme = newTheme;
       preventMenuClose = true;
-      await window.api.saveAppConfig(appConfig);
+      await window.api.saveThemeConfig(themeConfig);
       showNotification("Theme changed");
       preventMenuClose = false;
     });
 
     const resetAppearanceButton = document.getElementById("reset-appearance") as HTMLButtonElement;
-    const resetAllButton = document.getElementById("reset-all") as HTMLButtonElement;
+    const resetClientButton = document.getElementById("reset-client") as HTMLButtonElement;
 
     if (resetAppearanceButton) {
     resetAppearanceButton.addEventListener("click", async () => {
-        const confirmed = await safePrompt("Are you sure you want to reset the appearance settings? This will erase your custom colors and backgrounds.");
+        const confirmed = await safePrompt("Are you sure you want to reset all theme settings? This will erase your custom colors, fonts and backgrounds (games and client settings are not affected).");
         if (!confirmed) return;
 
-        appConfig.background = "";
-        appConfig.backgrounds = [];
-        appConfig.backgroundColor = "#0e1a23ff";
-        appConfig.textColor = "#88c0a9ff";
-        appConfig.accentColor = "#98e4f7ff";
-
+        themeConfig.background = "";
+        themeConfig.backgrounds = [];
+        themeConfig.backgroundColor = "#0e1a23";
+        themeConfig.textColor = "#88c0a9";
+        themeConfig.accentColor = "#98e4f7";
+        themeConfig.buttonColorAlpha = 0.65;
+        themeConfig.buttonColor = "#14141e";
+        themeConfig.accentColor = "#98e4f7";
+        themeConfig.buttonColorHoverAlpha = 0.95;
+        themeConfig.buttonColorHover = "#28283c";
+        themeConfig.fontPrimary = "";
+        themeConfig.fontPrimaryUrl = "";
+        themeConfig.fontSecondary = "";
+        themeConfig.fontSecondaryUrl = "";
+        themeConfig.particleOptions.color = '#63b0c4';
+        themeConfig.particleOptions.alpha = 0.15;
+        themeConfig.particleOptions.count = 100;
+        themeConfig.particleOptions.speedYMax = 0.3;
+        themeConfig.particleOptions.speedYMin = 0.1;
+        
         document.body.style.backgroundColor = "";
-        applyAppConfig(appConfig);
+        applyThemeConfig(themeConfig);
 
-        await window.api.saveAppConfig(appConfig);
+        await window.api.saveThemeConfig(themeConfig);
         showNotification("Appearance settings reset");
     });
     }
 
-    if (resetAllButton) {
-    resetAllButton.addEventListener("click", async () => {
-        const confirmed = await safePrompt("Are you sure you want to reset all settings? This will erase your background, custom CSS, and revert your theme to Codex (games are not affected).");
+    if (resetClientButton) {
+        resetClientButton.addEventListener("click", async () => {
+        const confirmed = await safePrompt("Are you sure you want to reset all client settings? This will erase your cache, certificate and Discord settings (games and themes are not affected).");
         if (!confirmed) return;
 
-        appConfig.background = "";
-        appConfig.backgrounds = [];
-        appConfig.backgroundColor = "#0e1a23ff";
-        appConfig.textColor = "#88c0a9ff";
-        appConfig.accentColor = "#98e4f7ff";
         appConfig.cachePath = undefined;
         appConfig.autoCacheClear = undefined;
         appConfig.customCSS = undefined;
         appConfig.ignoreCertificateErrors = undefined;
-        appConfig.discordRP = false;
-        appConfig.theme = "codex";
-        appConfig.particlesEnabled = true;
+        appConfig.discordRP = undefined;
 
-        themeStylesheet.setAttribute("href", "styles/codex.css");
-        themeSelector.value = "codex";
-        document.body.style.backgroundColor = "";
         applyAppConfig(appConfig);
 
         await window.api.saveAppConfig(appConfig);
-        showNotification("All settings reset");
+        showNotification("Client settings reset");
     });
   }
 
@@ -377,84 +739,217 @@ function toggleConfigureGame(event: MouseEvent) {
     });
 
     document.getElementById("open-config")?.addEventListener("click", () => toggleMenu(".app-configuration"));
+    document.getElementById("open-theme")?.addEventListener("click", () => toggleMenu(".theme-configuration"));
     document.getElementById("open-help")?.addEventListener("click", () => toggleMenu(".help"));
-    document.getElementById("open-export")?.addEventListener("click", async () => {
-        await toggleMenu(".config-export", async () => {
-            const code = document.getElementById("export-text");
-            const config = await window.api.localAppConfig();
-            const text = JSON.stringify(config, null, 4);
-            if (code) code.textContent = text;
-        });
+    document.getElementById("close-help")?.addEventListener("click", () => toggleMenu(".help"));
+    document.getElementById("open-share")?.addEventListener("click", async () => {
+        await toggleMenu("#share-menu", async () => {
+            (document.getElementById("share-input")! as HTMLTextAreaElement).value = "";
+            (document.getElementById("share-output")! as HTMLElement).textContent = "";
+            });
+        }); 
+        document.getElementById("close-share")?.addEventListener("click", () => {
+            (document.getElementById("share-input")! as HTMLTextAreaElement).value = "";
+            (document.getElementById("share-output")! as HTMLElement).textContent = "";
+            toggleMenu("#share-menu");
+          });
+    document.querySelector("#share-copy").addEventListener("click", async () => {
+        const txt = document.getElementById("share-output")!.textContent;
+        navigator.clipboard.writeText(txt);
+        if (!txt) {
+            return showNotification("Nothing to copy");
+        }
+        showNotification("Settings copied");
     });
-    document.getElementById("close-export")?.addEventListener("click", () => toggleMenu(".config-export"));
+    document.getElementById("export-settings")!.addEventListener("click", exportSettings);
+    document.getElementById("export-theme")!.addEventListener("click", exportTheme);
+    document.getElementById("share-apply-import")!.addEventListener("click", applyShareImport);
+    document.getElementById("import-settings")!.addEventListener("click", importFromFile);
+    document.getElementById("share-save-as")!.addEventListener("click", saveToFile);
 
+    document.querySelectorAll<HTMLButtonElement>('.tab-button').forEach(btn => {
+        const tabId = btn.getAttribute('data-tab')
+        if (!tabId) return
+        btn.addEventListener('click', e => switchTab(e as MouseEvent, tabId))
+    })
 });
-  
-function safePrompt(message: string, options?: { mode?: 'confirm' | 'alert' }): Promise<boolean> {
-    return new Promise((resolve) => {
-        const confirmBox = document.getElementById("custom-confirm") as HTMLDivElement;
-        const confirmText = document.getElementById("confirm-text")!;
-        const yesButton = document.getElementById("confirm-yes")!;
-        const noButton = document.getElementById("confirm-no")!;
 
-        const mode = options?.mode ?? 'confirm';
+// Export Settings
+async function exportSettings() {
+    const app = await window.api.localAppConfig();
+    const rawTheme = await window.api.localThemeConfig();
+    // Clean with Zod in order to apply defaults
+    const parsed = ThemeConfigSchema.parse(rawTheme);
+    const {
+        fontPrimaryName,
+        fontPrimaryFilePath,
+        fontSecondaryName,
+        fontSecondaryFilePath,
+        ...cleanTheme
+    } = parsed;
+    const full = { app, theme: cleanTheme };
+    document.getElementById("share-output")!.textContent = JSON.stringify(full, null, 2);
+};
 
-        confirmText.textContent = message;
-        confirmBox.classList.add('flex-display');
-        void confirmBox.offsetWidth;
-        confirmBox.classList.remove('hidden2');
-        confirmBox.classList.remove('hidden-display');
-        confirmBox.classList.add('show');
+// Export Theme
+async function exportTheme() {
+    const rawTheme = await window.api.localThemeConfig();
+    // Clean with Zod in order to apply defaults
+    const parsed = ThemeConfigSchema.parse(rawTheme);
 
-        if (mode === 'alert') {
-            noButton.classList.add('hidden2');
-            noButton.classList.add('hidden-display');
-            yesButton.textContent = "OK";
+    const {
+        fontPrimaryName,
+        fontPrimaryFilePath,
+        fontSecondaryName,
+        fontSecondaryFilePath,
+        ...cleanTheme
+    } = parsed;
+    document.getElementById("share-output")!.textContent = JSON.stringify(cleanTheme, null, 2);
+};
+
+// Apply import
+async function applyShareImport() {
+    const themeStylesheet = document.getElementById("theme-stylesheet") as HTMLLinkElement;
+    const txt = (document.getElementById("share-input") as HTMLTextAreaElement).value;
+    let data: any;
+    try {
+        data = JSON.parse(txt);
+    } catch {
+        await safePrompt("Invalid JSON data.", { mode: 'alert' });
+        return;
+    }
+    
+    // full settings import
+    if (data.app && data.theme && typeof data.app === 'object') {
+        const mergedApp = await mergeAppData(data.app);
+        const mergedTheme = await mergeThemeData(data.theme);
+        await window.api.saveAppConfig(mergedApp);
+        await window.api.saveThemeConfig(mergedTheme);
+        applyAppConfig(mergedApp);
+        applyThemeConfig(mergedTheme);
+        themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+        await createGameList();
+        return showNotification("Settings imported");
+    }
+    
+    // theme-only import
+    if (typeof data.backgroundColor !== 'undefined'
+        && typeof data.textColor       !== 'undefined'
+        && typeof data.accentColor     !== 'undefined') {
+       const mergedTheme = await mergeThemeData(data);
+       await window.api.saveThemeConfig(mergedTheme);
+       applyThemeConfig(mergedTheme);
+       themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+       return showNotification("Theme imported");
+    }
+    
+    await safePrompt("Could not recognise text format.", { mode: 'alert' });
+};              
+                
+async function importFromFile() {
+    const themeStylesheet = document.getElementById("theme-stylesheet") as HTMLLinkElement;
+    const fileInput = document.getElementById("import-file") as HTMLInputElement;
+    fileInput.onchange = async () => {
+      const file = fileInput.files![0];
+      const txt  = await file.text();
+      let data: any;
+      try {
+        data = JSON.parse(txt);
+      } catch {
+        await safePrompt("Invalid JSON data.", { mode: 'alert' });
+        return;
+      }
+    
+      // full settings import
+      if (data.app && data.theme && typeof data.app === 'object') {
+        const mergedApp = await mergeAppData(data.app);
+        const mergedTheme = await mergeThemeData(data.theme);
+        await window.api.saveAppConfig(mergedApp);
+        await window.api.saveThemeConfig(mergedTheme);
+        applyAppConfig(mergedApp);
+        applyThemeConfig(mergedTheme);
+        themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+        await createGameList();
+        return showNotification("Settings imported");
+      }
+    
+      // theme-only import
+      if (typeof data.backgroundColor !== 'undefined'
+        && typeof data.textColor       !== 'undefined'
+        && typeof data.accentColor     !== 'undefined') {
+            const mergedTheme = await mergeThemeData(data);
+            await window.api.saveThemeConfig(mergedTheme);
+            applyThemeConfig(mergedTheme);
+            themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+            return showNotification("Theme imported");
+    }
+    
+      await safePrompt("Could not recognise file format.", { mode: 'alert' });
+    };
+    fileInput.click();
+};
+
+async function saveToFile() {
+    // Gets the JSON data displayed in share-output
+    const outputEl = document.getElementById("share-output") as HTMLElement;
+    const text = outputEl.textContent ?? "";
+    if (!text) {
+        return showNotification("Nothing to save");
+    }
+
+    // Create a JSON Blob
+    const blob = new Blob([text], { type: "application/json" });
+
+    // Create temporary URL
+    const url = URL.createObjectURL(blob);
+
+    // Dynamically create a <a> to force a download
+    const a = document.createElement("a");
+    a.href = url;
+
+    // Picks a file name depending on JSON content
+    // Checks if it's a full export (app+theme) or theme only
+    let filename = "export";
+    try {
+        const data = JSON.parse(text);
+        if (data.app && data.theme) {
+        filename = "settings";
         } else {
-            noButton.classList.remove('hidden2');
-            noButton.classList.remove('hidden-display');
-            yesButton.textContent = "Yes";
+        filename = "theme";
         }
+    } catch {
+        filename = "export";
+    }
+    a.download = `${filename}.json`;
 
-        function cleanup() {
+    // Download and clean up
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
-            confirmBox.classList.add('hidden2');
+    showNotification(`Saved ${a.download}`);
+};
 
-            const computedStyle = window.getComputedStyle(confirmBox);
-            const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0;
-
-            if (transitionDuration > 0) {
-                confirmBox.addEventListener('transitionend', function handler(e) {
-                    if (e.propertyName === 'opacity') {
-                        confirmBox.classList.remove('show');
-                        confirmBox.classList.remove('flex-display');
-                        confirmBox.classList.add('hidden-display');
-                        confirmBox.removeEventListener('transitionend', handler);
-                    }
-                });
-            } else {
-                confirmBox.classList.remove('show');
-                confirmBox.classList.remove('flex-display');
-                confirmBox.classList.add('hidden-display');
-            }
-            yesButton.removeEventListener('click', onYes);
-            noButton.removeEventListener('click', onNo);
-        }
-
-        function onYes() {
-            cleanup();
-            resolve(true);
-        }
-
-        function onNo() {
-            cleanup();
-            resolve(false);
-        }
-
-        yesButton.addEventListener('click', onYes);
-        noButton.addEventListener('click', onNo);
+function switchTab(event: MouseEvent, tabId: string): void {
+    event.preventDefault()
+    const tabs = document.querySelectorAll<HTMLButtonElement>('.tab-button')
+    const contents = document.querySelectorAll<HTMLElement>('.tab-content')
+  
+    tabs.forEach(t => t.classList.remove('active'))
+    contents.forEach(c => {
+      c.classList.remove('active');
+      c.style.display = 'none';
     });
-}
+  
+    (event.currentTarget as HTMLElement).classList.add('active')
+  
+    const target = document.getElementById(`tab-${tabId}`)
+    if (!target) return
+    target.style.display = 'flex'
+    void target.offsetWidth // force repaint
+    target.classList.add('active')
+  }
 
 async function createGameItem(game: GameConfig) {
     const li = document.importNode(gameItemTemplate, true);
@@ -462,7 +957,6 @@ async function createGameItem(game: GameConfig) {
 
     li.id = game.cssId;
     li.setAttribute("data-game-id", String(game.id ?? game.name));
-
     (li.querySelector(".user-name") as HTMLInputElement).value = loginData.user;
     (li.querySelector(".user-password") as HTMLInputElement).value = loginData.password;
     (li.querySelector(".admin-password") as HTMLInputElement).value = loginData.adminPassword;
@@ -527,14 +1021,176 @@ async function createGameItem(game: GameConfig) {
 }
 
 function applyAppConfig(config: AppConfig) {
+    (document.querySelector("#cache-path") as HTMLInputElement).value = "";
+    (document.querySelector("#insecure-ssl") as HTMLInputElement).checked = false;
+    (document.querySelector("#clear-cache-on-close") as HTMLInputElement).checked = false;
+    (document.querySelector("#discord-rp") as HTMLInputElement).checked = false;
+    if (config.cachePath) {
+        (document.querySelector("#cache-path") as HTMLInputElement).value = config.cachePath;
+        window.api.setCachePath(config.cachePath);
+    }
+    if (config.ignoreCertificateErrors) {
+        (document.querySelector("#insecure-ssl") as HTMLInputElement).checked = config.ignoreCertificateErrors;
+    }
+    if (config.autoCacheClear) {
+        (document.querySelector("#clear-cache-on-close") as HTMLInputElement).checked = config.autoCacheClear;
+    }
+    if (config.discordRP) {
+        (document.querySelector("#discord-rp") as HTMLInputElement).checked = config.discordRP;
+    }
+}
+
+function applyThemeConfig(config: ThemeConfig) {
+
+  const primaryFontSelect = document.querySelector<HTMLSelectElement>("#primary-font-selector")!;
+  const customPrimaryField   = document.querySelector<HTMLInputElement>("#primary-custom-font")!;
+  const primaryImportField = document.getElementById("primary-import-font")!;
+  const secondaryFontSelect  = document.querySelector<HTMLSelectElement>("#secondary-font-selector")!;
+  const customSecondaryField = document.querySelector<HTMLInputElement>("#secondary-custom-font")!;
+  const secondaryImportField = document.getElementById("secondary-import-font")!;
+
+  const particlesConfig = (document.querySelector(".particles-config") as HTMLElement)!;
+  const particlesCheckbox = (document.querySelector("#particles-button") as HTMLInputElement)!;
+
+  primaryFontSelect.value     = config.fontPrimary    ?? "";
+  customPrimaryField.value    = config.fontPrimaryUrl ?? "";
+  secondaryFontSelect.value   = config.fontSecondary ?? "";
+  customSecondaryField.value  = config.fontSecondaryUrl ?? "";
+
+  const particlesCheckboxEnabled = config.particlesEnabled ?? true;
+  particlesCheckbox.checked = particlesCheckboxEnabled;
+
+  customPrimaryField.style.display   = primaryFontSelect.value   === "__custom" ? "flex" : "none";
+  primaryImportField.style.display   = primaryFontSelect.value   === "__file"   ? "block" : "none";
+  customSecondaryField.style.display = secondaryFontSelect.value === "__custom" ? "flex" : "none";
+  secondaryImportField.style.display = secondaryFontSelect.value === "__file"   ? "block" : "none";
+  
+  particlesConfig.style.display = particlesCheckboxEnabled ? "block" : "none";
+
+  // Primary font modes: Google, Local file (data URI), or built-in
+  if (config.fontPrimary === "__custom" && config.fontPrimaryUrl) {
+    // Google Fonts via <link>
+    useGoogleFont(config.fontPrimaryUrl, "primary");
+    const fam = extractFamilyName(config.fontPrimaryUrl);
+    document.documentElement.style.setProperty(
+      "--font-primary",
+      fam ? `'${fam}',sans-serif` : ""
+    );
+
+  } else if (config.fontPrimary === "__file" && config.fontPrimaryFilePath) {
+    // Local file font injected as data URI
+    useGoogleFont("", "primary");
+    // Assume config.fontPrimaryFilePath contains full data: URI
+    // Derive a name from FontConfig or store in config.fontPrimaryName if you like
+    const fontName = config.fontPrimaryName ?? "LocalFont"; 
+    // Inject the @font-face rule if not already present
+    if (!document.getElementById(`ff-${fontName}`)) {
+      const style = document.createElement("style");
+      style.id = `ff-${fontName}`;
+      style.textContent = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${config.fontPrimaryFilePath}") format("truetype");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      document.head.append(style);
+    }
+    // Finally set the CSS variable
+    document.documentElement.style.setProperty(
+      "--font-primary",
+      `"${fontName}",sans-serif`
+    );
+
+  } else {
+    // Built-in font names or none
+    useGoogleFont("", "primary");
+    if (config.fontPrimary && config.fontPrimary !== "__custom" && config.fontPrimary !== "__file") {
+      document.documentElement.style.setProperty(
+        "--font-primary",
+        config.fontPrimary
+      );
+    } else {
+      document.documentElement.style.removeProperty("--font-primary");
+    }
+  }
+
+  // Secondary font modes: Google, Local file (data URI), or built-in
+  if (config.fontSecondary === "__custom" && config.fontSecondaryUrl) {
+    // Google Fonts via <link>
+    useGoogleFont(config.fontSecondaryUrl, "secondary");
+    const fam = extractFamilyName(config.fontSecondaryUrl);
+    document.documentElement.style.setProperty(
+      "--font-secondary",
+      fam ? `'${fam}',sans-serif` : ""
+    );
+
+  } else if (config.fontSecondary === "__file" && config.fontSecondaryFilePath) {
+    // Local file font injected as data URI
+    useGoogleFont("", "secondary");
+    // Assume config.fontSecondaryFilePath contains full data: URI
+    // Derive a name from FontConfig or store in config.fontSecondaryName if you like
+    const fontName = config.fontSecondaryName ?? "LocalFont"; 
+    // Inject the @font-face rule if not already present
+    if (!document.getElementById(`ff-${fontName}`)) {
+      const style = document.createElement("style");
+      style.id = `ff-${fontName}`;
+      style.textContent = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${config.fontSecondaryFilePath}") format("truetype");
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      document.head.append(style);
+    }
+    // Finally set the CSS variable
+    document.documentElement.style.setProperty(
+      "--font-secondary",
+      `"${fontName}",sans-serif`
+    );
+
+  } else {
+    // Built-in font names or none
+    useGoogleFont("", "secondary");
+    if (config.fontSecondary && config.fontSecondary !== "__custom" && config.fontSecondary !== "__file") {
+      document.documentElement.style.setProperty(
+        "--font-secondary",
+        config.fontSecondary
+      );
+    } else {
+      document.documentElement.style.removeProperty("--font-secondary");
+    }
+  }
+
     (document.querySelector("#accent-color") as HTMLInputElement).value = "#98e4f7";
     (document.querySelector("#background-color") as HTMLInputElement).value = "#0e1a23";
     (document.querySelector("#text-color") as HTMLInputElement).value = "#88c0a9";
+    const alphaInput = document.querySelector("#button-color-alpha") as HTMLInputElement;
+    alphaInput.valueAsNumber = 0.65;
+    (document.querySelector("#button-color") as HTMLInputElement).value = "#14141e";
+    const alphaHoverInput = document.querySelector("#button-color-hover-alpha") as HTMLInputElement;
+    alphaHoverInput.valueAsNumber = 0.95;
+    (document.querySelector("#button-color-hover") as HTMLInputElement).value = "#28283c";
+
+    const opts = config.particleOptions!;
+    
+    (document.querySelector("#particles-count") as HTMLInputElement).valueAsNumber = opts.count;
+    (document.querySelector("#particles-speed") as HTMLInputElement).valueAsNumber = opts.speedYMax;
+    (document.querySelector("#particles-color") as HTMLInputElement).value = opts.color;
+    (document.querySelector("#particles-color-alpha") as HTMLInputElement).valueAsNumber = opts.alpha;
+
+    document.body.style.backgroundImage = "";
+    const bgInput = document.querySelector("#background-image") as HTMLInputElement;
     if (config.background) {
         document.body.style.backgroundImage = `url(${config.background})`;
-        (document.querySelector("#background-image") as HTMLInputElement).value = config.background;
+        bgInput.value = config.background;
+    } else {
+        bgInput.value = "";
     }
-    if (config.backgrounds && config.backgrounds.length > 0) {
+    if (!config.background && config.backgrounds?.length) {
         const i = Math.floor(Math.random() * config.backgrounds.length);
         document.body.style.backgroundImage = `url(${config.backgrounds[i]})`;
     }
@@ -550,29 +1206,76 @@ function applyAppConfig(config: AppConfig) {
         document.documentElement.style.setProperty("--color-accent", config.accentColor);
         (document.querySelector("#accent-color") as HTMLInputElement).value = config.accentColor.substring(0, 7);
     }
-    if (config.cachePath) {
-        (document.querySelector("#cache-path") as HTMLInputElement).value = config.cachePath;
-        window.api.setCachePath(config.cachePath);
+    if (config.buttonColorAlpha != null) {  
+        const alphaStr = config.buttonColorAlpha.toString();  
+    
+        document.documentElement.style.setProperty("--opacity-button", alphaStr);  
+        const inputAlpha = document.querySelector("#button-color-alpha") as HTMLInputElement;
+        inputAlpha.valueAsNumber = config.buttonColorAlpha;
     }
-    if (config.ignoreCertificateErrors) {
-        (document.querySelector("#insecure-ssl") as HTMLInputElement).checked = config.ignoreCertificateErrors;
+    if (config.buttonColor) {  
+        document.documentElement.style.setProperty("--color-button", config.buttonColor);  
+        (document.querySelector("#button-color") as HTMLInputElement).value = config.buttonColor;  
+    }  
+    const rgba = hexToRgba(config.buttonColor, config.buttonColorAlpha);
+    document.documentElement.style.setProperty('--color-button-rgba', rgba);
+    
+    if (config.buttonColorHoverAlpha != null) {  
+        const alphaStr = config.buttonColorHoverAlpha.toString();  
+    
+        document.documentElement.style.setProperty("--opacity-button-hover", alphaStr);  
+        const inputAlpha = document.querySelector("#button-color-hover-alpha") as HTMLInputElement;
+        inputAlpha.valueAsNumber = config.buttonColorHoverAlpha;
     }
-    if (config.autoCacheClear) {
-        (document.querySelector("#clear-cache-on-close") as HTMLInputElement).checked = config.autoCacheClear;
-    }
-    if (config.discordRP) {
-        (document.querySelector("#discord-rp") as HTMLInputElement).checked = config.discordRP;
-    }
+    if (config.buttonColorHover) {  
+        document.documentElement.style.setProperty("--color-button-hover", config.buttonColorHover);  
+        (document.querySelector("#button-color-hover") as HTMLInputElement).value = config.buttonColorHover;  
+    }  
+    const rgbaHover = hexToRgba(config.buttonColorHover, config.buttonColorHoverAlpha);
+    document.documentElement.style.setProperty('--color-button-hover-rgba', rgbaHover);
+    
     const enabled = config.particlesEnabled ?? true;
-    const checkbox = (document.querySelector("#particles-button") as HTMLInputElement);
+    const checkbox = (document.querySelector("#particles-button") as HTMLInputElement)!;
     checkbox.checked = enabled;
-    if (enabled) {
+    
+    if (!enabled) {
+        if (particles.isParticlesRunning()) {
+          particles.stopParticles();
+        }
+        lastParticleOptions = null;
+        return;
+    }
+
+    const sameOpts =
+    lastParticleOptions !== null &&
+    opts.count     === lastParticleOptions.count &&
+    opts.speedYMin === lastParticleOptions.speedYMin &&
+    opts.speedYMax === lastParticleOptions.speedYMax &&
+    opts.color     === lastParticleOptions.color &&
+    opts.alpha     === lastParticleOptions.alpha;
+
+    if (!particles.isParticlesRunning() || !sameOpts) {
+        if (particles.isParticlesRunning()) {
+          particles.stopParticles();
+        }
+        particles.configureParticles(opts);
         particles.startParticles();
-    } else {
-        particles.stopParticles();
+        lastParticleOptions = { ...opts };
     }
 }
 
+export function hexToRgba(hex: string, alpha: number): string {
+    // removes ‘#’ and handles #RGB
+    let h = hex.replace(/^#/, '');
+    if (h.length === 3) {
+      h = h.split('').map(c => c + c).join('');
+    }
+    const bigint = parseInt(h, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 function addStyle(styleString: string) {
     const style = document.createElement('style');
@@ -643,28 +1346,6 @@ async function getServerInfo(game: GameConfig): Promise<ServerStatusData | null>
     }
 }
 
-function renderTooltips() {
-    // Attach tooltip listeners dynamically
-    document.querySelectorAll(".tooltip-wrapper").forEach(wrapper => {
-        const tooltip = wrapper.querySelector(".tooltip") as HTMLElement;
-        wrapper.addEventListener("mouseenter", (e) => {
-            const rect = wrapper.getBoundingClientRect();
-            const clonedTooltip = tooltip.cloneNode(true) as HTMLElement;
-            clonedTooltip.style.display = "block";
-            clonedTooltip.style.position = "fixed";
-            clonedTooltip.style.left = `${rect.left + rect.width/2}px`;
-            clonedTooltip.style.top = `${rect.bottom + 5}px`;
-            clonedTooltip.style.transform = "translateX(-50%)";
-            clonedTooltip.style.pointerEvents = "none";
-            clonedTooltip.classList.add("active-tooltip");
-            document.getElementById("tooltip-layer")?.appendChild(clonedTooltip);
-        });
-        wrapper.addEventListener("mouseleave", (e) => {
-            document.querySelectorAll("#tooltip-layer .active-tooltip").forEach(t => t.remove());
-        });
-    });
-}
-
 async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
     const serverInfo = await getServerInfo(game);
 
@@ -717,15 +1398,74 @@ async function refreshAllServerInfos() {
     }
 }
 
+function renderTooltips() {
+    const layer = document.getElementById("tooltip-layer");
+    if (!layer) return;
+    
+    document.querySelectorAll(".tooltip-wrapper").forEach(wrapper => {
+        const tooltip = wrapper.querySelector<HTMLElement>(".tooltip");
+        if (!tooltip) return;
+    
+        // tries to find an input of type range
+        const input = wrapper.querySelector<HTMLInputElement>("input[type=range]");
+    
+        wrapper.addEventListener("mouseenter", () => {
+        const rect = wrapper.getBoundingClientRect();
+        const clone = tooltip.cloneNode(true) as HTMLElement;
+        clone.classList.add("active-tooltip");
+        clone.style.display       = "block";
+        clone.style.position      = "fixed";
+        clone.style.pointerEvents = "none";
+        clone.style.transform      = "translateX(-50%)";
+        clone.style.left          = `${rect.left + rect.width/2}px`;
+        clone.style.top           = `${rect.bottom + 5}px`;
+    
+        const baseText = tooltip.textContent?.trim() ?? "";
+
+        // If input type is range, tooltip is live updated
+        let onInput: (() => void) | null = null;
+        if (input) {
+            clone.textContent = `${baseText}: ${input.value}`;
+            onInput = () => { clone.textContent = `${baseText}: ${input.value}`; };
+            input.addEventListener("input", onInput);
+        }
+    
+        layer.appendChild(clone);
+    
+        // On mouseleave, clean clone and listener
+        wrapper.addEventListener("mouseleave", () => {
+            clone.remove();
+            if (input && onInput) {
+            input.removeEventListener("input", onInput);
+            }
+        }, { once: true });
+        });
+    });
+}
+
 async function createGameList() {
     await migrateConfig();
-    let config: AppConfig;
-    try {
-        config = await window.api.appConfig();
-        games = config.games;
-    } catch (e) {
-        console.log("Failed to load config.json");
-    }
+    const config: AppConfig = await window.api.appConfig();
+    const defaults: ThemeConfig = {
+        background: "",
+        backgrounds: [],
+        backgroundColor: "#0e1a23ff",
+        textColor: "#88c0a9ff",
+        accentColor: "#98e4f7ff",
+        buttonColorAlpha: 0.65,
+        buttonColor: "#14141e",
+        buttonColorHoverAlpha: 0.95,
+        buttonColorHover: "#28283c",
+        baseTheme: undefined,
+        particlesEnabled: true,
+      };
+      
+      const themeConfig: ThemeConfig = {
+        ...defaults,
+        ...(await window.api.localThemeConfig())
+      };
+      
+    games = config.games;
 
     addStyle(config.customCSS ?? "");
 
@@ -757,6 +1497,7 @@ async function createGameList() {
     }
 
     applyAppConfig(config);
+    applyThemeConfig(themeConfig);
 
     gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 
@@ -764,4 +1505,4 @@ async function createGameList() {
 }
 
 await createGameList();
-setInterval(refreshAllServerInfos, 30000);
+setInterval(refreshAllServerInfos, 15000);

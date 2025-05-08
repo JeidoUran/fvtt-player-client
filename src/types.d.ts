@@ -15,25 +15,53 @@ type GameConfig = {
 
 type AppConfig = {
     games: GameConfig[];
-    background: string;
-    backgrounds?: string[];
-    backgroundColor: string;
-    textColor: string;
-    accentColor: string;
     cachePath?: string;
     autoCacheClear?: boolean;
     customCSS?: string;
     ignoreCertificateErrors?: boolean;
     discordRP?: boolean;
-    theme?: string;
-    particlesEnabled?: boolean;
 }
 
+interface ParticleOptions {
+    count?: number;
+    color?: string;
+    alpha?: number;
+    speedYMin?: number;
+    speedYMax?: number;
+    radiusMin?: number;
+    radiusMax?: number;
+    ampMin?: number;
+    ampMax?: number;
+}
+
+type ThemeConfig = {
+    background: string;
+    backgrounds?: string[];
+    backgroundColor: string;
+    textColor: string;
+    fontPrimary?: string;
+    fontPrimaryUrl?: string;
+    fontPrimaryName?: string;
+    fontPrimaryFilePath?: string;
+    fontSecondary?: string;
+    fontSecondaryUrl?: string;
+    fontSecondaryName?: string;
+    fontSecondaryFilePath?: string;
+    accentColor: string;
+    buttonColorAlpha: number;
+    buttonColor: string;
+    buttonColorHoverAlpha: number;
+    buttonColorHover: string;
+    baseTheme?: string;
+    particlesEnabled?: boolean;
+    particleOptions?: ParticleOptions;
+}
 
 type UserData = {
     cachePath?: string;
     [index: GameId]: GameUserData;
     app?: AppConfig;
+    theme?: ThemeConfig;
 }
 
 type GameUserData = {

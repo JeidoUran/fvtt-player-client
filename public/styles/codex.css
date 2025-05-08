@@ -2,9 +2,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy&display=swap');
 
 :root {
-    --color-background: #0e1a23ff;
-    --color-accent: #98e4f7ff;
-    --color-text-primary: #88c0a9ff;
+    --color-background: #0e1a23;
+    --color-accent: #98e4f7;
+    --color-text-primary: #88c0a9;
+    --opacity-button: 0.65;
+    --color-button: #14141e;
+    --color-button-rgba: #14141ea6;
+    --opacity-button-hover : 0.95;
+    --color-button-hover: #28283c;
+    --color-button-hover-rgba: #28283cf2;
+    --font-primary: 'Cinzel', serif;
+    --font-secondary: 'Sorts Mill Goudy', serif;
 }
 
 #particles {
@@ -74,7 +82,7 @@ body::after {
     overflow-y: auto;
 }
 
-input:not([type=color], [type=checkbox]) {
+input:not([type=color], [type=checkbox], [type=range]) {
     background-color: transparent;
     border: none;
     border-bottom: 1px solid var(--color-text-primary);
@@ -85,7 +93,7 @@ input:not([type=color], [type=checkbox]) {
     margin: 0.5rem;
     outline: none;
     transition: all 0.3s ease-in-out;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
 }
 
 label {
@@ -100,12 +108,19 @@ input[type=color] {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     background-color: transparent;
     cursor: pointer;
+    border: none;
+    /* border: 1px solid var(--color-text-primary);
+    border-radius: 4px; */
+}
+
+.color-wrapper {
     border: 1px solid var(--color-text-primary);
     border-radius: 4px;
+    height: 32px;
 }
 
 input[type=color]::-webkit-color-swatch {
@@ -116,26 +131,26 @@ input[type=color]::-moz-color-swatch {
     border: none;
 }
 
-input:focus {
+input:not([type=color], [type=checkbox], [type=range]):focus {
     border-bottom: 1px solid var(--color-accent);
 }
 
 button:not(.game-button) {
     text-decoration: none;
 	color: var(--color-text-primary);
-	overflow: hidden;
-    font-family: 'Cinzel', serif;
+	/* overflow: hidden; */
+    font-family: var(--font-primary);
     font-size: 18px;
 	border: 1px solid rgba(255, 255, 255, 0.15);
 	border-radius: 8px;
-    background-color: rgba(20, 20, 30, 0.65);
+    background-color: var(--color-button-rgba);
 	padding: 0.7rem 1rem;
     transition: all 0.3s ease;
 }
 
 button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
-    background: rgba(40, 40, 60, 0.95);
-    box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
+    background: var(--color-button-hover-rgba);
+    box-shadow: 0 0 10px var(--color-accent);
     text-shadow: 0 0 4px var(--color-accent);
     text-decoration: none;
     cursor: pointer;
@@ -150,7 +165,7 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     cursor: pointer;
     color: inherit;
     text-shadow: inherit;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-primary);
     font-size: 18px;
     flex-grow: 1;
     text-align: left;
@@ -161,7 +176,8 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     text-decoration: none;
 }
 
-.app-configuration button {
+.app-configuration button,
+.theme-configuration button {
 	padding: 0.7rem 0.5rem;
 }
 
@@ -195,7 +211,7 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     box-shadow: 0 0 5px black;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    background-color: rgba(20, 20, 30, 0.65);
+    background-color: var(--color-button-rgba);
 }
 
 .hidden {
@@ -220,6 +236,10 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
     width: 100%;
 }
 
+.particles-config {
+    overflow: hidden;
+}
+
 table, th, td {
     border: 2px solid rgba(255, 255, 255, 0.15);
     border-radius: 10px;
@@ -240,9 +260,24 @@ table, th, td {
 .field {
     display: flex;
     justify-content: space-between;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
     padding: 0.5rem;
+    align-items: center;
 }
+
+.field .range-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: right;
+  }
+  .field .color-wrapper {
+    flex: 0 0 auto;
+    margin-left: 1rem;
+  }
+  
+  .field label {
+    margin-right: 1rem;
+  }
 
 .help {
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -251,6 +286,7 @@ table, th, td {
     pointer-events: all;
     box-shadow: 0 0 5px black;
     display: none;
+    flex-direction: column;
     border-radius: 8px;
 }
 
@@ -262,9 +298,21 @@ table, th, td {
     position: absolute;
     top: 2rem;
     right: 2rem;
+    display: flex;
+    gap: 0.5rem;
+    height: 3.5rem;
 }
 
-.app-configuration {
+.button-controls button {
+    flex: 0 0 auto;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    padding: 0;
+    font-size: 22px;
+}
+
+.app-configuration,
+.theme-configuration {
     box-shadow: 0 0 5px black;
     transform: scale(0.98);
     flex-direction: column;
@@ -274,24 +322,28 @@ table, th, td {
     background: var(--color-background);
     pointer-events: all;
     border-radius: 12px;
+    width: 30vw;
+    max-height: 70vh;
 }
 
-.app-configuration.show {
+.app-configuration.show,
+.theme-configuration.show {
     transform: scale(1);
     opacity: 1;
 }
 
-.app-configuration.hidden2 {
+.app-configuration.hidden2,
+.theme-configuration.hidden2 {
     transform: scale(0.98);
     opacity: 0;
 }
 
-.config-export.show {
+.share-menu.show {
     transform: scale(1);
     opacity: 1;
 }
 
-.config-export.hidden2 {
+.share-menu.hidden2 {
     transform: scale(0.98);
     opacity: 0;
 }
@@ -318,10 +370,31 @@ table, th, td {
     display: block;
 }
 
-.config-export {
+
+::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
+}
+  
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+  
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-text-primary);
+    border-radius: 4px; 
+}
+  
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255,255,255,0.25);
+}
+
+.share-menu {
+    width: 30vw;
+    height: 70vh;
+    flex-direction: column;
     box-shadow: 0 0 5px black;
     transform: scale(0.98);
-    flex-direction: column;
     transition: opacity 0.3s ease, transform 0.3s ease;
     border: 2px solid rgba(255, 255, 255, 0.15);
     padding: 0.5rem;
@@ -330,8 +403,21 @@ table, th, td {
     border-radius: 12px;
 }
 
-.config-export code {
+.share-output, .share-input {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    color: inherit;
+    border: none;
+    padding: 0.5rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+code.share-output {
     user-select: text;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .update-available {
@@ -401,8 +487,8 @@ a {
 }
 
 .game-title-bar .config-button-wrapper:hover {
-	background: rgba(40, 40, 60, 0.95);
-	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
+	background: var(--color-button-hover-rgba);
+	box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
 	text-shadow: 0 0 4px var(--color-accent);
 	text-decoration: none;
 	cursor: pointer;
@@ -446,23 +532,44 @@ a {
 
 .button-group {
     display: flex;
+    /* align-items: center; */
+    /* justify-content: space-around; */
+    /* gap: 0.5rem; */
+    margin-top: 0.3rem;
+    flex-direction: column;
+}
+
+.game-button-group {
+    display: flex;
     align-items: center;
     justify-content: space-around;
     gap: 0.5rem;
     margin-top: 0.3rem;
 }
 
+.game-button-group button {
+    flex: 1 1 0;
+    max-width: 10vw;
+}
+
 .background-image-field,
-.cache-path-field {
+.cache-path-field,
+.primary-custom-font-field,
+.secondary-custom-font-field {
     display: flex;
-    width: 100%;
+    width: auto;
 }
 
 .background-image-field input[type="text"],
-.cache-path-field input[type="text"] {
+.cache-path-field input[type="text"],
+.primary-custom-font-field input[type="text"],
+.secondary-custom-font-field input[type="text"] {
+    width: auto;
     flex: 1 1 auto;
-    width: 100%;
+    min-width: 0; 
     padding: 0.5rem;
+    margin: 0 0.5rem 0.25rem;
+    font-size: 1.25rem;
 }
 
 .field-large {
@@ -474,23 +581,34 @@ a {
     flex: 1 1 auto;
     width: 100%;
     margin: 0.5rem 2rem;
+    font-size: 1.4rem;
 }
 
-select#theme-selector {
-    font-family: 'Cinzel', serif;
+select {
+    font-family: var(--font-primary);
     background: rgba(0, 0, 0, 0.3);
-    color: #e8ddc5;
-    border: 1px solid #88c0a9;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-text-primary);
     padding: 0.25rem 1rem;
     font-size: 1rem;
     border-radius: 6px;
+    width: 15em;
 }
 
-select#theme-selector option {
-	background-color: #121c24;
-	color: #e8ddc5;
+select option {
+	background-color: var(--color-background);
+	color: var(--color-text-primary);
 	padding: 0.5rem;
 	line-height: 1.8;
+}
+
+textarea {
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-text-primary);
+    padding: 0.25rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
 }
 
 .checkbox-wrapper {
@@ -505,8 +623,8 @@ select#theme-selector option {
     opacity: 0;
     position: absolute;
     right: 7.5px;
-    height: 26px;
-    width: 26px;
+    height: 32px;
+    width: 32px;
     cursor: pointer;
     z-index: 1;
   }
@@ -516,8 +634,8 @@ select#theme-selector option {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 26px;
-    width: 26px;
+    height: 30px;
+    width: 30px;
     background-color: #111;
     border: 2px solid var(--accent-color, #aaa);
     border-radius: 4px;
@@ -537,10 +655,10 @@ select#theme-selector option {
   
   .checkbox-wrapper .custom-checkbox::after {
     content: "";
-    width: 5px;
-    height: 10px;
+    width: 7px;
+    height: 13px;
     border: solid #fff;
-    border-width: 0 2px 2px 0;
+    border-width: 0 3px 3px 0;
     transform: rotate(45deg);
     display: none;
   }
@@ -555,7 +673,7 @@ select#theme-selector option {
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-primary);
     color: var(--color-text-primary);
     font-size: 1.5rem;
     opacity: 0;
@@ -590,7 +708,7 @@ select#theme-selector option {
 .confirm-box {
     background: var(--color-background);
     border: 2px solid rgba(255, 255, 255, 0.15);
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
     font-size: 1.35rem;
     padding: 2rem;
     border-radius: 0.5rem;
@@ -607,6 +725,7 @@ select#theme-selector option {
 
 .confirm-button {
     padding: 0.75rem 2.25rem;
+    width: 7em;
 }
 
 .server-infos {
@@ -635,8 +754,8 @@ select#theme-selector option {
 
 .game-main-button:hover {
     transform: scale(1.03);
-	background: rgba(40, 40, 60, 0.95);
-	box-shadow: 0 0 12px rgba(136, 192, 169, 0.1);
+	background: var(--color-button-hover-rgba);
+	box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
 	text-shadow: 0 0 3px var(--color-accent);
 	text-decoration: none;
 	cursor: pointer;
@@ -692,7 +811,7 @@ select#theme-selector option {
     white-space: nowrap;
     pointer-events: none;
     z-index: 9999;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
 }
 
 #tooltip-layer {
@@ -783,7 +902,7 @@ select#theme-selector option {
     font-weight: 700;
     padding: 0.5rem;
     transition: all 0.3s ease-in-out;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
 }
 
 .user-configuration .checkbox-wrapper .custom-checkbox {
@@ -807,11 +926,13 @@ select#theme-selector option {
   .download-link a {
     margin-top: -0.25rem;
     font-size: 1rem;
-    font-family: 'Sorts Mill Goudy', serif;
+    font-family: var(--font-secondary);
   }
 
   .download-link {
     padding-left: 0.5rem;
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
   }
 
   .download-link a {
@@ -825,3 +946,115 @@ select#theme-selector option {
     text-decoration: none;
     transition: all 0.3s ease;
   }
+
+/*********** Baseline, reset styles ***********/
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    margin-top: 0.6rem;
+  }
+  
+  /* Removes default focus */
+  input[type="range"]:focus {
+    outline: none;
+  }
+  
+  /******** Chrome, Safari, Opera and Edge Chromium styles ********/
+  /* slider track */
+  input[type="range"]::-webkit-slider-runnable-track {
+    background-color: var(--color-text-primary);
+    border-radius: 0.5rem;
+    height: 0.5rem;
+  }
+  
+  /* slider thumb */
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    margin-top: -6px; /* Centers thumb on the track */
+    background-color: var(--color-accent);
+    border-radius: 1rem;
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+  
+  input[type="range"]:focus::-webkit-slider-thumb {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0.125rem;
+  }
+
+  .tab-button {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+.tab-button.active {
+    background: var(--color-button-hover-rgba);
+    box-shadow: 0 0 10px var(--color-accent);
+}
+
+.tab-content {
+    flex: 1 1 auto;
+    display: none;
+    flex-direction: column;
+  }
+
+.tab-content.active {
+	display: flex;
+	opacity: 1;
+}
+
+.tab-content textarea,
+.tab-content pre {
+  flex: 1 1 auto;
+  background: rgba(0,0,0,0.2);
+  color: inherit;
+  border: 1px solid var(--color-text-primary);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-family: monospace;
+  resize: none;
+  margin: 1rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.button-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 0 0 1rem;
+    flex-wrap: nowrap;
+    min-width: max-content;
+  }
+
+  .button-row button {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  
+  .theme-selector-field {
+    margin-bottom: 0.5rem;
+}
+
+#primary-import-font,
+#secondary-import-font {
+    padding: 0.5rem;
+    margin: 0 0.75rem;
+}
+
+.overflow {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.25rem;
+}

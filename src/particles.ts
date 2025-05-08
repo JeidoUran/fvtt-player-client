@@ -1,74 +1,131 @@
-// Particles.ts
+import { hexToRgba } from "./renderer";
 
-const canvas = document.getElementById('particles') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d')!;
-let w: number, h: number, particles: {
-    x: number; y: number; radius: number; speedY: number; offset: number;
-    amp: number;
-}[] = [];
+// Canvas and context variables
+let canvas: HTMLCanvasElement;
+let ctx: CanvasRenderingContext2D;
+let w: number;
+let h: number;
+
+// Internal time counter
 let time = 0;
-
-let animationId: number;
 let isRunning = false;
 
-function resize(): void {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
-
-for (let i = 0; i < 100; i++) {
-    particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        radius: Math.random() * 2 + 1,
-        speedY: Math.random() * 0.3 + 0.1,
-        offset: Math.random() * 1000,
-        amp: Math.random() * 10 + 5
-    });
+// Particle data structure
+interface Particle {
+  x: number;
+  y: number;
+  radius: number;
+  speedY: number;
+  offset: number;
+  amp: number;
 }
 
-function animateFrame(): void {
-    ctx.clearRect(0, 0, w, h);
-    time += 0.01;
+// Default options (will be merged with user options)
+const defaultOpts: Required<ParticleOptions> = {
+  count: 100,
+  color: '#63b0c4',
+  alpha: 0.15,
+  speedYMin: 0.1,
+  speedYMax: 0.3,
+  radiusMin: 1,
+  radiusMax: 3,
+  ampMin: 5,
+  ampMax: 15,
+};
 
-    ctx.fillStyle = 'rgba(99, 176, 196, 0.15)';
+let opts: Required<ParticleOptions> = { ...defaultOpts };
+let particles: Particle[] = [];
+let animationId: number | null = null;
 
-    particles.forEach(p => {
-        p.y -= p.speedY;
-
-        let xOffset = Math.sin(time + p.offset) * p.amp;
-        let x = p.x + xOffset;
-
-        if (p.y + p.radius < 0) {
-            p.y = h + Math.random() * 20;
-            p.x = Math.random() * w;
-        }
-
-        ctx.beginPath();
-        ctx.arc(x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-    });
-}
-
-function loop(): void {
-        animateFrame();
-        animationId = requestAnimationFrame(loop);
+/**
+ * Initialize canvas and create initial particles
+ */
+export function startParticles() {
+    if (isRunning) return;
+    isRunning = true;
+  
+    if (!canvas) {
+      canvas = document.getElementById('particles') as HTMLCanvasElement;
+      ctx    = canvas.getContext('2d')!;
+      window.addEventListener('resize', resizeCanvas);
     }
-    
-export function startParticles(): void {
-        if (isRunning) return;
-        isRunning = true;
-        canvas.style.display = 'block';
-        resize();
-        loop();
-}
-
-export function stopParticles(): void {
+  
+    resizeCanvas();
+  
+    canvas.style.display = 'block';
+  
+    configureParticles(opts);
+    animateFrame();
+  }
+  
+  export function stopParticles() {
     if (!isRunning) return;
-    cancelAnimationFrame(animationId);
     isRunning = false;
+  
+    // Stop animation
+    if (animationId != null) cancelAnimationFrame(animationId);
+  
     ctx.clearRect(0, 0, w, h);
     canvas.style.display = 'none';
+  
+    animationId = null;
+  }  
+/**
+ * Configure particle system with user options
+ */
+export function configureParticles(userOpts: ParticleOptions) {
+  opts = { ...defaultOpts, ...userOpts };
+  particles = [];
+
+  for (let i = 0; i < opts.count; i++) {
+    particles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      radius: Math.random() * (opts.radiusMax - opts.radiusMin) + opts.radiusMin,
+      speedY: Math.random() * (opts.speedYMax - opts.speedYMin) + opts.speedYMin,
+      offset: Math.random() * 1000,
+      amp: Math.random() * (opts.ampMax - opts.ampMin) + opts.ampMin,
+    });
+  }
+}
+
+/**
+ * Resize canvas to fill window
+ */
+function resizeCanvas() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+
+/**
+ * Animation loop
+ */
+function animateFrame() {
+  ctx.clearRect(0, 0, w, h);
+  time += 0.01;
+
+  // Use configured color
+  ctx.fillStyle = hexToRgba(opts.color, opts.alpha);
+
+  particles.forEach(p => {
+    p.y -= p.speedY;
+
+    let xOffset = Math.sin(time + p.offset) * p.amp;
+    let x = p.x + xOffset;
+
+    if (p.y + p.radius < 0) {
+        p.y = h + Math.random() * 20;
+        p.x = Math.random() * w;
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, p.y, p.radius, 0, Math.PI * 2);
+    ctx.fill();
+});
+
+  animationId = requestAnimationFrame(animateFrame);
+}
+
+export function isParticlesRunning(): boolean {
+    return isRunning;
 }

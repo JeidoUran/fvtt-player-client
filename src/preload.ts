@@ -2,7 +2,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: no nodejs in preload
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-import {contextBridge, ipcRenderer} from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 window.addEventListener("DOMContentLoaded", () => {
     const replaceText = (selector: string, text: string) => {
@@ -31,6 +31,8 @@ export type ContextBridgeApi = {
     appVersion: () => Promise<string>;
     appConfig: () => Promise<AppConfig>;
     localAppConfig: () => Promise<AppConfig>;
+    themeConfig: () => Promise<ThemeConfig>;
+    localThemeConfig: () => Promise<ThemeConfig>;
     cachePath: () => Promise<string>;
     setCachePath: (cachePath: string) => void;
     returnToServerSelect: () => void;
@@ -38,6 +40,14 @@ export type ContextBridgeApi = {
     openGame: (id: number | string, serverName: string) => void;
     clearCache: () => void;
     saveAppConfig: (data: AppConfig) => void;
+    saveThemeConfig: (data: ThemeConfig) => void;
+    showNotification(callback: (message: string) => void): void;
+    safePrompt(message: string, options?: { mode: 'confirm' | 'alert' }): Promise<boolean>;
+    onShowPrompt: (handler: (event: { id: number; message: string; options?: { mode: 'confirm' | 'alert' } }) => void) => void;
+    sendPromptResponse: (id: number, answer: boolean) => void;
+    chooseFontFile(): Promise<string | null>;
+    readFontFile(path: string): Promise<string | null>;
+    openUserDataFolder: () => Promise<string>;
 }
 const exposedApi: ContextBridgeApi = {
     // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -58,6 +68,12 @@ const exposedApi: ContextBridgeApi = {
     },
     localAppConfig() {
         return ipcRenderer.invoke("local-app-config") as Promise<AppConfig>;
+    },
+    themeConfig() {
+        return ipcRenderer.invoke("theme-config") as Promise<ThemeConfig>;
+    },
+    localThemeConfig() {
+        return ipcRenderer.invoke("local-theme-config") as Promise<ThemeConfig>;
     },
     appVersion() {
         return ipcRenderer.invoke("app-version") as Promise<string>;
@@ -82,9 +98,35 @@ const exposedApi: ContextBridgeApi = {
     },
     saveAppConfig(data: AppConfig) {
         ipcRenderer.send("save-app-config", data);
-    }
-
-
+    },
+    saveThemeConfig(data: ThemeConfig) {
+        ipcRenderer.send("save-theme-config", data);
+    },
+    showNotification(callback: (message: string) => void): void {
+        ipcRenderer.on(
+          'show-notification',
+          (_event: IpcRendererEvent, message: string) => {
+            callback(message);
+          }
+        );
+    },
+    safePrompt: (message, options) => {
+        return ipcRenderer.invoke('safe-prompt', message, options) as Promise<boolean>;
+    },
+    onShowPrompt: (handler) => {
+        ipcRenderer.on(
+          'show-prompt',
+          (_e: IpcRendererEvent, event: { id: number; message: string; options?: { mode: 'confirm' | 'alert' } }) => {
+            handler(event);
+          }
+        );
+      },
+      sendPromptResponse: (id, answer) => {
+        ipcRenderer.send(`prompt-response-${id}`, answer);
+    },
+    chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font") as Promise<string | null>,
+    readFontFile:   (path: string) => ipcRenderer.invoke("read-font-file", path)   as Promise<string | null>,
+    openUserDataFolder: () => ipcRenderer.invoke("open-user-data-folder") as Promise<string>,
 }
 
 contextBridge.exposeInMainWorld("api", exposedApi);
@@ -102,5 +144,7 @@ contextBridge.exposeInMainWorld('richPresence', {
     },
     enable: () => {
       ipcRenderer.send('enable-discord-rpc');
-    }
+    },
+    chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font"),
+    openUserDataFolder: () => ipcRenderer.invoke("open-user-data-folder"),
 });
