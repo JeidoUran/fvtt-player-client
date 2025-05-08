@@ -422,7 +422,7 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(async () => {
 
     const migrationResult = await migrateUserData();
-    console.log(">> migrateUserData returned:", migrationResult);
+
     mainWindow = createWindow();  
 
     // Configure cache/session
