@@ -494,7 +494,7 @@ function getThemeConfig(): ThemeConfig {
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
     const currentData = getUserData();
     currentData.app = {...currentData.app, ...data};
-    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData));
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData, null,  2), 'utf-8');
 });
 ipcMain.handle("app-config", getAppConfig);
 ipcMain.handle("local-app-config", () => {
@@ -509,7 +509,7 @@ ipcMain.handle("local-app-config", () => {
 ipcMain.on("save-theme-config", (_e, data: ThemeConfig) => {
     const currentData = getUserData();
     currentData.theme = {...currentData.theme, ...data};
-    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData));
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData, null,  2), 'utf-8');
 });
 ipcMain.handle("theme-config", getThemeConfig);
 ipcMain.handle("local-theme-config", () => {
@@ -533,7 +533,7 @@ ipcMain.handle("cache-path", () => app.getPath("sessionData"))
 ipcMain.on("cache-path", (_, cachePath: string) => {
     const currentData = getUserData();
     currentData.cachePath = cachePath;
-    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData));
+    fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"), JSON.stringify(currentData, null,  2), 'utf-8');
 });
 
 ipcMain.on("return-select", (e) => {
@@ -576,7 +576,7 @@ function writeUserDataFile(data: unknown) {
       return false;
     }
     fs.writeFileSync(path.join(app.getPath("userData"), "userData.json"),
-                       JSON.stringify(result.data, null, 2));
+                       JSON.stringify(result.data, null, 2), 'utf-8');
     return true;
 }
   
