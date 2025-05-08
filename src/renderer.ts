@@ -251,6 +251,22 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
         }
     } as ThemeConfig;
 
+    if (primaryFontSelect.value === "__custom") {
+        config.fontPrimaryUrl = customPrimary.value.trim();
+        config.fontPrimary    = "__custom";
+      } else {
+        config.fontPrimary    = primaryFontSelect.value;  
+        config.fontPrimaryUrl = "";
+      }
+
+      if (secondaryFontSelect.value === "__custom") {
+        config.fontSecondaryUrl = customSecondary.value.trim();
+        config.fontSecondary    = "__custom";
+      } else {
+        config.fontSecondary    = secondaryFontSelect.value;  
+        config.fontSecondaryUrl = "";
+      }
+
     const rawConfig: unknown = {
         accentColor:            config.accentColor,
         backgroundColor:        config.backgroundColor,
@@ -268,21 +284,6 @@ document.querySelector("#save-theme-config").addEventListener("click", async (e)
         fontSecondaryUrl:       config.fontSecondaryUrl,
       };
 
-    if (primaryFontSelect.value === "__custom") {
-        config.fontPrimaryUrl = customPrimary.value.trim();
-        config.fontPrimary    = "__custom";
-      } else {
-        config.fontPrimary    = primaryFontSelect.value;  
-        config.fontPrimaryUrl = "";
-      }
-
-      if (secondaryFontSelect.value === "__custom") {
-        config.fontSecondaryUrl = customSecondary.value.trim();
-        config.fontSecondary    = "__custom";
-      } else {
-        config.fontSecondary    = secondaryFontSelect.value;  
-        config.fontSecondaryUrl = "";
-      }
       const result = ThemeConfigSchema.safeParse(rawConfig);
       if (!result.success) {
         console.error(result.error.format());
