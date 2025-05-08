@@ -755,14 +755,15 @@ function toggleConfigureGame(event: MouseEvent) {
 async function exportSettings() {
     const app = await window.api.localAppConfig();
     const rawTheme = await window.api.localThemeConfig();
-    // On enlève les champs internes liés aux fichiers de police
+    // Clean with Zod in order to apply defaults
+    const parsed = ThemeConfigSchema.parse(rawTheme);
     const {
         fontPrimaryName,
         fontPrimaryFilePath,
         fontSecondaryName,
         fontSecondaryFilePath,
         ...cleanTheme
-    } = rawTheme;
+    } = parsed;
     const full = { app, theme: cleanTheme };
     document.getElementById("share-output")!.textContent = JSON.stringify(full, null, 2);
 };
@@ -770,13 +771,16 @@ async function exportSettings() {
 // Export Theme
 async function exportTheme() {
     const rawTheme = await window.api.localThemeConfig();
+    // Clean with Zod in order to apply defaults
+    const parsed = ThemeConfigSchema.parse(rawTheme);
+
     const {
         fontPrimaryName,
         fontPrimaryFilePath,
         fontSecondaryName,
         fontSecondaryFilePath,
         ...cleanTheme
-    } = rawTheme;
+    } = parsed;
     document.getElementById("share-output")!.textContent = JSON.stringify(cleanTheme, null, 2);
 };
 
