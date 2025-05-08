@@ -1,6 +1,6 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from './particles';
-import { ThemeConfigSchema } from './schemas';
+import { AppConfigSchema, ThemeConfigSchema } from './schemas';
 import { showNotification } from './notifications';
 import { safePrompt } from './safePrompt';
 
@@ -136,13 +136,15 @@ document.querySelector("#save-app-config").addEventListener("click", async (e) =
     } as AppConfig;
 
     const rawConfig: unknown = {
+        games:                    games,
         cachePath:                config.cachePath,
         autoCacheClear:           config.autoCacheClear,
         ignoreCertificateErrors:  config.ignoreCertificateErrors,
         discordRP:                config.discordRP,
+        customCSS:                config.customCSS,
     };
 
-    const result = ThemeConfigSchema.safeParse(rawConfig);
+    const result = AppConfigSchema.safeParse(rawConfig);
     if (!result.success) {
         console.error(result.error.format());
         await safePrompt("Invalid client values detected. Changes were not applied.", { mode: "alert" });
