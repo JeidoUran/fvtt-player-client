@@ -81,9 +81,11 @@ async function migrateUserData(): Promise<MigrationStatus> {
         }
       }
     }
-    if (rawData.theme && rawData.theme.theme !== undefined) {
-      rawData.theme.baseTheme = rawData.theme.theme;
-      delete rawData.theme.theme;
+    // If theme is detected on old schema
+    if (dataObj.theme && (dataObj.theme as any).theme !== undefined) {
+      // Rename theme → baseTheme in dataObj.theme
+      (dataObj.theme as any).baseTheme = (dataObj.theme as any).theme;
+      delete (dataObj.theme as any).theme;
       migrated = true;
     }
     if (migrated) {
