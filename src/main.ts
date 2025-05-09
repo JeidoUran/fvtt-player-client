@@ -118,6 +118,7 @@ function returnToServerSelect(win: BrowserWindow) {
 }
 
 export function getUserData(): UserData {
+  if (require("electron-squirrel-startup")) return;
   const userDataPath = path.join(app.getPath("userData"), "userData.json");
   let rawData: unknown = {};
 
@@ -553,6 +554,7 @@ function createWindow(): BrowserWindow {
 }
 
 app.whenReady().then(async () => {
+  if (require("electron-squirrel-startup")) return;
   // File menu
   const fileMenu: MenuItemConstructorOptions = {
     label: "File",
