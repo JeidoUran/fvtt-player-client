@@ -9,6 +9,8 @@ import {
   nativeImage,
   dialog,
   shell,
+  Menu,
+  MenuItemConstructorOptions,
 } from "electron";
 import {
   UserDataSchema,
@@ -336,19 +338,6 @@ function createWindow(): BrowserWindow {
     );
   }
 
-  mainWindow.webContents.on("before-input-event", (event, input) => {
-    if (input.key === "F12") {
-      mainWindow.webContents.toggleDevTools();
-      event.preventDefault();
-    } else if (input.key === "F5" && input.control) {
-      mainWindow.webContents.reloadIgnoringCache();
-      event.preventDefault();
-    } else if (input.key === "F5") {
-      mainWindow.webContents.reload();
-      event.preventDefault();
-    }
-  });
-
   // Inject Server button on /game page
   mainWindow.webContents.on("did-start-navigation", (e) => {
     if (e.isSameDocument) return;
@@ -501,6 +490,57 @@ function createWindow(): BrowserWindow {
 }
 
 app.whenReady().then(async () => {
+  // File menu
+  const fileMenu: MenuItemConstructorOptions = {
+    label: "File",
+    submenu: [
+      {
+        label: "New Window",
+        accelerator: "F6",
+        click: () => {
+          createWindow();
+        },
+      },
+      { role: "quit" },
+    ],
+  };
+
+  // View menu
+  const viewMenu: MenuItemConstructorOptions = {
+    label: "View",
+    submenu: [
+      {
+        label: "Reload",
+        accelerator: "F5",
+        click: () => {
+          const w = BrowserWindow.getFocusedWindow();
+          if (w) w.webContents.reload();
+        },
+      },
+      {
+        label: "Reload (ignore cache)",
+        accelerator: "Ctrl+F5",
+        click: () => {
+          const w = BrowserWindow.getFocusedWindow();
+          if (w) w.webContents.reloadIgnoringCache();
+        },
+      },
+      { type: "separator" },
+      {
+        label: "Toggle Developer Tools",
+        accelerator: "F12",
+        click: () => {
+          const w = BrowserWindow.getFocusedWindow();
+          if (w) w.webContents.toggleDevTools();
+        },
+      },
+    ],
+  };
+
+  // build and apply menu
+  const menu = Menu.buildFromTemplate([fileMenu, viewMenu]);
+  Menu.setApplicationMenu(menu);
+
   const migrationResult = await migrateUserData();
 
   mainWindow = createWindow();
