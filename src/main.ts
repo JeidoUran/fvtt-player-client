@@ -99,6 +99,22 @@ async function migrateUserData(): Promise<MigrationStatus> {
   }
 }
 
+function returnToServerSelect(win: BrowserWindow) {
+  const id = win.webContents.id;
+  windowsData[id].autoLogin = true;
+  delete windowsData[id].selectedServerName;
+  disableRichPresence();
+  closeRichPresenceSocket();
+
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  } else {
+    win.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+    );
+  }
+}
+
 export function getUserData(): UserData {
   const userDataPath = path.join(app.getPath("userData"), "userData.json");
   let rawData: unknown = {};
@@ -206,11 +222,11 @@ function askPrompt(
 ): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     const id = Date.now();
-    // On écoute la réponse du renderer
+    // Listen to renderer (good guy i like him unlike zod)
     ipcMain.once(`prompt-response-${id}`, (_e, answer: boolean) => {
       resolve(answer);
     });
-    // On demande au renderer d'afficher la boîte
+    // Ask renderer to display prompt
     mainWindow.webContents.send("show-prompt", { id, message, options });
   });
 }
@@ -293,7 +309,12 @@ function createWindow(): BrowserWindow {
   mainWindow.webContents.on("did-start-loading", () => {
     const wd = windowsData[mainWindow.webContents.id];
     if (wd?.selectedServerName) {
-      mainWindow.setTitle(wd.selectedServerName + " * Loading...");
+      mainWindow.setTitle(
+        wd.selectedServerName +
+          " - " +
+          mainWindow.webContents.getTitle() +
+          " * Loading...",
+      );
     } else {
       mainWindow.setTitle(mainWindow.webContents.getTitle() + " * Loading...");
     }
@@ -304,7 +325,9 @@ function createWindow(): BrowserWindow {
   mainWindow.webContents.on("did-finish-load", () => {
     const wd = windowsData[mainWindow.webContents.id];
     if (wd?.selectedServerName) {
-      mainWindow.setTitle(wd.selectedServerName);
+      mainWindow.setTitle(
+        wd.selectedServerName + " - " + mainWindow.webContents.getTitle(),
+      );
     } else {
       mainWindow.setTitle(mainWindow.webContents.getTitle());
     }
@@ -313,7 +336,9 @@ function createWindow(): BrowserWindow {
   mainWindow.webContents.on("did-stop-loading", () => {
     const wd = windowsData[mainWindow.webContents.id];
     if (wd?.selectedServerName) {
-      mainWindow.setTitle(wd.selectedServerName);
+      mainWindow.setTitle(
+        wd.selectedServerName + " - " + mainWindow.webContents.getTitle(),
+      );
     } else {
       mainWindow.setTitle(mainWindow.webContents.getTitle());
     }
@@ -336,6 +361,42 @@ function createWindow(): BrowserWindow {
     mainWindow.loadFile(
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
+  }
+
+  // ── Fallback on HTTP error (502, 503…) when loading /join ──
+  const { session } = mainWindow.webContents;
+
+  // Catch network errors (ERR_CONNECTION_REFUSED, etc.)
+  session.webRequest.onErrorOccurred(
+    { urls: ["*://*/*"] }, // tu peux restreindre à ton host/port
+    (details) => {
+      if (details.resourceType === "mainFrame") {
+        handleServerError(details.url, details.error);
+      }
+    },
+  );
+
+  // Catch HTTP responses (502, 503, etc.)
+  session.webRequest.onCompleted({ urls: ["*://*/*"] }, (details) => {
+    if (details.resourceType === "mainFrame" && details.statusCode >= 400) {
+      handleServerError(details.url, `HTTP ${details.statusCode}`);
+    }
+  });
+
+  // Fallback + prompt function
+  function handleServerError(failedUrl: string, reason: string) {
+    console.warn(`[App] Could not load ${failedUrl}: ${reason}`);
+    // Return to index
+    returnToServerSelect(mainWindow);
+    // Display prompt
+    mainWindow.webContents.once("did-finish-load", () => {
+      setTimeout(() => {
+        askPrompt(
+          `The game you attempted to join could not be reached (${reason}).`,
+          { mode: "alert" },
+        ).catch(console.error);
+      }, 100);
+    });
   }
 
   // Inject Server button on /game page
@@ -698,18 +759,8 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
 });
 
 ipcMain.on("return-select", (e) => {
-  windowsData[e.sender.id].autoLogin = true;
-  delete windowsData[e.sender.id].selectedServerName;
-  disableRichPresence();
-  closeRichPresenceSocket();
-
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    e.sender.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    e.sender.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-    );
-  }
+  const win = BrowserWindow.fromWebContents(e.sender);
+  if (win) returnToServerSelect(win);
 });
 
 app.on("activate", (_, hasVisibleWindows) => {
@@ -757,10 +808,11 @@ function writeUserDataFile(data: unknown) {
 
 function saveUserData(gameId: GameId, data: GameUserData) {
   const current = getUserData();
-  // … ton merge habituel …
   const newData: UserData = { ...current, [gameId]: data };
   if (!writeUserDataFile(newData)) {
-    // ici tu peux choisir de rollback ou d’alerter l’utilisateur
-    console.warn("Could not write userData. Data was not saved.");
+    askPrompt(`Unable to write userData. Data could not be saved.`, {
+      mode: "alert",
+    });
+    console.warn("Unable to write userData. Data could not be saved.");
   }
 }
