@@ -1,75 +1,74 @@
 // noinspection JSUnusedGlobalSymbols
 
-import type {ForgeConfig} from '@electron-forge/shared-types';
-import {MakerSquirrel} from '@electron-forge/maker-squirrel';
-import {MakerZIP} from '@electron-forge/maker-zip';
-import {MakerDeb} from '@electron-forge/maker-deb';
-import {MakerRpm} from '@electron-forge/maker-rpm';
-import {MakerDMG} from '@electron-forge/maker-dmg';
-import {VitePlugin} from '@electron-forge/plugin-vite';
+import type { ForgeConfig } from "@electron-forge/shared-types";
+import { MakerSquirrel } from "@electron-forge/maker-squirrel";
+import { MakerZIP } from "@electron-forge/maker-zip";
+import { MakerDeb } from "@electron-forge/maker-deb";
+import { MakerRpm } from "@electron-forge/maker-rpm";
+import { MakerDMG } from "@electron-forge/maker-dmg";
+import { VitePlugin } from "@electron-forge/plugin-vite";
 
 const config: ForgeConfig = {
-    packagerConfig: {
-        prune: true,
-        ignore: [
-            /^\/src/,
-            /^\/out/,
-            /^\/\.vscode/,
-            /^\/\.git/,
-            /^\/forge\.config\.ts/,
-            /^\/tsconfig\.json/,
-            /^\/vite\..*\.ts/
-        ],
-        // name: 'FVTT Desktop Client',
-        // executableName: 'vtt-desktop-client',
-        icon: 'src/icons/win/icon.ico',
-    },
-    rebuildConfig: {},
-    makers: [
-        new MakerSquirrel({
-            setupIcon: 'src/icons/win/icon.ico'
-        }),
-        new MakerZIP({}),
-        new MakerRpm({}),
-        new MakerDeb({
-            options: {
-                icon: 'src/icons/png/512x512.png'
-            }
-        
-        }),
-        // new MakerFlatpak({
-        //     options: {
-        //         categories: ['Game', 'Network'],
-        //         description: "VTT Desktop Client",
-        //         productName: "VTT Desktop Client",
-        //         id: "com.theripper93.vtt-desktop-client",
-        //         files: []
-        //     }
-        // }),
-        new MakerDMG({
-            icon: 'src/icons/mac/icon.icns'
-        }),
+  packagerConfig: {
+    prune: true,
+    ignore: [
+      /^\/src/,
+      /^\/out/,
+      /^\/\.vscode/,
+      /^\/\.git/,
+      /^\/forge\.config\.ts/,
+      /^\/tsconfig\.json/,
+      /^\/vite\..*\.ts/,
     ],
-    plugins: [
-        new VitePlugin({
-            build: [
-                {
-                    entry: 'src/main.ts',
-                    config: 'vite.main.config.ts',
-                },
-                {
-                    entry: 'src/preload.ts',
-                    config: 'vite.preload.config.ts',
-                },
-            ],
-            renderer: [
-                {
-                    name: 'main_window',
-                    config: 'vite.renderer.config.ts',
-                },
-            ],
-        }),
-    ]
+    // name: 'FVTT Desktop Client',
+    // executableName: 'vtt-desktop-client',
+    icon: "src/icons/win/icon.ico",
+  },
+  rebuildConfig: {},
+  makers: [
+    new MakerSquirrel({
+      setupIcon: "src/icons/win/icon.ico",
+    }),
+    new MakerZIP({}),
+    new MakerRpm({}),
+    new MakerDeb({
+      options: {
+        icon: "src/icons/png/512x512.png",
+      },
+    }),
+    // new MakerFlatpak({
+    //     options: {
+    //         categories: ['Game', 'Network'],
+    //         description: "VTT Desktop Client",
+    //         productName: "VTT Desktop Client",
+    //         id: "com.theripper93.vtt-desktop-client",
+    //         files: []
+    //     }
+    // }),
+    new MakerDMG({
+      icon: "src/icons/mac/icon.icns",
+    }),
+  ],
+  plugins: [
+    new VitePlugin({
+      build: [
+        {
+          entry: "src/main.ts",
+          config: "vite.main.config.ts",
+        },
+        {
+          entry: "src/preload.ts",
+          config: "vite.preload.config.ts",
+        },
+      ],
+      renderer: [
+        {
+          name: "main_window",
+          config: "vite.renderer.config.ts",
+        },
+      ],
+    }),
+  ],
 };
 
 export default config;

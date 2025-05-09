@@ -1,31 +1,30 @@
 // noinspection JSUnusedGlobalSymbols
 
-import { defineConfig } from 'vite';
-import path from 'path';
+import { defineConfig } from "vite";
+import path from "path";
 
 export default defineConfig({
-  base: './',
+  base: "./",
   root: __dirname,
   build: {
-    outDir: path.resolve(__dirname, '.vite/renderer/main_window'),
-    target: 'es2022',
-    minify: 'esbuild',
+    outDir: path.resolve(__dirname, ".vite/renderer/main_window"),
+    target: "es2022",
+    minify: "esbuild",
     sourcemap: false,
     emptyOutDir: false,
     cssCodeSplit: false,
     rollupOptions: {
-      external: ['ws'],
+      external: ["ws"],
       output: {
         compact: true,
-        manualChunks: undefined
-      }
-    }
+        manualChunks: undefined,
+      },
+    },
   },
   esbuild: {
-    drop: ['console', 'debugger']
+    drop: ["console", "debugger"],
   },
   optimizeDeps: {
-    exclude: ['electron']
-  }
+    exclude: ["electron"],
+  },
 });
-

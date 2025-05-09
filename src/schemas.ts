@@ -1,12 +1,9 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-export const optionalUrl = z.preprocess(
-    (val) => {
-      if (typeof val === "string" && val.trim() === "") return undefined;
-      return val;
-    },
-    z.string().url().optional()
-);
+export const optionalUrl = z.preprocess((val) => {
+  if (typeof val === "string" && val.trim() === "") return undefined;
+  return val;
+}, z.string().url().optional());
 
 // Primitive type aliases
 export const GameIdSchema = z.union([z.string(), z.number()]);
@@ -32,60 +29,61 @@ export const AppConfigSchema = z.object({
 export type AppConfig = z.infer<typeof AppConfigSchema>;
 
 // ParticleOptions
-export const ParticleOptionsSchema = z.object({
-    count:     z.number().optional(),
+export const ParticleOptionsSchema = z
+  .object({
+    count: z.number().optional(),
     speedYMin: z.number().optional(),
     speedYMax: z.number().optional(),
-    color:     z.string().optional(),
-    alpha:     z.number().optional(),
-})
-.default({
-    count:     100,
+    color: z.string().optional(),
+    alpha: z.number().optional(),
+  })
+  .default({
+    count: 100,
     speedYMin: 0.1,
     speedYMax: 0.4,
-    color:     "#ffffff",
-    alpha:     0.15,
-});
+    color: "#ffffff",
+    alpha: 0.15,
+  });
 export type ParticleOptions = z.infer<typeof ParticleOptionsSchema>;
 
 // ThemeConfig
 // schemas.ts
 
 export const ThemeConfigSchema = z.object({
-    background:             z.string().default(""),
-    backgrounds:            z.array(z.string()).default([]),
-    backgroundColor:        z.string().default("#0e1a23"),
-    textColor:              z.string().default("#88c0a9"),
-    accentColor:            z.string().default("#98e4f7"),
-    buttonColorAlpha:       z.number().default(0.65),
-    buttonColor:            z.string().default("#14141e"),
-    buttonColorHoverAlpha:  z.number().default(0.95),
-    buttonColorHover:       z.string().default("#28283c"),
-    particlesEnabled:       z.boolean().default(true),
-    particleOptions:        ParticleOptionsSchema,
-    baseTheme:                  z.string().default("codex"),
-    fontPrimary:            z.string().default(""),
-    fontPrimaryUrl:         optionalUrl.default(""),
-    fontPrimaryName:        z.string().optional(),
-    fontPrimaryFilePath:    z.string().optional(),
-    fontSecondary:          z.string().default(""),
-    fontSecondaryUrl:       optionalUrl.default(""),
-    fontSecondaryName:      z.string().optional(),
-    fontSecondaryFilePath:  z.string().optional(),
+  background: z.string().default(""),
+  backgrounds: z.array(z.string()).default([]),
+  backgroundColor: z.string().default("#0e1a23"),
+  textColor: z.string().default("#88c0a9"),
+  accentColor: z.string().default("#98e4f7"),
+  buttonColorAlpha: z.number().default(0.65),
+  buttonColor: z.string().default("#14141e"),
+  buttonColorHoverAlpha: z.number().default(0.95),
+  buttonColorHover: z.string().default("#28283c"),
+  particlesEnabled: z.boolean().default(true),
+  particleOptions: ParticleOptionsSchema,
+  baseTheme: z.string().default("codex"),
+  fontPrimary: z.string().default(""),
+  fontPrimaryUrl: optionalUrl.default(""),
+  fontPrimaryName: z.string().optional(),
+  fontPrimaryFilePath: z.string().optional(),
+  fontSecondary: z.string().default(""),
+  fontSecondaryUrl: optionalUrl.default(""),
+  fontSecondaryName: z.string().optional(),
+  fontSecondaryFilePath: z.string().optional(),
 });
 export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
 
 // 1) L’objet qui gère uniquement cachePath, app et theme
 const UserDataStaticSchema = z.object({
   cachePath: z.string().optional(),
-  app:       AppConfigSchema.optional(),
-  theme:     ThemeConfigSchema.optional(),
+  app: AppConfigSchema.optional(),
+  theme: ThemeConfigSchema.optional(),
 });
 
 // 2) On définit le GameUserData
 export const GameUserDataSchema = z.object({
-  password:      z.array(z.number()).optional(),
-  user:          z.string(),
+  password: z.array(z.number()).optional(),
+  user: z.string(),
   adminPassword: z.array(z.number()).optional(),
 });
 

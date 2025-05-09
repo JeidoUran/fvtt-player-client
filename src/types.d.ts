@@ -7,92 +7,97 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 type GameId = string | number;
 
 type GameConfig = {
-    name: string;
-    url: string;
-    id?: GameId;
-    cssId?: string;
-}
+  name: string;
+  url: string;
+  id?: GameId;
+  cssId?: string;
+};
 
 type AppConfig = {
-    games: GameConfig[];
-    cachePath?: string;
-    autoCacheClear?: boolean;
-    customCSS?: string;
-    ignoreCertificateErrors?: boolean;
-    discordRP?: boolean;
-}
+  games: GameConfig[];
+  cachePath?: string;
+  autoCacheClear?: boolean;
+  customCSS?: string;
+  ignoreCertificateErrors?: boolean;
+  discordRP?: boolean;
+};
 
 interface ParticleOptions {
-    count?: number;
-    color?: string;
-    alpha?: number;
-    speedYMin?: number;
-    speedYMax?: number;
-    radiusMin?: number;
-    radiusMax?: number;
-    ampMin?: number;
-    ampMax?: number;
+  count?: number;
+  color?: string;
+  alpha?: number;
+  speedYMin?: number;
+  speedYMax?: number;
+  radiusMin?: number;
+  radiusMax?: number;
+  ampMin?: number;
+  ampMax?: number;
 }
 
 type ThemeConfig = {
-    background: string;
-    backgrounds?: string[];
-    backgroundColor: string;
-    textColor: string;
-    fontPrimary?: string;
-    fontPrimaryUrl?: string;
-    fontPrimaryName?: string;
-    fontPrimaryFilePath?: string;
-    fontSecondary?: string;
-    fontSecondaryUrl?: string;
-    fontSecondaryName?: string;
-    fontSecondaryFilePath?: string;
-    accentColor: string;
-    buttonColorAlpha: number;
-    buttonColor: string;
-    buttonColorHoverAlpha: number;
-    buttonColorHover: string;
-    baseTheme?: string;
-    particlesEnabled?: boolean;
-    particleOptions?: ParticleOptions;
-}
+  background: string;
+  backgrounds?: string[];
+  backgroundColor: string;
+  textColor: string;
+  fontPrimary?: string;
+  fontPrimaryUrl?: string;
+  fontPrimaryName?: string;
+  fontPrimaryFilePath?: string;
+  fontSecondary?: string;
+  fontSecondaryUrl?: string;
+  fontSecondaryName?: string;
+  fontSecondaryFilePath?: string;
+  accentColor: string;
+  buttonColorAlpha: number;
+  buttonColor: string;
+  buttonColorHoverAlpha: number;
+  buttonColorHover: string;
+  baseTheme?: string;
+  particlesEnabled?: boolean;
+  particleOptions?: ParticleOptions;
+};
 
 type UserData = {
-    cachePath?: string;
-    [index: GameId]: GameUserData;
-    app?: AppConfig;
-    theme?: ThemeConfig;
-}
+  cachePath?: string;
+  [index: GameId]: GameUserData;
+  app?: AppConfig;
+  theme?: ThemeConfig;
+};
 
 type GameUserData = {
-    password?: number[];
-    user: string;
-    adminPassword?: number[];
-}
+  password?: number[];
+  user: string;
+  adminPassword?: number[];
+};
 type GameUserDataDecrypted = {
-    password?: string;
-    user: string;
-    adminPassword?: string;
-}
+  password?: string;
+  user: string;
+  adminPassword?: string;
+};
 
-type SaveUserData = { gameId: GameId; password: string; user: string; adminPassword: string; };
+type SaveUserData = {
+  gameId: GameId;
+  password: string;
+  user: string;
+  adminPassword: string;
+};
 
 type WindowData = {
-    gameId: GameId;
-    autoLogin: boolean;
-    selectedServerName?: string;
-}
+  gameId: GameId;
+  autoLogin: boolean;
+  selectedServerName?: string;
+};
 
 type WindowsData = {
-    [index: number]: WindowData;
-}
+  [index: number]: WindowData;
+};
 
 interface ServerStatusData {
-    active: boolean;
-    version: string;
-    world: string;
-    system: string;
-    systemVersion: string;
-    users: number;
-    uptime: number;
+  active: boolean;
+  version: string;
+  world: string;
+  system: string;
+  systemVersion: string;
+  users: number;
+  uptime: number;
 }
