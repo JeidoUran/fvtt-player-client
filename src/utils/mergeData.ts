@@ -54,6 +54,7 @@ export async function mergeThemeData(
         imported.particleOptions?.speedYMax ??
         existing.particleOptions.speedYMax,
       color: imported.particleOptions?.color ?? existing.particleOptions.color,
+      alpha: imported.particleOptions?.alpha ?? existing.particleOptions.alpha,
     },
 
     baseTheme: imported.baseTheme ?? existing.baseTheme,
