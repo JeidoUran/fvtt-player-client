@@ -398,7 +398,7 @@ function createWindow(): BrowserWindow {
           `The game you attempted to join could not be reached (${reason}).`,
           { mode: "alert" },
         ).catch(console.error);
-      }, 100);
+      }, 500);
     });
   }
 
