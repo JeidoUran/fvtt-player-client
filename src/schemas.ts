@@ -40,8 +40,8 @@ export const ParticleOptionsSchema = z
   .default({
     count: 100,
     speedYMin: 0.1,
-    speedYMax: 0.4,
-    color: "#ffffff",
+    speedYMax: 0.3,
+    color: "#63b0c4",
     alpha: 0.15,
   });
 export type ParticleOptions = z.infer<typeof ParticleOptionsSchema>;

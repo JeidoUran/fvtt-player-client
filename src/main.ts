@@ -11,6 +11,14 @@ import {
   shell,
 } from "electron";
 import {
+  UserDataSchema,
+  ThemeConfigSchema,
+  AppConfigSchema,
+  UserData,
+  AppConfig,
+  ThemeConfig,
+} from "./schemas";
+import {
   enableRichPresence,
   disableRichPresence,
 } from "./richPresence/richPresenceControl";
@@ -18,7 +26,6 @@ import {
   startRichPresenceSocket,
   closeRichPresenceSocket,
 } from "./richPresence/richPresenceSocket";
-import { UserDataSchema } from "./schemas";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -96,9 +103,37 @@ export function getUserData(): UserData {
 
   // Secure read
   try {
-    rawData = JSON.parse(fs.readFileSync(userDataPath, "utf-8"));
+    rawData = JSON.parse(
+      fs.readFileSync(
+        userDataPath,
+        "userData.json" in fs.readFileSync ? "utf-8" : "utf-8",
+      ),
+    );
   } catch {
     rawData = {};
+  }
+
+  // Check if file exists and create it if not
+  const fileExists = fs.existsSync(userDataPath);
+  const isEmpty =
+    typeof rawData === "object" &&
+    rawData !== null &&
+    Object.keys(rawData).length === 0;
+  if (!fileExists || isEmpty) {
+    // let Zod (i hate him) generate a valid userData
+    const defaultApp = AppConfigSchema.parse({ games: [] });
+    const defaultTheme = ThemeConfigSchema.parse({});
+    const defaultData = UserDataSchema.parse({
+      app: defaultApp,
+      theme: defaultTheme,
+    });
+
+    fs.writeFileSync(
+      userDataPath,
+      JSON.stringify(defaultData, null, 2),
+      "utf-8",
+    );
+    return defaultData;
   }
 
   // Validate + clean + backup on each call
@@ -117,7 +152,7 @@ export function getUserData(): UserData {
         /**/
       }
 
-      // 3b) Only delete erroneous keys
+      // Only delete erroneous keys
       const dataObj = { ...(rawData as Record<string, any>) };
       for (const err of validation.error.errors) {
         if (!err.path.length) continue;
@@ -136,7 +171,7 @@ export function getUserData(): UserData {
         }
       }
 
-      // Write fixed JSON
+      // Write corrected JSON
       try {
         fs.writeFileSync(userDataPath, JSON.stringify(dataObj, null, 2));
         rawData = dataObj;
@@ -148,7 +183,7 @@ export function getUserData(): UserData {
     console.warn("[getUserData] Zod Validation Failed :", e);
   }
 
-  // Last parse otherwise fallback to memory
+  // final parse otherwise fallback to memory
   try {
     return UserDataSchema.parse(rawData) as UserData;
   } catch (e) {
