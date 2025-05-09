@@ -28,11 +28,37 @@ In order to enable and use Rich Presence, you also need to have the module [Foun
 
 ## Customization
 
-A new theme, "Codex", has been added. It was made after my campaign's website, while keeping general usability in mind. That being said, users who prefer the original theme can find it in the **Client Configuration**, under **Theme**. I made sure to keep it as simple and lightweight as possible while integrating the new features. You may also disable the particles floating in the background. For now, "Codex" and "Original" are the only themes available, but I am considering adding more ways to customise them on top of what's currently available.
+The **Theme Editor** lets you tweak every aspect of the client’s look and feel:
 
-## Sharing
+1. **Base Theme**  
+   Choose either **Codex** or **Original** as your starting point.
+
+2. **Fine-tune colors & effects**  
+   Adjust background(s), text, accent and button colors, as well as particle effects (count, speed & opacity).
+
+3. **Custom assets**  
+   - **Background images**: upload your own.  
+   - **Fonts**: import from Google Fonts URLs or load a local font file. 
+
+## Sharing & Portability
+
+Open the **Share** menu to **export** or **import** your configuration:
+
+- **Export**  
+  - Full settings (app + theme)  
+  - Theme only 
+
+- **Import**  
+  - From a JSON file  
+  - From clipboard  
+
+You can save the JSON to disk or copy it to your clipboard.  
+Perfect for GMs who want to distribute a custom setup or theme to their players.
+
+> **Privacy note:** Exported files never include sensitive fields like auto-login usernames, passwords, admin passwords, or local font-file paths.
 
 ## Acknowledgments and attributions
+
 Special thanks to theripper93 and OmegaRogue for creating this client. I am no developper and without their amazing work it would have been impossible to make those updates.
 
 Rich Presence implemented thanks to @xhayper and their excellent [discord-rpc](https://www.npmjs.com/package/@xhayper/discord-rpc?activeTab=readme).
