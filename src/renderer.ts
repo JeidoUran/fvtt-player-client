@@ -1,9 +1,9 @@
 // noinspection JSIgnoredPromiseFromCall
-import * as particles from "./particles";
+import * as particles from "./utils/particles";
 import { AppConfigSchema, ThemeConfigSchema, ParticleOptions } from "./schemas";
-import { mergeAppData, mergeThemeData } from "./mergeData";
-import { showNotification } from "./notifications";
-import { safePrompt } from "./safePrompt";
+import { mergeAppData, mergeThemeData } from "./utils/mergeData";
+import { showNotification } from "./utils/notifications";
+import { safePrompt } from "./utils/safePrompt";
 
 let appVersion: string;
 let preventMenuClose = false;

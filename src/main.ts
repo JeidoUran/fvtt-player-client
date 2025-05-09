@@ -10,11 +10,14 @@ import {
   dialog,
   shell,
 } from "electron";
-import { enableRichPresence, disableRichPresence } from "./richPresenceControl";
+import {
+  enableRichPresence,
+  disableRichPresence,
+} from "./richPresence/richPresenceControl";
 import {
   startRichPresenceSocket,
   closeRichPresenceSocket,
-} from "./richPresenceSocket";
+} from "./richPresence/richPresenceSocket";
 import { UserDataSchema } from "./schemas";
 import path from "path";
 import fs from "fs";
