@@ -606,13 +606,17 @@ app.whenReady().then(async () => {
 
   const migrationResult = await migrateUserData();
 
+  // ── Detects first launch : userData.json missing ──
+  const userDataPath = path.join(app.getPath("userData"), "userData.json");
+  const isFirstUser = !fs.existsSync(userDataPath);
+
   mainWindow = createWindow();
 
   // Configure cache/session
   const userData = getUserData();
   if (userData.cachePath) app.setPath("sessionData", userData.cachePath);
 
-  // Notify of successful migration, listening did-finish-load
+  // After rendering index, we notify on migration status
   mainWindow.webContents.once("did-finish-load", async () => {
     if (migrationResult === "success") {
       mainWindow.webContents.send(
@@ -622,6 +626,10 @@ app.whenReady().then(async () => {
       console.log("Migration successful");
     } else if (migrationResult === "failure") {
       await askPrompt("Could not migrate your user data.", { mode: "alert" });
+    }
+    // Welcome, new users!
+    if (isFirstUser) {
+      mainWindow.webContents.send("show-notification", "Welcome!");
     }
   });
 });
