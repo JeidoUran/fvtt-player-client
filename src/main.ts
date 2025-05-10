@@ -373,7 +373,11 @@ function createWindow(): BrowserWindow {
   session.webRequest.onErrorOccurred(
     { urls: ["*://*/*"] }, // tu peux restreindre à ton host/port
     (details) => {
-      if (details.resourceType === "mainFrame") {
+      // Ignore voluntarily triggered errors (ERR_ABORTED on "Return to Setup")
+      if (
+        details.resourceType === "mainFrame" &&
+        !details.error.includes("ERR_ABORTED")
+      ) {
         handleServerError(details.url, details.error);
       }
     },
