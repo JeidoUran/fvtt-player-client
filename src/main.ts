@@ -217,11 +217,12 @@ export function getUserData(): UserData {
 }
 
 /**
- * Displays safePrompt in renderer and retrieve answer
+ * Displays safePrompt in renderer in a given window and retrieve answer
  */
 function askPrompt(
   message: string,
   options?: { mode: "confirm" | "alert" },
+  winOverride?: BrowserWindow,
 ): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     const id = Date.now();
@@ -229,8 +230,9 @@ function askPrompt(
     ipcMain.once(`prompt-response-${id}`, (_e, answer: boolean) => {
       resolve(answer);
     });
-    // Ask renderer to display prompt
-    mainWindow.webContents.send("show-prompt", { id, message, options });
+    // Ask renderer to display prompt in target window
+    const win = winOverride ?? mainWindow;
+    win.webContents.send("show-prompt", { id, message, options });
   });
 }
 
@@ -261,7 +263,7 @@ function getSession(): Electron.Session {
 
 function createWindow(): BrowserWindow {
   const localSession = getSession();
-  mainWindow = new BrowserWindow({
+  let win = new BrowserWindow({
     show: false,
     width: 800,
     height: 600,
@@ -274,7 +276,7 @@ function createWindow(): BrowserWindow {
     },
   });
 
-  mainWindow.webContents.on("page-favicon-updated", (_event, favicons) => {
+  win.webContents.on("page-favicon-updated", (_event, favicons) => {
     if (!favicons.length) return;
     const faviconUrl = favicons[0];
 
@@ -283,7 +285,7 @@ function createWindow(): BrowserWindow {
         const filePath = fileURLToPath(faviconUrl);
         const icon = nativeImage.createFromPath(filePath);
         if (!icon.isEmpty()) {
-          mainWindow.setIcon(icon);
+          win.setIcon(icon);
           console.log("[Favicon] Restored from local file :", filePath);
         } else {
           console.warn("[Favicon] nativeImage empty for:", filePath);
@@ -297,7 +299,7 @@ function createWindow(): BrowserWindow {
         .then((buf) => {
           const icon = nativeImage.createFromBuffer(Buffer.from(buf));
           if (!icon.isEmpty()) {
-            mainWindow.setIcon(icon);
+            win.setIcon(icon);
             console.log("[Favicon] Restored from external URL :", faviconUrl);
           }
         })
@@ -306,79 +308,75 @@ function createWindow(): BrowserWindow {
   });
 
   // Fix Popouts
-  mainWindow.webContents.setUserAgent(
-    mainWindow.webContents.getUserAgent().replace("Electron", ""),
+  win.webContents.setUserAgent(
+    win.webContents.getUserAgent().replace("Electron", ""),
   );
-  mainWindow.webContents.on("did-start-loading", () => {
-    const wd = windowsData[mainWindow.webContents.id];
+  win.webContents.on("did-start-loading", () => {
+    const wd = windowsData[win.webContents.id];
     if (wd?.selectedServerName) {
-      mainWindow.setTitle(
+      win.setTitle(
         wd.selectedServerName +
           " - " +
-          mainWindow.webContents.getTitle() +
+          win.webContents.getTitle() +
           " * Loading...",
       );
     } else {
-      mainWindow.setTitle(mainWindow.webContents.getTitle() + " * Loading...");
+      win.setTitle(win.webContents.getTitle() + " * Loading...");
     }
 
-    mainWindow.setProgressBar(2, { mode: "indeterminate" }); // second parameter optional
+    win.setProgressBar(2, { mode: "indeterminate" }); // second parameter optional
   });
 
-  mainWindow.webContents.on("did-finish-load", () => {
-    const wd = windowsData[mainWindow.webContents.id];
+  win.webContents.on("did-finish-load", () => {
+    const wd = windowsData[win.webContents.id];
     if (wd?.selectedServerName) {
-      mainWindow.setTitle(
-        wd.selectedServerName + " - " + mainWindow.webContents.getTitle(),
-      );
+      win.setTitle(wd.selectedServerName + " - " + win.webContents.getTitle());
     } else {
-      mainWindow.setTitle(mainWindow.webContents.getTitle());
+      win.setTitle(win.webContents.getTitle());
     }
-    mainWindow.setProgressBar(-1);
+    win.setProgressBar(-1);
   });
-  mainWindow.webContents.on("did-stop-loading", () => {
-    const wd = windowsData[mainWindow.webContents.id];
+  win.webContents.on("did-stop-loading", () => {
+    const wd = windowsData[win.webContents.id];
     if (wd?.selectedServerName) {
-      mainWindow.setTitle(
-        wd.selectedServerName + " - " + mainWindow.webContents.getTitle(),
-      );
+      win.setTitle(wd.selectedServerName + " - " + win.webContents.getTitle());
     } else {
-      mainWindow.setTitle(mainWindow.webContents.getTitle());
+      win.setTitle(win.webContents.getTitle());
     }
-    mainWindow.setProgressBar(-1);
+    win.setProgressBar(-1);
   });
-  mainWindow.webContents.setWindowOpenHandler(() => {
+  win.webContents.setWindowOpenHandler(() => {
     return {
       action: "allow",
       overrideBrowserWindowOptions: {
-        parent: mainWindow,
+        parent: win,
         autoHideMenuBar: true,
       },
     };
   });
 
-  mainWindow.menuBarVisible = false;
+  win.menuBarVisible = false;
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(
+    win.loadFile(
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
   }
 
   // ── Fallback on HTTP error (502, 503…) when loading /join ──
-  const { session } = mainWindow.webContents;
+  const { session } = win.webContents;
 
   // Catch network errors (ERR_CONNECTION_REFUSED, etc.)
   session.webRequest.onErrorOccurred(
     { urls: ["*://*/join", "*://*/setup", "*://*/auth", "*://*/game"] },
     (details) => {
-      // Ignore voluntarily triggered errors (ERR_ABORTED on "Return to Setup")
       if (
         details.resourceType === "mainFrame" &&
         !details.error.includes("ERR_ABORTED")
       ) {
-        handleServerError(details.url, details.error);
+        // on passe maintenant la fenêtre concernée
+        handleServerError(win, details.url, details.error);
       }
     },
   );
@@ -386,35 +384,40 @@ function createWindow(): BrowserWindow {
   // Catch HTTP responses (502, 503, etc.)
   session.webRequest.onCompleted({ urls: ["*://*/*"] }, (details) => {
     if (details.resourceType === "mainFrame" && details.statusCode >= 400) {
-      handleServerError(details.url, `HTTP ${details.statusCode}`);
+      handleServerError(win, details.url, `HTTP ${details.statusCode}`);
     }
   });
 
   // Fallback + prompt function
-  function handleServerError(failedUrl: string, reason: string) {
+  function handleServerError(
+    targetWin: BrowserWindow,
+    failedUrl: string,
+    reason: string,
+  ) {
     console.warn(`[App] Could not load ${failedUrl}: ${reason}`);
-    // Return to index
-    returnToServerSelect(mainWindow);
-    // Display prompt
-    mainWindow.webContents.once("did-finish-load", () => {
+    // Return to index **dans la fenêtre concernée**
+    returnToServerSelect(targetWin);
+    // Affiche le prompt dans la bonne fenêtre
+    targetWin.webContents.once("did-finish-load", () => {
       setTimeout(() => {
         askPrompt(
           `The game you attempted to join could not be reached (${reason}).`,
           { mode: "alert" },
+          targetWin,
         ).catch(console.error);
       }, 250);
     });
   }
 
   // Inject Server button on /game page
-  mainWindow.webContents.on("did-start-navigation", (e) => {
+  win.webContents.on("did-start-navigation", (e) => {
     if (e.isSameDocument) return;
     if (e.url.startsWith("about")) return;
 
     if (e.url.endsWith("/game")) {
       console.log("[FVTT Client] Navigation detected: /game");
 
-      mainWindow.webContents.executeJavaScript(`
+      win.webContents.executeJavaScript(`
                 console.log("[FVTT Client] Injecting script for /game...");
     
                 async function waitForFoundryReady() {
@@ -456,8 +459,8 @@ function createWindow(): BrowserWindow {
     }
   });
 
-  mainWindow.webContents.on("did-finish-load", () => {
-    const url = mainWindow.webContents.getURL();
+  win.webContents.on("did-finish-load", () => {
+    const url = win.webContents.getURL();
     if (
       !url.endsWith("/join") &&
       !url.endsWith("/auth") &&
@@ -465,7 +468,7 @@ function createWindow(): BrowserWindow {
     )
       return;
     if (url.endsWith("/setup")) {
-      mainWindow.webContents.executeJavaScript(`
+      win.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="icon" data-action="returnServerSelect" id="server-button" data-tooltip="Return to Server Select"><i class="fas fa-server"></i></button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -476,7 +479,7 @@ function createWindow(): BrowserWindow {
             `);
     }
     if (url.endsWith("/auth")) {
-      mainWindow.webContents.executeJavaScript(`
+      win.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="bright" id="server-button"> <i class="fa-solid fa-server"></i>Return to Server Select</button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -487,7 +490,7 @@ function createWindow(): BrowserWindow {
             `);
     }
     if (url.endsWith("/join")) {
-      mainWindow.webContents.executeJavaScript(`
+      win.webContents.executeJavaScript(`
                 if ($('#server-button').length === 0) {
                     const serverSelectButton = $('<button type="button" class="bright" id="server-button"> <i class="fa-solid fa-server"></i>Return to Server Select</button>');
                     serverSelectButton.on('click', () => window.api.returnToServerSelect());
@@ -499,11 +502,9 @@ function createWindow(): BrowserWindow {
     }
 
     if (!url.endsWith("/join") && !url.endsWith("/auth")) return;
-    const userData = getLoginDetails(
-      windowsData[mainWindow.webContents.id].gameId,
-    );
+    const userData = getLoginDetails(windowsData[win.webContents.id].gameId);
     if (!userData.user) return;
-    mainWindow.webContents.executeJavaScript(`
+    win.webContents.executeJavaScript(`
             async function waitForLoad() {
                 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
                 while (!document.querySelector('select[name="userid"]') && !document.querySelector('input[name="adminPassword"]')) {
@@ -529,7 +530,7 @@ function createWindow(): BrowserWindow {
                     preventDefault: () => {
                     }, target: document.getElementById("join-game")
                 }
-                if (${windowsData[mainWindow.webContents.id].autoLogin}) {
+                if (${windowsData[win.webContents.id].autoLogin}) {
                     ui.join._onSubmit(fakeEvent);
                 } else {
                     document.querySelector(".form-footer button[name=join]").addEventListener("click", () => {
@@ -541,20 +542,20 @@ function createWindow(): BrowserWindow {
             waitForLoad();
 
         `);
-    windowsData[mainWindow.webContents.id].autoLogin = false;
+    windowsData[win.webContents.id].autoLogin = false;
   });
 
-  mainWindow.once("ready-to-show", () => {
-    mainWindow.maximize();
-    mainWindow.show();
+  win.once("ready-to-show", () => {
+    win.maximize();
+    win.show();
   });
-  mainWindow.on("closed", () => {
-    windows.delete(mainWindow);
-    mainWindow = null;
+  win.on("closed", () => {
+    windows.delete(win);
+    win = null;
   });
-  windows.add(mainWindow);
-  windowsData[mainWindow.webContents.id] = { autoLogin: true } as WindowData;
-  return mainWindow;
+  windows.add(win);
+  windowsData[win.webContents.id] = { autoLogin: true } as WindowData;
+  return win;
 }
 
 app.whenReady().then(async () => {
