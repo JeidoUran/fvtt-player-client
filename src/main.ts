@@ -560,19 +560,19 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(async () => {
   if (require("electron-squirrel-startup")) return;
   // File menu
-  /*   const fileMenu: MenuItemConstructorOptions = {
+  const fileMenu: MenuItemConstructorOptions = {
     label: "File",
     submenu: [
       {
         label: "New Window",
-        accelerator: "F6",
+        accelerator: "F8",
         click: () => {
           createWindow();
         },
       },
       { role: "quit" },
     ],
-  }; */
+  };
 
   // View menu
   const viewMenu: MenuItemConstructorOptions = {
@@ -607,7 +607,7 @@ app.whenReady().then(async () => {
   };
 
   // build and apply menu
-  const menu = Menu.buildFromTemplate([/* fileMenu,  */ viewMenu]);
+  const menu = Menu.buildFromTemplate([fileMenu, viewMenu]);
   Menu.setApplicationMenu(menu);
 
   const migrationResult = await migrateUserData();
