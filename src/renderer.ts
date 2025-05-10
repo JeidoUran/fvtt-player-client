@@ -1678,6 +1678,7 @@ async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
 
   const statusSpan = serverInfos.querySelector(".status") as HTMLSpanElement;
   const versionSpan = serverInfos.querySelector(".version") as HTMLSpanElement;
+  const worldSpan = serverInfos.querySelector(".world") as HTMLSpanElement;
   const systemSpan = serverInfos.querySelector(".system") as HTMLSpanElement;
   const systemVersionSpan = serverInfos.querySelector(
     ".systemVersion",
@@ -1687,6 +1688,7 @@ async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
   if (!serverInfo) {
     statusSpan.innerHTML = `<i class="fa-solid fa-xmark"></i> Offline`;
     versionSpan.innerHTML = `<i class="fa-solid fa-dice-d20"></i> -`;
+    worldSpan.innerHTML = `<i class="fa-solid fa-globe"></i> -`;
     systemSpan.innerHTML = `<i class="fa-solid fa-dice"></i> -`;
     systemVersionSpan.innerHTML = `<i class="fa-solid fa-screwdriver-wrench"></i> -`;
     usersSpan.innerHTML = `<i class="fa-solid fa-users"></i> -`;
@@ -1700,6 +1702,7 @@ async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
   }
 
   versionSpan.innerHTML = `<i class="fa-solid fa-dice-d20"></i> v${serverInfo.version ?? "-"}`;
+  worldSpan.innerHTML = `<i class="fa-solid fa-globe"></i> ${serverInfo.world ?? "-"}`;
   systemSpan.innerHTML = `<i class="fa-solid fa-dice"></i> ${serverInfo.system?.toUpperCase() ?? "-"}`;
   systemVersionSpan.innerHTML = `<i class="fa-solid fa-screwdriver-wrench"></i> ${serverInfo.systemVersion ?? "-"}`;
   usersSpan.innerHTML = `<i class="fa-solid fa-users"></i> ${serverInfo.users ?? "0"}`;

@@ -323,7 +323,7 @@ table, th, td {
   background: var(--color-background);
   pointer-events: all;
   border-radius: 12px;
-  width: 30vw;
+  min-width: 30vw;
   max-height: 70vh;
 }
 
