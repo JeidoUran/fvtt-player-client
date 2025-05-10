@@ -2,7 +2,11 @@
 import * as particles from "./utils/particles";
 import { AppConfigSchema, ThemeConfigSchema, ParticleOptions } from "./schemas";
 import { mergeAppData, mergeThemeData } from "./utils/mergeData";
-import { showNotification } from "./utils/notifications";
+import {
+  showNotification,
+  initNotificationTimer,
+  setNotificationTimer,
+} from "./utils/notifications";
 import { safePrompt } from "./utils/safePrompt";
 
 let appVersion: string;
@@ -151,11 +155,16 @@ document
     const discordRP = (
       closeUserConfig.querySelector("#discord-rp") as HTMLInputElement
     ).checked;
+    const notificationTimer = Number(
+      (closeUserConfig.querySelector("#notification-timer") as HTMLInputElement)
+        .value,
+    );
     const config = {
       cachePath,
       autoCacheClear,
       ignoreCertificateErrors,
       discordRP,
+      notificationTimer,
     } as AppConfig;
 
     const rawConfig: unknown = {
@@ -163,6 +172,7 @@ document
       cachePath: config.cachePath,
       autoCacheClear: config.autoCacheClear,
       ignoreCertificateErrors: config.ignoreCertificateErrors,
+      notificationTimer: config.notificationTimer,
       discordRP: config.discordRP,
       customCSS: config.customCSS,
     };
@@ -181,6 +191,12 @@ document
 
     console.log(config);
     const validConfig = result.data as AppConfig;
+
+    const timer =
+      typeof validConfig.notificationTimer === "number"
+        ? validConfig.notificationTimer
+        : 3;
+    setNotificationTimer(timer);
 
     await window.api.saveAppConfig(validConfig);
     applyAppConfig(validConfig);
@@ -485,6 +501,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Theme selector or stylesheet not found.");
     return;
   }
+
+  await initNotificationTimer();
   const appConfig: AppConfig = await window.api.localAppConfig();
   const themeConfig: ThemeConfig = await window.api.localThemeConfig();
 

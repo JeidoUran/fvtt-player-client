@@ -20,6 +20,7 @@ type AppConfig = {
   customCSS?: string;
   ignoreCertificateErrors?: boolean;
   discordRP?: boolean;
+  notificationTimer?: number;
 };
 
 interface ParticleOptions {

@@ -100,9 +100,16 @@
             <span class="custom-checkbox"></span>
           </div>
           <div class="insecure-ssl-field field checkbox-wrapper">
-            <label for="insecure-ssl">Ignore Certificate errors</label>
+            <label for="insecure-ssl">Ignore Certificate Errors</label>
             <input id="insecure-ssl" type="checkbox" class="no-text">
             <span class="custom-checkbox"></span>
+          </div>
+          <div class="notification-timer-field field">
+            <label for="notification-timer">Notifications Timer</label>
+            <div class="tooltip-wrapper">
+              <input type="range" id="notification-timer" min="3" max="10"
+                step="1" value="3">
+              <div class="tooltip">Seconds</div></div>
           </div>
           <div class="discord-rp-field field checkbox-wrapper">
             <label for="discord-rp"><i class="fa-brands fa-discord"></i> Enable

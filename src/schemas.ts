@@ -25,6 +25,7 @@ export const AppConfigSchema = z.object({
   customCSS: z.string().optional(),
   ignoreCertificateErrors: z.boolean().optional(),
   discordRP: z.boolean().optional(),
+  notificationTimer: z.number().optional(),
 });
 export type AppConfig = z.infer<typeof AppConfigSchema>;
 
