@@ -94,15 +94,19 @@
           <div class="cache-path-field">
             <input id="cache-path" placeholder="Cache Path" type="text" value>
           </div>
-          <div class="clear-cache-on-close-field field checkbox-wrapper">
-            <label for="clear-cache-on-close">Clear Cache on Close</label>
-            <input id="clear-cache-on-close" type="checkbox" class="no-text">
-            <span class="custom-checkbox"></span>
+          <div class="clear-cache-on-close-field field">
+            <label class="switch-label">Clear Cache on Close</label>
+            <label class="switch">
+              <input id="clear-cache-on-close" type="checkbox">
+              <span class="slider round"></span>
+            </label>
           </div>
-          <div class="insecure-ssl-field field checkbox-wrapper">
-            <label for="insecure-ssl">Ignore Certificate Errors</label>
-            <input id="insecure-ssl" type="checkbox" class="no-text">
-            <span class="custom-checkbox"></span>
+          <div class="insecure-ssl-field field">
+            <label class="switch-label">Ignore Certificate Errors</label>
+            <label class="switch">
+              <input id="insecure-ssl" type="checkbox">
+              <span class="slider round"></span>
+            </label>
           </div>
           <div class="notification-timer-field field">
             <label for="notification-timer">Notifications Timer</label>
@@ -111,10 +115,12 @@
                 step="1" value="3">
               <div class="tooltip">Seconds</div></div>
           </div>
-          <div class="server-infos-toggle-field field checkbox-wrapper">
-            <label for="server-infos-toggle">Enable Server Status</label>
-            <input id="server-infos-toggle" type="checkbox" class="no-text">
-            <span class="custom-checkbox"></span>
+          <div class="server-infos-toggle-field field">
+            <label class="switch-label">Enable Server Status</label>
+            <label class="switch">
+              <input id="server-infos-toggle" type="checkbox">
+              <span class="slider round"></span>
+            </label>
           </div>
           <div class="server-infos-configuration field">
             <div class="checkbox-wrapper-inline">
@@ -149,16 +155,18 @@
               <span class="custom-checkbox"></span>
             </div>
           </div>
-          <div class="discord-rp-field field checkbox-wrapper">
-            <label for="discord-rp"><i class="fa-brands fa-discord"></i> Enable
+          <div class="discord-rp-field field">
+            <label class="switch-label"><i class="fa-brands fa-discord"></i>
+              Enable
               Discord Rich Presence</label>
-            <div class="tooltip-wrapper"><input id="discord-rp" type="checkbox"
-                class="no-text">
-              <span class="custom-checkbox"></span>
-              <div class="tooltip">Requires Foundry VTT Rich Presence module
-                installed per server<br>Turning this option off disables Discord
-                Rich Presence globally, regardless of each server's module
-                settings</div></div>
+            <label class="switch"><div class="tooltip-wrapper"><input
+                  id="discord-rp" type="checkbox">
+                <span class="slider round"></span>
+                <div class="tooltip">Requires Foundry VTT Rich Presence module
+                  installed per server<br>Turning this option off disables
+                  Discord
+                  Rich Presence globally, regardless of each server's module
+                  settings</div></label></div>
           </div>
           <div class="download-link">Download the required module <a
               href="https://github.com/JeidoUran/fvtt-rich-presence"
@@ -322,9 +330,11 @@
                   id="button-color-hover" type="color"></div>
             </div>
             <div class="particles-button-field field checkbox-wrapper">
-              <label for="particles-button">Enable Background Particles</label>
-              <input id="particles-button" type="checkbox" class="no-text">
-              <span class="custom-checkbox"></span>
+              <label class="switch-label">Enable Background Particles</label>
+              <label class="switch">
+                <input id="particles-button" type="checkbox">
+                <span class="slider round"></span>
+              </label>
             </div>
             <div class="particles-config">
               <div class="particles-count-field field">

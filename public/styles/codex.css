@@ -276,9 +276,9 @@ table, th, td {
   margin-left: 1rem;
 }
 
-.field label {
+/*.field label {
   margin-right: 1rem;
-}
+}*/
 
 .help {
   transition: opacity 0.3s ease, transform 0.3s ease;
@@ -965,7 +965,7 @@ input[type="range"]:focus {
 /******** Chrome, Safari, Opera and Edge Chromium styles ********/
 /* slider track */
 input[type="range"]::-webkit-slider-runnable-track {
-  background-color: var(--color-text-primary);
+  background-color: var(--color-accent);
   border-radius: 0.5rem;
   height: 0.5rem;
 }
@@ -977,10 +977,11 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   margin-top: -6px;
   /* Centers thumb on the track */
-  background-color: var(--color-accent);
+  background-color: white;
   border-radius: 1rem;
   height: 1.25rem;
   width: 1.25rem;
+  border: solid 1px black;
 }
 
 input[type="range"]:focus::-webkit-slider-thumb {
@@ -1126,4 +1127,69 @@ input[type="range"]:focus::-webkit-slider-thumb {
 
 .checkbox-wrapper-inline input[type="checkbox"]:checked~.custom-checkbox::after {
   display: block;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 54px;
+  height: 28px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #111;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border: solid 2px var(--color-accent);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 1px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border: solid 1px rgb(59, 59, 59);
+}
+
+input:checked+.slider {
+  background-color: var(--color-accent);
+}
+
+input:focus+.slider {
+  box-shadow: 0 0 1px var(--color-accent);
+}
+
+input:checked+.slider:before {
+  -webkit-transform: translateX(24px);
+  -ms-transform: translateX(24px);
+  transform: translateX(24px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }
