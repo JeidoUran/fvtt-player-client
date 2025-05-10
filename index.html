@@ -2,356 +2,448 @@
 <!--suppress HtmlFormInputWithoutLabel -->
 <html lang="en">
 
-<head>
+  <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <title>FVTT Desktop Client</title>
     <link rel="icon" href="/src/icons/icon.ico" type="image/vnd.microsoft.icon">
-    <script crossorigin="anonymous" src="https://kit.fontawesome.com/d9351ab632.js"></script>
+    <script crossorigin="anonymous"
+      src="https://kit.fontawesome.com/d9351ab632.js"></script>
     <link id="theme-stylesheet" rel="stylesheet" href="styles/codex.css">
     <!--    <link rel="stylesheet" href="src/style.css">-->
-</head>
-<body>
-<canvas id="particles"></canvas>
+  </head>
+  <body>
+    <canvas id="particles"></canvas>
 
-<div class="content">
-    <div class="button-controls">
-        <div class="tooltip-wrapper"><button class="config-button" id="open-config"><i class="fa-solid fa-gear"></i></button>
-        <div class="tooltip">Client Settings</div></div>
-        <div class="tooltip-wrapper"><button class="config-button" id="open-theme"><i class="fa-solid fa-brush"></i></button>
-        <div class="tooltip">Theme Editor</div></div> 
-        <div class="tooltip-wrapper"><button class="config-button" id="open-share"><i class="fa-solid fa-share-from-square"></i></button>
-        <div class="tooltip">Share</div></div>
-        <div class="tooltip-wrapper"><button class="config-button" id="open-help"><i class="fa-solid fa-question-circle"></i></button>
-        <div class="tooltip">Help</div></div>
-    </div>
+    <div class="content">
+      <div class="button-controls">
+        <div class="tooltip-wrapper"><button class="config-button"
+            id="open-config"><i class="fa-solid fa-gear"></i></button>
+          <div class="tooltip">Client Settings</div></div>
+        <div class="tooltip-wrapper"><button class="config-button"
+            id="open-theme"><i class="fa-solid fa-brush"></i></button>
+          <div class="tooltip">Theme Editor</div></div>
+        <div class="tooltip-wrapper"><button class="config-button"
+            id="open-share"><i
+              class="fa-solid fa-share-from-square"></i></button>
+          <div class="tooltip">Share</div></div>
+        <div class="tooltip-wrapper"><button class="config-button"
+            id="open-help"><i class="fa-solid fa-question-circle"></i></button>
+          <div class="tooltip">Help</div></div>
+      </div>
 
-    <div class="update-available hidden2">
-        <a href="https://github.com/JeidoUran/fvtt-player-client/releases/latest" id="download-new" target="_blank">Update
-            Available!</a><span class="current-version"></span> <i class="fa-solid fa-arrow-right"></i> <span id="latest-version"></span>
-    </div>
+      <div class="update-available hidden2">
+        <a
+          href="https://github.com/JeidoUran/fvtt-player-client/releases/latest"
+          id="download-new" target="_blank">Update
+          Available!</a><span class="current-version"></span> <i
+          class="fa-solid fa-arrow-right"></i> <span id="latest-version"></span>
+      </div>
 
-    <div id="current-version-display" class="version-normal">
+      <div id="current-version-display" class="version-normal">
         FVTT Desktop Client <span class="current-version"></span>
-    </div>
+      </div>
 
-    <section class="menu-container">
+      <section class="menu-container">
         <div class="help hidden2 hidden-display">
-            <table>
-                <tr>
-                    <th>Control</th>
-                    <th>Action</th>
-                </tr>
-                <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>R</kbd> or <kbd>F5</kbd></td>
-                    <td>Reload</td>
-                </tr>
-                <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>⇧Shift</kbd> + <kbd>R</kbd> or <kbd>Ctrl</kbd> + <kbd>F5</kbd></td>
-                    <td>Hard Reload</td>
-                </tr>
+          <table>
+            <tr>
+              <th>Control</th>
+              <th>Action</th>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>R</kbd> or <kbd>F5</kbd></td>
+              <td>Reload</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>⇧Shift</kbd> + <kbd>R</kbd> or
+                <kbd>Ctrl</kbd> + <kbd>F5</kbd></td>
+              <td>Hard Reload</td>
+            </tr>
             <!--<tr>
                     <td><kbd>F6</kbd></td>
                     <td>New Window</td>
                 </tr> -->
-                <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>+</kbd> or <kbd>Ctrl</kbd> + <kbd>⇧Shift</kbd> + <kbd>+</kbd></td>
-                    <td>Zoom In</td>
-                </tr>
-                <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>-</kbd></td>
-                    <td>Zoom Out</td>
-                </tr>
-                <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>0</kbd></td>
-                    <td>Reset Zoom</td>
-                </tr>
-                <tr>
-                    <td><kbd>F11</kbd></td>
-                    <td>Fullscreen</td>
-                </tr>
-                <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>⇧Shift</kbd> + <kbd>I</kbd> or <kbd>F12</kbd></td>
-                    <td>Developer Console</td>
-                </tr>
-            </table>
-            <button id="close-help">Close</button>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>+</kbd> or <kbd>Ctrl</kbd> +
+                <kbd>⇧Shift</kbd> + <kbd>+</kbd></td>
+              <td>Zoom In</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>-</kbd></td>
+              <td>Zoom Out</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>0</kbd></td>
+              <td>Reset Zoom</td>
+            </tr>
+            <tr>
+              <td><kbd>F11</kbd></td>
+              <td>Fullscreen</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>⇧Shift</kbd> + <kbd>I</kbd> or
+                <kbd>F12</kbd></td>
+              <td>Developer Console</td>
+            </tr>
+          </table>
+          <button id="close-help">Close</button>
         </div>
 
         <div class="app-configuration hidden2 hidden-display">
-            <div class="cache-path-field">
-                <input id="cache-path" placeholder="Cache Path" type="text" value="">
-            </div>
-            <div class="clear-cache-on-close-field field checkbox-wrapper">
-                <label for="clear-cache-on-close">Clear Cache on Close</label>
-                <input id="clear-cache-on-close" type="checkbox" class="no-text">
-                <span class="custom-checkbox"></span>                  
-            </div>
-            <div class="insecure-ssl-field field checkbox-wrapper">
-                <label for="insecure-ssl">Ignore Certificate errors</label>
-                <input id="insecure-ssl" type="checkbox" class="no-text">
-                <span class="custom-checkbox"></span>
-            </div>
-            <div class="discord-rp-field field checkbox-wrapper">
-                <label for="discord-rp"><i class="fa-brands fa-discord"></i> Enable Discord Rich Presence</label>
-                <div class="tooltip-wrapper"><input id="discord-rp" type="checkbox" class="no-text">
-                <span class="custom-checkbox"></span>
-                <div class="tooltip">Requires Foundry VTT Rich Presence module installed per server<br>Turning this option off disables Discord Rich Presence globally, regardless of each server's module settings</div></div>
-            </div>
-            <div class="download-link">Download the required module <a href="https://github.com/JeidoUran/fvtt-rich-presence" target="_blank">here</a>!</div>
-            <div class="button-group">
+          <div class="cache-path-field">
+            <input id="cache-path" placeholder="Cache Path" type="text" value>
+          </div>
+          <div class="clear-cache-on-close-field field checkbox-wrapper">
+            <label for="clear-cache-on-close">Clear Cache on Close</label>
+            <input id="clear-cache-on-close" type="checkbox" class="no-text">
+            <span class="custom-checkbox"></span>
+          </div>
+          <div class="insecure-ssl-field field checkbox-wrapper">
+            <label for="insecure-ssl">Ignore Certificate errors</label>
+            <input id="insecure-ssl" type="checkbox" class="no-text">
+            <span class="custom-checkbox"></span>
+          </div>
+          <div class="discord-rp-field field checkbox-wrapper">
+            <label for="discord-rp"><i class="fa-brands fa-discord"></i> Enable
+              Discord Rich Presence</label>
+            <div class="tooltip-wrapper"><input id="discord-rp" type="checkbox"
+                class="no-text">
+              <span class="custom-checkbox"></span>
+              <div class="tooltip">Requires Foundry VTT Rich Presence module
+                installed per server<br>Turning this option off disables Discord
+                Rich Presence globally, regardless of each server's module
+                settings</div></div>
+          </div>
+          <div class="download-link">Download the required module <a
+              href="https://github.com/JeidoUran/fvtt-rich-presence"
+              target="_blank">here</a>!</div>
+          <div class="button-group">
             <div class="button-row">
-                <button id="save-app-config">Save</button>
-                <button id="reset-client">Reset Settings</button>
-                <button id="clear-cache">Clear Cache</button>
+              <button id="save-app-config">Save</button>
+              <button id="reset-client">Reset Settings</button>
+              <button id="clear-cache">Clear Cache</button>
             </div>
             <div class="button-row">
-                <button id="open-user-data">Open User Data Folder</button>
+              <button id="open-user-data">Open User Data Folder</button>
             </div>
-                <button id="cancel-app-config">Cancel</button>
-            </div>
+            <button id="cancel-app-config">Cancel</button>
+          </div>
         </div>
 
         <div class="theme-configuration hidden2 hidden-display">
-            <div class="overflow">
+          <div class="overflow">
             <div class="theme-selector-field field">
-                <label for="theme-selector">Base Theme</label>
-                <select id="theme-selector">
-                    <option value="codex">Codex</option>
-                    <option value="original">Original</option>
-                </select>
+              <label for="theme-selector">Base Theme</label>
+              <select id="theme-selector">
+                <option value="codex">Codex</option>
+                <option value="original">Original</option>
+              </select>
             </div>
             <div class="background-color-field field">
-                <label for="background-color">Background Color</label>
-                <div class="color-wrapper"><input id="background-color" type="color"></div>
+              <label for="background-color">Background Color</label>
+              <div class="color-wrapper"><input id="background-color"
+                  type="color"></div>
             </div>
             <div class="background-image-field">
-                <input id="background-image" placeholder="Background Image Path" type="text" value="">
+              <input id="background-image" placeholder="Background Image Path"
+                type="text" value>
             </div>
             <div class="primary-font-selector-field field">
-                <label for="primary-font-selector">Primary Font</label>
-                <select id="primary-font-selector">
-                    <option value="" style="font-family: var(--font-primary);">Default</option>
-                    <option value="'Cinzel',serif" style="font-family: Cinzel, serif;">Cinzel</option>
-                    <option value="'Sorts Mill Goudy',serif" style="font-family: 'Sorts Mill Goudy', serif;">Sorts Mill Goudy</option>
-                    <option value="Arial,Helvetica,sans-serif" style="font-family: Arial,Helvetica,sans-serif;">Arial</option>
-                    <option value="'Times New Roman',Times,serif" style="font-family: 'Times New Roman',Times,serif;">Times New Roman</option>
-                    <option value="'Courier New',Courier,monospace" style="font-family: 'Courier New',Courier,monospace">Courier New</option>
-                    <option value="'Trebuchet MS',sans-serif" style="font-family: 'Trebuchet MS',sans-serif">Trebuchet MS</option>
-                    <option value="Georgia,serif" style="font-family: Georgia,serif">Georgia</option>
-                    <option value="Verdana,Geneva,sans-serif" style="font-family: Verdana,Geneva,sans-serif">Verdana</option>
-                    <option value="Open Sans,sans-serif" style="font-family: Open Sans,sans-serif">Open Sans</option>
-                    <option value="Comic Sans MS,sans-serif" style="font-family: Comic Sans MS,sans-serif">Comic Sans MS</option>
-                    <option value="__custom" style="font-family: 'Open Sans', sans-serif;">Import Google Font</option>
-                    <option value="__file" style="font-family: 'Open Sans', sans-serif;">Import File</option>
-                </select>
+              <label for="primary-font-selector">Primary Font</label>
+              <select id="primary-font-selector">
+                <option value
+                  style="font-family: var(--font-primary);">Default</option>
+                <option value="'Cinzel',serif"
+                  style="font-family: Cinzel, serif;">Cinzel</option>
+                <option value="'Sorts Mill Goudy',serif"
+                  style="font-family: 'Sorts Mill Goudy', serif;">Sorts Mill
+                  Goudy</option>
+                <option value="Arial,Helvetica,sans-serif"
+                  style="font-family: Arial,Helvetica,sans-serif;">Arial</option>
+                <option value="'Times New Roman',Times,serif"
+                  style="font-family: 'Times New Roman',Times,serif;">Times New
+                  Roman</option>
+                <option value="'Courier New',Courier,monospace"
+                  style="font-family: 'Courier New',Courier,monospace">Courier
+                  New</option>
+                <option value="'Trebuchet MS',sans-serif"
+                  style="font-family: 'Trebuchet MS',sans-serif">Trebuchet
+                  MS</option>
+                <option value="Georgia,serif"
+                  style="font-family: Georgia,serif">Georgia</option>
+                <option value="Verdana,Geneva,sans-serif"
+                  style="font-family: Verdana,Geneva,sans-serif">Verdana</option>
+                <option value="Open Sans,sans-serif"
+                  style="font-family: Open Sans,sans-serif">Open Sans</option>
+                <option value="Comic Sans MS,sans-serif"
+                  style="font-family: Comic Sans MS,sans-serif">Comic Sans
+                  MS</option>
+                <option value="__custom"
+                  style="font-family: 'Open Sans', sans-serif;">Import Google
+                  Font</option>
+                <option value="__file"
+                  style="font-family: 'Open Sans', sans-serif;">Import
+                  File</option>
+              </select>
             </div>
-            <div class="primary-custom-font-field" id="primary-custom-font-field">
-                <input id="primary-custom-font" style="display: none;" placeholder="Primary Google Font URL" type="text" value="">
+            <div class="primary-custom-font-field"
+              id="primary-custom-font-field">
+              <input id="primary-custom-font" style="display: none;"
+                placeholder="Primary Google Font URL" type="text" value>
             </div>
             <div class="button-row">
-                <button id="primary-import-font" style="display: none;">Import File</button>
+              <button id="primary-import-font" style="display: none;">Import
+                File</button>
             </div>
             <div class="secondary-font-selector-field field">
-                <label for="secondary-font-selector">Secondary Font</label>
-                <select id="secondary-font-selector">
-                    <option value="" style="font-family: var(--font-secondary);">Default</option>
-                    <option value="'Sorts Mill Goudy',serif" style="font-family: 'Sorts Mill Goudy', serif;">Sorts Mill Goudy</option>
-                    <option value="'Cinzel',serif" style="font-family: Cinzel, serif;">Cinzel</option>
-                    <option value="Arial,Helvetica,sans-serif" style="font-family: Arial,Helvetica,sans-serif;">Arial</option>
-                    <option value="'Times New Roman',Times,serif" style="font-family: 'Times New Roman',Times,serif;">Times New Roman</option>
-                    <option value="'Courier New',Courier,monospace" style="font-family: 'Courier New',Courier,monospace">Courier New</option>
-                    <option value="'Trebuchet MS',sans-serif" style="font-family: 'Trebuchet MS',sans-serif">Trebuchet MS</option>
-                    <option value="Georgia,serif" style="font-family: Georgia,serif">Georgia</option>
-                    <option value="Verdana,Geneva,sans-serif" style="font-family: Verdana,Geneva,sans-serif">Verdana</option>
-                    <option value="Open Sans,sans-serif" style="font-family: Open Sans,sans-serif">Open Sans</option>
-                    <option value="Comic Sans MS,sans-serif" style="font-family: Comic Sans MS,sans-serif">Comic Sans MS</option>
-                    <option value="__custom" style="font-family: 'Open Sans', sans-serif;">Import Google Font</option>
-                    <option value="__file" style="font-family: 'Open Sans', sans-serif;">Import File</option>
-                </select>
+              <label for="secondary-font-selector">Secondary Font</label>
+              <select id="secondary-font-selector">
+                <option value
+                  style="font-family: var(--font-secondary);">Default</option>
+                <option value="'Sorts Mill Goudy',serif"
+                  style="font-family: 'Sorts Mill Goudy', serif;">Sorts Mill
+                  Goudy</option>
+                <option value="'Cinzel',serif"
+                  style="font-family: Cinzel, serif;">Cinzel</option>
+                <option value="Arial,Helvetica,sans-serif"
+                  style="font-family: Arial,Helvetica,sans-serif;">Arial</option>
+                <option value="'Times New Roman',Times,serif"
+                  style="font-family: 'Times New Roman',Times,serif;">Times New
+                  Roman</option>
+                <option value="'Courier New',Courier,monospace"
+                  style="font-family: 'Courier New',Courier,monospace">Courier
+                  New</option>
+                <option value="'Trebuchet MS',sans-serif"
+                  style="font-family: 'Trebuchet MS',sans-serif">Trebuchet
+                  MS</option>
+                <option value="Georgia,serif"
+                  style="font-family: Georgia,serif">Georgia</option>
+                <option value="Verdana,Geneva,sans-serif"
+                  style="font-family: Verdana,Geneva,sans-serif">Verdana</option>
+                <option value="Open Sans,sans-serif"
+                  style="font-family: Open Sans,sans-serif">Open Sans</option>
+                <option value="Comic Sans MS,sans-serif"
+                  style="font-family: Comic Sans MS,sans-serif">Comic Sans
+                  MS</option>
+                <option value="__custom"
+                  style="font-family: 'Open Sans', sans-serif;">Import Google
+                  Font</option>
+                <option value="__file"
+                  style="font-family: 'Open Sans', sans-serif;">Import
+                  File</option>
+              </select>
             </div>
             <div class="secondary-custom-font-field">
-                <input id="secondary-custom-font" style="display: none;" placeholder="Secondary Google Font URL" type="text" value="">
+              <input id="secondary-custom-font" style="display: none;"
+                placeholder="Secondary Google Font URL" type="text" value>
             </div>
             <div class="button-row">
-                <button id="secondary-import-font" style="display: none;">Import File</button>
+              <button id="secondary-import-font" style="display: none;">Import
+                File</button>
             </div>
             <div class="text-color-field field">
-                <label for="text-color">Text Color</label>
-                <div class="color-wrapper"><input class="no-text" id="text-color" type="color"></div>
+              <label for="text-color">Text Color</label>
+              <div class="color-wrapper"><input class="no-text" id="text-color"
+                  type="color"></div>
             </div>
             <div class="accent-color-field field">
-                <label for="accent-color">Accent Color</label>
-                <div class="color-wrapper"><input class="no-text" id="accent-color" type="color"></div>
+              <label for="accent-color">Accent Color</label>
+              <div class="color-wrapper"><input class="no-text"
+                  id="accent-color" type="color"></div>
             </div>
             <div class="button-color-field field">
-                <label for="button-color">Button Color</label>
-                <div class="range-wrapper">
+              <label for="button-color">Button Color</label>
+              <div class="range-wrapper">
                 <div class="tooltip-wrapper">
-                <input type="range" id="button-color-alpha" onchange="updateColorAlpha(this);" min="0" max="1" step="0.05" value="1">
-                <div class="tooltip">Opacity</div></div>
-                </div>
-                <div class="color-wrapper"><input class="no-text" id="button-color" type="color"></div>
+                  <input type="range" id="button-color-alpha"
+                    onchange="updateColorAlpha(this);" min="0" max="1"
+                    step="0.05" value="1">
+                  <div class="tooltip">Opacity</div></div>
+              </div>
+              <div class="color-wrapper"><input class="no-text"
+                  id="button-color" type="color"></div>
             </div>
             <div class="button-color-hover-field field">
-                <label for="button-color-hover">Button Color (Hover)</label>
-                <div class="range-wrapper">
+              <label for="button-color-hover">Button Color (Hover)</label>
+              <div class="range-wrapper">
                 <div class="tooltip-wrapper">
-                <input type="range" id="button-color-hover-alpha" onchange="updateColorAlpha(this);" min="0" max="1" step="0.05" value="1">
-                <div class="tooltip">Opacity</div></div>
-                </div>
-                <div class="color-wrapper"><input class="no-text" id="button-color-hover" type="color"></div>
+                  <input type="range" id="button-color-hover-alpha"
+                    onchange="updateColorAlpha(this);" min="0" max="1"
+                    step="0.05" value="1">
+                  <div class="tooltip">Opacity</div></div>
+              </div>
+              <div class="color-wrapper"><input class="no-text"
+                  id="button-color-hover" type="color"></div>
             </div>
             <div class="particles-button-field field checkbox-wrapper">
-                <label for="particles-button">Enable Background Particles</label>
-                <input id="particles-button" type="checkbox" class="no-text">
-                <span class="custom-checkbox"></span>
+              <label for="particles-button">Enable Background Particles</label>
+              <input id="particles-button" type="checkbox" class="no-text">
+              <span class="custom-checkbox"></span>
             </div>
             <div class="particles-config">
-            <div class="particles-count-field field">
+              <div class="particles-count-field field">
                 <label for="particles-count">Particles Count</label>
                 <div class="tooltip-wrapper">
-                <input type="range" id="particles-count" min="10" max="1000" step="10" value="100">
-                <div class="tooltip">Value</div></div>
-            </div>
-            <div class="particles-speed-field field">
+                  <input type="range" id="particles-count" min="10" max="1000"
+                    step="10" value="100">
+                  <div class="tooltip">Value</div></div>
+              </div>
+              <div class="particles-speed-field field">
                 <label for="particles-speed">Particles Speed</label>
                 <div class="tooltip-wrapper">
-                <input type="range" id="particles-speed" min="0" max="5" step="0.1" value="0.3">
-                <div class="tooltip">Value</div></div>
-            </div>
-            <div class="particles-color-field field">
+                  <input type="range" id="particles-speed" min="0" max="5"
+                    step="0.1" value="0.3">
+                  <div class="tooltip">Value</div></div>
+              </div>
+              <div class="particles-color-field field">
                 <label for="particles-color">Particles Color</label>
                 <div class="range-wrapper">
-                <div class="tooltip-wrapper">
-                <input type="range" id="particles-color-alpha" onchange="updateColorAlpha(this);" min="0" max="1" step="0.05" value="0.15">
-                <div class="tooltip">Opacity</div></div>
+                  <div class="tooltip-wrapper">
+                    <input type="range" id="particles-color-alpha"
+                      onchange="updateColorAlpha(this);" min="0" max="1"
+                      step="0.05" value="0.15">
+                    <div class="tooltip">Opacity</div></div>
                 </div>
-                <div class="color-wrapper"><input class="no-text" id="particles-color" type="color"></div>
+                <div class="color-wrapper"><input class="no-text"
+                    id="particles-color" type="color"></div>
+              </div>
             </div>
-            </div>
-            </div>
-            <div class="button-group">
+          </div>
+          <div class="button-group">
             <div class="button-row">
-                <button id="save-theme-config">Save</button>
-                <button id="reset-appearance">Reset Theme</button>
+              <button id="save-theme-config">Save</button>
+              <button id="reset-appearance">Reset Theme</button>
             </div>
-                <button id="cancel-theme-config">Cancel</button>
-            </div>
+            <button id="cancel-theme-config">Cancel</button>
+          </div>
         </div>
 
         <div class="share-menu hidden2 hidden-display" id="share-menu">
-            <div class="tabs-wrapper">
-                <button class="tab-button active" data-tab="import">Import</button>
-                <button class="tab-button" data-tab="export">Export</button>
-            </div>
+          <div class="tabs-wrapper">
+            <button class="tab-button active" data-tab="import">Import</button>
+            <button class="tab-button" data-tab="export">Export</button>
+          </div>
 
-            <div id="tab-import" class="tab-content active">
-                <textarea id="share-input" placeholder="Paste JSON here…"></textarea>
+          <div id="tab-import" class="tab-content active">
+            <textarea id="share-input"
+              placeholder="Paste JSON here…"></textarea>
             <div class="button-row">
-                <button id="share-apply-import">Import Text</button>
-                <input type="file" id="import-file" accept=".json" style="display:none"/>
-                <button id="import-settings">Import File</button>
+              <button id="share-apply-import">Import Text</button>
+              <input type="file" id="import-file" accept=".json"
+                style="display:none" />
+              <button id="import-settings">Import File</button>
             </div>
+          </div>
+
+          <div id="tab-export" class="tab-content">
+            <div class="button-row">
+              <button id="export-settings">Export Settings</button>
+              <button id="export-theme">Export Theme</button>
+            </div>
+            <pre><code id="share-output" class="share-output"></code></pre>
+            <div class="button-row">
+              <button id="share-save-as">Save As…</button>
+              <button id="share-copy">Copy to Clipboard</button>
+            </div>
+          </div>
+          <button id="close-share">Close</button>
         </div>
+      </section>
 
-            <div id="tab-export" class="tab-content">
-            <div class="button-row">
-                <button id="export-settings">Export Settings</button>
-                <button id="export-theme">Export Theme</button>
-            </div>
-                <pre><code id="share-output" class="share-output"></code></pre>
-            <div class="button-row">
-                <button id="share-save-as">Save As…</button>
-                <button id="share-copy">Copy to Clipboard</button>
-            </div>
-            </div>
-            <button id="close-share">Close</button>
-        </div>
-    </section>
-
-    <ul id="game-list">
+      <ul id="game-list">
         <template id="game-item-template">
-            <li class="game-item">
-                <div class="game-title-bar">
-                    <div class="game-main-button">
-                    <button class="game-button"><a>GameName</a></button>
-                    <div class="server-infos">
-                        <div class="tooltip-wrapper"><span class="status"> </span>
-                        <div class="tooltip">Server Status</div></div>
-                        <div class="tooltip-wrapper"><span class="version"><i class="fa-solid fa-dice-d20"></i> </span>
-                        <div class="tooltip">Foundry Version</div></div>
-                        <div class="tooltip-wrapper"><span class="system"><i class="fa-solid fa-dice"></i> </span>
-                        <div class="tooltip">Game System</div></div>
-                        <div class="tooltip-wrapper"><span class="systemVersion"><i class="fa-solid fa-screwdriver-wrench"></i> </span>
-                        <div class="tooltip">Game System Version</div></div>
-                        <div class="tooltip-wrapper"><span class="users"><i class="fa-solid fa-users"></i> </span>
-                        <div class="tooltip">Online Players</div></div>
-                    </div>
-                    </div>
-                    <div class="config-main-button">
-                    <div class="config-button-wrapper tooltip-wrapper"><button class="configure-game"><i class="fa-solid fa-gear"></i></button>
-                    <div class="tooltip">Game Settings</div></div>
+          <li class="game-item">
+            <div class="game-title-bar">
+              <div class="game-main-button">
+                <button class="game-button"><a>GameName</a></button>
+                <div class="server-infos">
+                  <div class="tooltip-wrapper"><span class="status"> </span>
+                    <div class="tooltip">Server Status</div></div>
+                  <div class="tooltip-wrapper"><span class="version"><i
+                        class="fa-solid fa-dice-d20"></i> </span>
+                    <div class="tooltip">Foundry Version</div></div>
+                  <div class="tooltip-wrapper"><span class="system"><i
+                        class="fa-solid fa-dice"></i> </span>
+                    <div class="tooltip">Game System</div></div>
+                  <div class="tooltip-wrapper"><span class="systemVersion"><i
+                        class="fa-solid fa-screwdriver-wrench"></i> </span>
+                    <div class="tooltip">Game System Version</div></div>
+                  <div class="tooltip-wrapper"><span class="users"><i
+                        class="fa-solid fa-users"></i> </span>
+                    <div class="tooltip">Online Players</div></div>
                 </div>
-                </div>
-                <div class="user-configuration hidden">
-                    <div class="game-name-field field-large">
-                        <input class="game-name-edit input-large" placeholder="Game Name" type="text" value="">
-                    </div>
-                    <div class="game-url-field field-large">
-                        <input class="game-url-edit input-large" placeholder="Game URL" type="text" value="">
-                    </div>
-                    <div class="user-name-field field-large">
-                        <input class="user-name input-large" placeholder="Username" type="text" value="">
-                    </div>
-                    <div class="user-password-field password-field field-large">
-                        <input class="user-password input-large" placeholder="Password" type="password" value="">
-                        <div class="password-main-button">
-                        <div class="password-button-wrapper">
-                        <button type="button" class="toggle-password">
-                        <i class="fa-solid fa-eye"></i></div></div>
-                    </button>
-                    </div>
-                    <div class="admin-password-field password-field field-large">
-                        <input class="admin-password input-large" placeholder="Admin Password" type="password" value="">
-                        <div class="password-main-button">
-                        <div class="password-button-wrapper">
-                        <button type="button" class="toggle-password">
-                        <i class="fa-solid fa-eye"></i></div></div>
-                    </button>
-                    </div>
-                    <div class="game-button-group">
-                        <button class="save-user-data">Save</button>
-                        <button class="delete-game">Delete</button>
-                    </div>
-                </div>                
-            </li>
-        </template>
-    </ul>
-    <div id="add-game-wrapper">
-        <input id="game-name" name="" placeholder="Name" type="text">
-        <input id="game-url" name="" placeholder="URL" type="text">
-        <button id="add-game">Add Game</button>
-    </div>
-
-    <div id="custom-confirm" class="hidden2 hidden-display">
-        <div class="confirm-box">
-            <p id="confirm-text"></p>
-            <div class="confirm-buttons">
-                <button class="confirm-button" id="confirm-yes">Yes</button>
-                <button class="confirm-button" id="confirm-no">No</button>
+              </div>
+              <div class="config-main-button">
+                <div class="config-button-wrapper tooltip-wrapper"><button
+                    class="configure-game"><i
+                      class="fa-solid fa-gear"></i></button>
+                  <div class="tooltip">Game Settings</div></div>
+              </div>
             </div>
-        </div>
-    </div>    
+            <div class="user-configuration hidden">
+              <div class="game-name-field field-large">
+                <input class="game-name-edit input-large"
+                  placeholder="Game Name" type="text" value>
+              </div>
+              <div class="game-url-field field-large">
+                <input class="game-url-edit input-large" placeholder="Game URL"
+                  type="text" value>
+              </div>
+              <div class="user-name-field field-large">
+                <input class="user-name input-large" placeholder="Username"
+                  type="text" value>
+              </div>
+              <div class="user-password-field password-field field-large">
+                <input class="user-password input-large" placeholder="Password"
+                  type="password" value>
+                <div class="password-main-button">
+                  <div class="password-button-wrapper">
+                    <button type="button" class="toggle-password">
+                      <i class="fa-solid fa-eye"></i></div></div>
+                </button>
+              </div>
+              <div class="admin-password-field password-field field-large">
+                <input class="admin-password input-large"
+                  placeholder="Admin Password" type="password" value>
+                <div class="password-main-button">
+                  <div class="password-button-wrapper">
+                    <button type="button" class="toggle-password">
+                      <i class="fa-solid fa-eye"></i></div></div>
+                </button>
+              </div>
+              <div class="game-button-group">
+                <button class="save-user-data">Save</button>
+                <button class="delete-game">Delete</button>
+              </div>
+            </div>
+          </li>
+        </template>
+      </ul>
+      <div id="add-game-wrapper">
+        <input id="game-name" name placeholder="Name" type="text">
+        <input id="game-url" name placeholder="URL" type="text">
+        <button id="add-game">Add Game</button>
+      </div>
 
-    <div id="notification-area"></div>
-    <div id="info">Node.js <span id="node-version"></span>,
+      <div id="custom-confirm" class="hidden2 hidden-display">
+        <div class="confirm-box">
+          <p id="confirm-text"></p>
+          <div class="confirm-buttons">
+            <button class="confirm-button" id="confirm-yes">Yes</button>
+            <button class="confirm-button" id="confirm-no">No</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="notification-area"></div>
+      <div id="info">Node.js <span id="node-version"></span>,
         Chromium <span id="chrome-version"></span>,
         Electron <span id="electron-version"></span></div>
-</div>
-<div id="tooltip-layer"></div>
-<script src="/src/renderer.ts" type="module"></script>
-<script>
+    </div>
+    <div id="tooltip-layer"></div>
+    <script src="/src/renderer.ts" type="module"></script>
+    <script>
     function updateColorAlpha(rangeEl) {
       const alpha = rangeEl.value;
       // removing "-alpha" from the ID
@@ -359,5 +451,5 @@
       document.getElementById(targetId).style.opacity = alpha;
     }
   </script>
-</body>
+  </body>
 </html>
