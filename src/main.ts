@@ -371,7 +371,7 @@ function createWindow(): BrowserWindow {
 
   // Catch network errors (ERR_CONNECTION_REFUSED, etc.)
   session.webRequest.onErrorOccurred(
-    { urls: ["*://*/*"] }, // tu peux restreindre à ton host/port
+    { urls: ["*://*/join", "*://*/setup", "*://*/auth", "*://*/game"] },
     (details) => {
       // Ignore voluntarily triggered errors (ERR_ABORTED on "Return to Setup")
       if (
@@ -402,7 +402,7 @@ function createWindow(): BrowserWindow {
           `The game you attempted to join could not be reached (${reason}).`,
           { mode: "alert" },
         ).catch(console.error);
-      }, 500);
+      }, 250);
     });
   }
 
