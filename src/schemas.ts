@@ -17,6 +17,26 @@ export const GameConfigSchema = z.object({
 });
 export type GameConfig = z.infer<typeof GameConfigSchema>;
 
+// ServerInfoOptions
+export const ServerInfoOptionsSchema = z
+  .object({
+    statusEnabled: z.boolean().optional(),
+    foundryVersionEnabled: z.boolean().optional(),
+    worldEnabled: z.boolean().optional(),
+    gameSystemEnabled: z.boolean().optional(),
+    gameSystemVersionEnabled: z.boolean().optional(),
+    onlinePlayersEnabled: z.boolean().optional(),
+  })
+  .default({
+    statusEnabled: true,
+    foundryVersionEnabled: true,
+    worldEnabled: false,
+    gameSystemEnabled: true,
+    gameSystemVersionEnabled: true,
+    onlinePlayersEnabled: true,
+  });
+export type ServerInfoOptions = z.infer<typeof ServerInfoOptionsSchema>;
+
 // AppConfig
 export const AppConfigSchema = z.object({
   games: z.array(GameConfigSchema),
@@ -26,6 +46,8 @@ export const AppConfigSchema = z.object({
   ignoreCertificateErrors: z.boolean().optional(),
   discordRP: z.boolean().optional(),
   notificationTimer: z.number().optional(),
+  serverInfoEnabled: z.boolean().optional(),
+  serverInfoOptions: ServerInfoOptionsSchema,
 });
 export type AppConfig = z.infer<typeof AppConfigSchema>;
 

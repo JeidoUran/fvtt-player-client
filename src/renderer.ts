@@ -159,12 +159,46 @@ document
       (closeUserConfig.querySelector("#notification-timer") as HTMLInputElement)
         .value,
     );
+    const serverInfoEnabled = (
+      closeUserConfig.querySelector("#server-infos-toggle") as HTMLInputElement
+    ).checked;
+    const statusEnabled = (
+      closeUserConfig.querySelector("#server-status-toggle") as HTMLInputElement
+    ).checked;
+    const foundryVersionEnabled = (
+      closeUserConfig.querySelector(
+        "#foundry-version-toggle",
+      ) as HTMLInputElement
+    ).checked;
+    const worldEnabled = (
+      closeUserConfig.querySelector("#world-toggle") as HTMLInputElement
+    ).checked;
+    const gameSystemEnabled = (
+      closeUserConfig.querySelector("#game-system-toggle") as HTMLInputElement
+    ).checked;
+    const gameSystemVersionEnabled = (
+      closeUserConfig.querySelector("#game-version-toggle") as HTMLInputElement
+    ).checked;
+    const onlinePlayersEnabled = (
+      closeUserConfig.querySelector(
+        "#online-players-toggle",
+      ) as HTMLInputElement
+    ).checked;
     const config = {
       cachePath,
       autoCacheClear,
       ignoreCertificateErrors,
       discordRP,
       notificationTimer,
+      serverInfoEnabled,
+      serverInfoOptions: {
+        statusEnabled,
+        foundryVersionEnabled,
+        worldEnabled,
+        gameSystemEnabled,
+        gameSystemVersionEnabled,
+        onlinePlayersEnabled,
+      },
     } as AppConfig;
 
     const rawConfig: unknown = {
@@ -175,6 +209,8 @@ document
       notificationTimer: config.notificationTimer,
       discordRP: config.discordRP,
       customCSS: config.customCSS,
+      serverInfoEnabled: config.serverInfoEnabled,
+      serverInfoOptions: config.serverInfoOptions,
     };
 
     const result = AppConfigSchema.safeParse(rawConfig);
@@ -679,6 +715,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     await window.api.saveThemeConfig(themeConfig);
 
     showNotification("Secondary font loaded successfully");
+  });
+
+  const serverInfoConfig = document.querySelector<HTMLElement>(
+    ".server-infos-configuration",
+  )!;
+  const serverInfoCheckbox = document.querySelector<HTMLInputElement>(
+    "#server-infos-toggle",
+  )!;
+  if (appConfig.serverInfoEnabled == true) {
+    serverInfoConfig.style.display = "block";
+  }
+  serverInfoCheckbox.addEventListener("change", () => {
+    if (serverInfoCheckbox.checked == true) {
+      serverInfoConfig.style.display = "block";
+    } else {
+      serverInfoConfig.style.display = "none";
+    }
   });
 
   const particlesConfig =
@@ -1279,6 +1332,50 @@ function applyAppConfig(config: AppConfig) {
     (document.querySelector("#discord-rp") as HTMLInputElement).checked =
       config.discordRP;
   }
+
+  if (config.serverInfoEnabled) {
+    (
+      document.querySelector("#server-infos-toggle") as HTMLInputElement
+    ).checked = config.serverInfoEnabled;
+  }
+  if (config.serverInfoOptions.statusEnabled) {
+    (
+      document.querySelector("#server-status-toggle") as HTMLInputElement
+    ).checked = config.serverInfoOptions.statusEnabled;
+  }
+  if (config.serverInfoOptions.foundryVersionEnabled) {
+    (
+      document.querySelector("#foundry-version-toggle") as HTMLInputElement
+    ).checked = config.serverInfoOptions.foundryVersionEnabled;
+  }
+  if (config.serverInfoOptions.worldEnabled) {
+    (document.querySelector("#world-toggle") as HTMLInputElement).checked =
+      config.serverInfoOptions.worldEnabled;
+  }
+  if (config.serverInfoOptions.gameSystemEnabled) {
+    (
+      document.querySelector("#game-system-toggle") as HTMLInputElement
+    ).checked = config.serverInfoOptions.gameSystemEnabled;
+  }
+  if (config.serverInfoOptions.gameSystemVersionEnabled) {
+    (
+      document.querySelector("#game-version-toggle") as HTMLInputElement
+    ).checked = config.serverInfoOptions.gameSystemVersionEnabled;
+  }
+  if (config.serverInfoOptions.onlinePlayersEnabled) {
+    (
+      document.querySelector("#online-players-toggle") as HTMLInputElement
+    ).checked = config.serverInfoOptions.onlinePlayersEnabled;
+  }
+  const serverInfoConfig = (document.querySelector(
+    ".server-infos-configuration",
+  ) as HTMLElement)!;
+  const serverInfoToggle = (document.querySelector(
+    "#server-infos-toggle",
+  ) as HTMLInputElement)!;
+  const serverInfoToggleEnabled = config.serverInfoEnabled ?? true;
+  serverInfoToggle.checked = serverInfoToggleEnabled;
+  serverInfoConfig.style.display = serverInfoToggleEnabled ? "block" : "none";
 }
 
 function applyThemeConfig(config: ThemeConfig) {
@@ -1780,6 +1877,10 @@ function renderTooltips() {
 async function createGameList() {
   await migrateConfig();
   const config: AppConfig = await window.api.appConfig();
+  const appDefaults: AppConfig = {
+    games: games,
+    serverInfoEnabled: true,
+  };
   const defaults: ThemeConfig = {
     background: "",
     backgrounds: [],
@@ -1794,6 +1895,10 @@ async function createGameList() {
     particlesEnabled: true,
   };
 
+  const appConfig: AppConfig = {
+    ...appDefaults,
+    ...(await window.api.localAppConfig()),
+  };
   const themeConfig: ThemeConfig = {
     ...defaults,
     ...(await window.api.localThemeConfig()),
@@ -1835,7 +1940,7 @@ async function createGameList() {
     document.querySelector(".version-normal").classList.add("hidden2");
   }
 
-  applyAppConfig(config);
+  applyAppConfig(appConfig);
   applyThemeConfig(themeConfig);
 
   gameItemList.querySelectorAll("li").forEach((li) => li.remove());

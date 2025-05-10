@@ -1061,3 +1061,13 @@ input[type="range"]:focus::-webkit-slider-thumb {
   overflow-x: hidden;
   padding-right: 0.25rem;
 }
+
+.server-infos-configuration.field {
+  display: block;
+  padding: 0 0.5rem;
+}
+
+.server-infos-configuration.field label {
+  font-size: 1.2rem;
+  margin-right: 0.25rem;
+}

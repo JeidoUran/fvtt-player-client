@@ -21,7 +21,18 @@ type AppConfig = {
   ignoreCertificateErrors?: boolean;
   discordRP?: boolean;
   notificationTimer?: number;
+  serverInfoEnabled?: boolean;
+  serverInfoOptions?: ServerInfoOptions;
 };
+
+interface ServerInfoOptions {
+  statusEnabled?: boolean;
+  foundryVersionEnabled?: boolean;
+  worldEnabled?: boolean;
+  gameSystemEnabled?: boolean;
+  gameSystemVersionEnabled?: boolean;
+  onlinePlayersEnabled?: boolean;
+}
 
 interface ParticleOptions {
   count?: number;
