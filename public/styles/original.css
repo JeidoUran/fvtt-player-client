@@ -312,7 +312,7 @@ td {
 }
 
 .theme-configuration {
-  width: 30vw;
+  min-width: 30vw;
 }
 
 .app-configuration,
@@ -894,4 +894,28 @@ input[type="range"]:focus::-webkit-slider-thumb {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 1rem;
+}
+
+.server-infos-configuration.field {
+  display: block;
+}
+
+.server-infos-configuration.field label {
+  font-size: 1.1rem;
+  margin-right: 0.25rem;
+}
+
+.checkbox-wrapper-inline {
+  display: inline-flex;
+  gap: 0.25rem;
+  position: relative;
+  user-select: none;
+  margin-right: 0.25rem;
+}
+
+.checkbox-wrapper-inline input[type="checkbox"] {
+  height: 20px;
+  width: 20px;
+  cursor: pointer;
+  z-index: 1;
 }
