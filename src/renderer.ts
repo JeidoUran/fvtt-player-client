@@ -496,7 +496,7 @@ if (cancelThemeButton) {
 window.addEventListener("keydown", (e) => {
   if (e.key === "F1" && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
     e.preventDefault();
-    window.api.popupAppMenu();
+    window.api.showMenu();
   }
 });
 
