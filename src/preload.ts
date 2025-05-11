@@ -153,7 +153,7 @@ const exposedApi: ContextBridgeApi = {
     ipcRenderer.invoke("read-font-file", path) as Promise<string | null>,
   openUserDataFolder: () =>
     ipcRenderer.invoke("open-user-data-folder") as Promise<string>,
-  popupAppMenu: () => ipcRenderer.invoke("app:popup-menu") as Promise<string>,
+  popupAppMenu: () => ipcRenderer.invoke("show-menu") as Promise<string>,
 };
 
 contextBridge.exposeInMainWorld("api", exposedApi);

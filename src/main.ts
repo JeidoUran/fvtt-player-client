@@ -674,7 +674,7 @@ app.whenReady().then(async () => {
   });
 });
 
-ipcMain.handle("app:popup-menu", () => {
+ipcMain.handle("show-menu", () => {
   const w = BrowserWindow.getFocusedWindow();
   if (w) {
     Menu.getApplicationMenu()?.popup({ window: w });
