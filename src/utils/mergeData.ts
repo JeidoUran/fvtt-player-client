@@ -13,6 +13,27 @@ export async function mergeAppData(
     ignoreCertificateErrors:
       imported.ignoreCertificateErrors ?? existing.ignoreCertificateErrors,
     discordRP: imported.discordRP ?? existing.discordRP,
+    serverInfoEnabled: imported.serverInfoEnabled ?? existing.serverInfoEnabled,
+    serverInfoOptions: {
+      statusEnabled:
+        imported.serverInfoOptions?.statusEnabled ??
+        existing.serverInfoOptions.statusEnabled,
+      foundryVersionEnabled:
+        imported.serverInfoOptions?.foundryVersionEnabled ??
+        existing.serverInfoOptions.foundryVersionEnabled,
+      worldEnabled:
+        imported.serverInfoOptions?.worldEnabled ??
+        existing.serverInfoOptions.worldEnabled,
+      gameSystemEnabled:
+        imported.serverInfoOptions?.gameSystemEnabled ??
+        existing.serverInfoOptions.gameSystemEnabled,
+      gameSystemVersionEnabled:
+        imported.serverInfoOptions?.gameSystemVersionEnabled ??
+        existing.serverInfoOptions.gameSystemVersionEnabled,
+      onlinePlayersEnabled:
+        imported.serverInfoOptions?.onlinePlayersEnabled ??
+        existing.serverInfoOptions.onlinePlayersEnabled,
+    },
   };
 
   return merged;
