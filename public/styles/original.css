@@ -256,14 +256,6 @@ td {
   margin-left: 1rem;
 }
 
-.field label {
-  margin-right: 1rem;
-}
-
-.particles-button-field.field label {
-  margin-right: 0;
-}
-
 .help {
   background: var(--color-background);
   pointer-events: all;
