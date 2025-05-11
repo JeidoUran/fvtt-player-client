@@ -19,6 +19,7 @@ import {
   UserData,
   AppConfig,
   ThemeConfig,
+  CURRENT_SCHEMA_VERSION,
 } from "./schemas";
 import {
   enableRichPresence,
@@ -204,15 +205,42 @@ export function getUserData(): UserData {
     console.warn("[getUserData] Zod Validation Failed :", e);
   }
 
-  // final parse otherwise fallback to memory
+  // ── Final parse, then update schemaVersion & lastRunAppVersion ──
   try {
-    return UserDataSchema.parse(rawData) as UserData;
+    const data = UserDataSchema.parse(rawData) as UserData;
+    const appVer = app.getVersion();
+    let dirty = false;
+
+    // Migrate schemaVersion if needed
+    if (data.schemaVersion < CURRENT_SCHEMA_VERSION) {
+      // TODO: run your migration routines here…
+      data.schemaVersion = CURRENT_SCHEMA_VERSION;
+      dirty = true;
+    }
+
+    // Update lastRunAppVersion
+    if (data.lastRunAppVersion !== appVer) {
+      data.lastRunAppVersion = appVer;
+      dirty = true;
+    }
+
+    // If one or the other was increased, rewrite userData.json
+    if (dirty) {
+      try {
+        fs.writeFileSync(userDataPath, JSON.stringify(data, null, 2), "utf-8");
+      } catch (e) {
+        console.warn("[getUserData] Could not persist updated version:", e);
+      }
+    }
+
+    return data;
   } catch (e) {
     console.error(
       "[getUserData] Final parsing failed, regenerating a clean userData :",
       e,
     );
-    return {} as UserData;
+    // As last resort, return an empty userData
+    return UserDataSchema.parse({ app: { games: [] }, theme: {} });
   }
 }
 

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const CURRENT_SCHEMA_VERSION = 2;
+
 export const optionalUrl = z.preprocess((val) => {
   if (typeof val === "string" && val.trim() === "") return undefined;
   return val;
@@ -96,21 +98,23 @@ export const ThemeConfigSchema = z.object({
 });
 export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
 
-// 1) L’objet qui gère uniquement cachePath, app et theme
+// cachePath, app, theme, schemaVersion and lastRunAppVersion
 const UserDataStaticSchema = z.object({
   cachePath: z.string().optional(),
   app: AppConfigSchema.optional(),
   theme: ThemeConfigSchema.optional(),
+  schemaVersion: z.number().default(CURRENT_SCHEMA_VERSION),
+  lastRunAppVersion: z.string().default("0.0.0"),
 });
 
-// 2) On définit le GameUserData
+// GameUserData
 export const GameUserDataSchema = z.object({
   password: z.array(z.number()).optional(),
   user: z.string(),
   adminPassword: z.array(z.number()).optional(),
 });
 
-// 3) Le schéma complet : static + « catchall » pour les clés dynamiques
+// Full schema + "catchall" to account for dynamic keys
 export const UserDataSchema = UserDataStaticSchema.catchall(GameUserDataSchema);
 export type UserData = z.infer<typeof UserDataSchema>;
 

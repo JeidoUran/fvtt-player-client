@@ -74,6 +74,8 @@ type UserData = {
   [index: GameId]: GameUserData;
   app?: AppConfig;
   theme?: ThemeConfig;
+  schemaVersion: number;
+  lastRunAppVersion: string;
 };
 
 type GameUserData = {
