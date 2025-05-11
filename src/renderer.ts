@@ -1019,6 +1019,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // Export Settings
+appVersion = await window.api.appVersion();
 async function exportSettings() {
   const app = await window.api.localAppConfig();
   const rawTheme = await window.api.localThemeConfig();
@@ -1031,7 +1032,7 @@ async function exportSettings() {
     fontSecondaryFilePath,
     ...cleanTheme
   } = parsed;
-  const full = { app, theme: cleanTheme };
+  const full = { clientVersion: appVersion, app, theme: cleanTheme };
   document.getElementById("share-output")!.textContent = JSON.stringify(
     full,
     null,
@@ -1053,7 +1054,10 @@ async function exportTheme() {
     ...cleanTheme
   } = parsed;
   document.getElementById("share-output")!.textContent = JSON.stringify(
-    cleanTheme,
+    {
+      clientVersion: appVersion,
+      theme: cleanTheme,
+    },
     null,
     2,
   );
