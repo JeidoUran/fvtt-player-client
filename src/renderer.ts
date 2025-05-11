@@ -1346,35 +1346,25 @@ function applyAppConfig(config: AppConfig) {
       document.querySelector("#server-infos-toggle") as HTMLInputElement
     ).checked = config.serverInfoEnabled;
   }
-  if (config.serverInfoOptions.statusEnabled) {
-    (
-      document.querySelector("#server-status-toggle") as HTMLInputElement
-    ).checked = config.serverInfoOptions.statusEnabled;
-  }
-  if (config.serverInfoOptions.foundryVersionEnabled) {
-    (
-      document.querySelector("#foundry-version-toggle") as HTMLInputElement
-    ).checked = config.serverInfoOptions.foundryVersionEnabled;
-  }
-  if (config.serverInfoOptions.worldEnabled) {
-    (document.querySelector("#world-toggle") as HTMLInputElement).checked =
-      config.serverInfoOptions.worldEnabled;
-  }
-  if (config.serverInfoOptions.gameSystemEnabled) {
-    (
-      document.querySelector("#game-system-toggle") as HTMLInputElement
-    ).checked = config.serverInfoOptions.gameSystemEnabled;
-  }
-  if (config.serverInfoOptions.gameSystemVersionEnabled) {
-    (
-      document.querySelector("#game-version-toggle") as HTMLInputElement
-    ).checked = config.serverInfoOptions.gameSystemVersionEnabled;
-  }
-  if (config.serverInfoOptions.onlinePlayersEnabled) {
-    (
-      document.querySelector("#online-players-toggle") as HTMLInputElement
-    ).checked = config.serverInfoOptions.onlinePlayersEnabled;
-  }
+
+  const opts = config.serverInfoOptions!;
+
+  (
+    document.querySelector("#server-status-toggle") as HTMLInputElement
+  ).checked = opts.statusEnabled;
+  (
+    document.querySelector("#foundry-version-toggle") as HTMLInputElement
+  ).checked = opts.foundryVersionEnabled;
+  (document.querySelector("#world-toggle") as HTMLInputElement).checked =
+    opts.worldEnabled;
+  (document.querySelector("#game-system-toggle") as HTMLInputElement).checked =
+    opts.gameSystemEnabled;
+  (document.querySelector("#game-version-toggle") as HTMLInputElement).checked =
+    opts.gameSystemVersionEnabled;
+  (
+    document.querySelector("#online-players-toggle") as HTMLInputElement
+  ).checked = opts.onlinePlayersEnabled;
+
   const serverInfoConfig = (document.querySelector(
     ".server-infos-configuration",
   ) as HTMLElement)!;
