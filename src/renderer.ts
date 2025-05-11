@@ -725,11 +725,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     "#server-infos-toggle",
   )!;
   if (appConfig.serverInfoEnabled == true) {
-    serverInfoConfig.style.display = "block";
+    serverInfoConfig.style.display = "grid";
   }
   serverInfoCheckbox.addEventListener("change", () => {
     if (serverInfoCheckbox.checked == true) {
-      serverInfoConfig.style.display = "block";
+      serverInfoConfig.style.display = "grid";
     } else {
       serverInfoConfig.style.display = "none";
     }
@@ -1376,7 +1376,7 @@ function applyAppConfig(config: AppConfig) {
   ) as HTMLInputElement)!;
   const serverInfoToggleEnabled = config.serverInfoEnabled ?? true;
   serverInfoToggle.checked = serverInfoToggleEnabled;
-  serverInfoConfig.style.display = serverInfoToggleEnabled ? "block" : "none";
+  serverInfoConfig.style.display = serverInfoToggleEnabled ? "grid" : "none";
 }
 
 function applyThemeConfig(config: ThemeConfig) {
