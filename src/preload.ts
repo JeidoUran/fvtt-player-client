@@ -56,6 +56,7 @@ export type ContextBridgeApi = {
   chooseFontFile(): Promise<string | null>;
   readFontFile(path: string): Promise<string | null>;
   openUserDataFolder: () => Promise<string>;
+  popupAppMenu: () => Promise<string>;
 };
 const exposedApi: ContextBridgeApi = {
   // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -152,6 +153,7 @@ const exposedApi: ContextBridgeApi = {
     ipcRenderer.invoke("read-font-file", path) as Promise<string | null>,
   openUserDataFolder: () =>
     ipcRenderer.invoke("open-user-data-folder") as Promise<string>,
+  popupAppMenu: () => ipcRenderer.invoke("app:popup-menu") as Promise<string>,
 };
 
 contextBridge.exposeInMainWorld("api", exposedApi);
@@ -172,4 +174,5 @@ contextBridge.exposeInMainWorld("richPresence", {
   },
   chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font"),
   openUserDataFolder: () => ipcRenderer.invoke("open-user-data-folder"),
+  popupAppMenu: () => ipcRenderer.invoke("app:popup-menu"),
 });

@@ -493,6 +493,13 @@ if (cancelThemeButton) {
   });
 }
 
+window.addEventListener("keydown", (e) => {
+  if (e.key === "F1" && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    e.preventDefault();
+    window.api.popupAppMenu();
+  }
+});
+
 document.addEventListener("click", (event) => {
   const target = (event.target as HTMLElement).closest(
     ".toggle-password",

@@ -579,30 +579,63 @@ app.whenReady().then(async () => {
   const viewMenu: MenuItemConstructorOptions = {
     label: "View",
     submenu: [
+      { type: "separator" },
       {
-        label: "Reload",
-        accelerator: "F5",
-        click: () => {
-          const w = BrowserWindow.getFocusedWindow();
-          if (w) w.webContents.reload();
-        },
+        role: "resetZoom",
+        accelerator: "CmdOrCtrl+Num0",
       },
       {
-        label: "Reload (ignore cache)",
-        accelerator: "Ctrl+F5",
-        click: () => {
-          const w = BrowserWindow.getFocusedWindow();
-          if (w) w.webContents.reloadIgnoringCache();
-        },
+        role: "zoomIn",
+        accelerator: "CmdOrCtrl+NumAdd",
+      },
+      {
+        role: "zoomOut",
+        accelerator: "CmdOrCtrl+NumSub",
+      },
+      {
+        role: "resetZoom",
+        visible: false,
+      },
+      {
+        role: "zoomIn",
+        visible: false,
+      },
+      {
+        role: "zoomOut",
+        visible: false,
       },
       { type: "separator" },
       {
-        label: "Toggle Developer Tools",
+        role: "togglefullscreen",
+        accelerator: "F11",
+      },
+      { type: "separator" },
+
+      // ── Reload & DevTools ──
+      {
+        role: "reload",
+        visible: false,
+      },
+      {
+        role: "reload",
+        accelerator: "F5",
+      },
+      {
+        role: "forceReload",
+        visible: false,
+      },
+      {
+        role: "forceReload",
+        accelerator: "Ctrl+F5",
+      },
+      { type: "separator" },
+      {
+        role: "toggleDevTools",
+        visible: false,
+      },
+      {
+        role: "toggleDevTools",
         accelerator: "F12",
-        click: () => {
-          const w = BrowserWindow.getFocusedWindow();
-          if (w) w.webContents.toggleDevTools();
-        },
       },
     ],
   };
@@ -639,6 +672,13 @@ app.whenReady().then(async () => {
       mainWindow.webContents.send("show-notification", "Welcome!");
     }
   });
+});
+
+ipcMain.handle("app:popup-menu", () => {
+  const w = BrowserWindow.getFocusedWindow();
+  if (w) {
+    Menu.getApplicationMenu()?.popup({ window: w });
+  }
 });
 
 ipcMain.on("enable-discord-rpc", (event) => {
