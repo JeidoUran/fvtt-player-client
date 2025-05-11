@@ -1334,6 +1334,13 @@ function applyAppConfig(config: AppConfig) {
       config.discordRP;
   }
 
+  if (config.notificationTimer != null) {
+    const inputTimer = document.querySelector(
+      "#notification-timer",
+    ) as HTMLInputElement;
+    inputTimer.valueAsNumber = config.notificationTimer;
+  }
+
   if (config.serverInfoEnabled) {
     (
       document.querySelector("#server-infos-toggle") as HTMLInputElement
