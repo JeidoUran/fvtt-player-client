@@ -614,6 +614,7 @@ select {
   color: var(--color-text-primary);
   opacity: 0.9;
   align-self: center;
+  padding: 0 1rem;
 }
 
 .tooltip-wrapper {
