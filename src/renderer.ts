@@ -7,6 +7,7 @@ import {
   initNotificationTimer,
   setNotificationTimer,
 } from "./utils/notifications";
+import { getContrastColor } from "./utils/getContrastColor";
 import { safePrompt } from "./utils/safePrompt";
 
 let appVersion: string;
@@ -1657,6 +1658,14 @@ function applyThemeConfig(config: ThemeConfig) {
     lastParticleOptions = null;
     return;
   }
+
+  // Calculates Switch Label color from accentColor
+  const accent = config.accentColor;
+  const labelColor = getContrastColor(accent);
+  document.documentElement.style.setProperty(
+    "--switch-label-color",
+    labelColor,
+  );
 
   const sameOpts =
     lastParticleOptions !== null &&
