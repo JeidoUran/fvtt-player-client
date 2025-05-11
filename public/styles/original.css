@@ -260,6 +260,10 @@ td {
   margin-right: 1rem;
 }
 
+.particles-button-field.field label {
+  margin-right: 0;
+}
+
 .help {
   background: var(--color-background);
   pointer-events: all;
@@ -834,13 +838,27 @@ input[type="range"]:focus::-webkit-slider-thumb {
   padding-right: 1rem;
 }
 
-.server-infos-configuration.field {
-  display: block;
+.server-infos-configuration {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 0.5rem 2rem;
 }
 
 .server-infos-configuration.field label {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   margin-right: 0.25rem;
+  vertical-align: middle;
+}
+
+.server-infos-configuration .switch-wrapper-grid {
+  display: inline-grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.server-infos-configuration .switch-wrapper-grid .switch {
+  justify-self: end;
 }
 
 /* The switch - the box around the slider */
@@ -940,7 +958,7 @@ input:checked+.slider:before {
 }
 
 .switch .slider {
-  line-height: 28px;
+  line-height: 26px;
 }
 
 .switch .slider .switch-label {
@@ -982,5 +1000,5 @@ input:checked+.slider:before {
 }
 
 .switch-wrapper-grid .switch .slider {
-  line-height: 18px;
+  line-height: 15px;
 }
