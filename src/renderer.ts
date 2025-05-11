@@ -827,7 +827,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (resetClientButton) {
     resetClientButton.addEventListener("click", async () => {
       const confirmed = await safePrompt(
-        "Are you sure you want to reset all client settings? This will erase your cache, certificate and Discord settings (games and themes are not affected).",
+        "Are you sure you want to reset all client settings? This will erase your cache, certificate, server status and Discord settings (games and themes are not affected).",
       );
       if (!confirmed) return;
 
