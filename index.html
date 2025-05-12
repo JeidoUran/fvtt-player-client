@@ -141,80 +141,94 @@
               </span>
             </label>
           </div>
-          <div class="server-infos-configuration field">
-            <div class="switch-wrapper-grid">
-              <label class="switch-label"
-                for="server-status-toggle">Online Status</label>
-              <label class="switch">
-                <input id="server-status-toggle" type="checkbox">
-                <span class="slider round">
-                  <span class="switch-label on"><i
-                      class="fa-solid fa-check"></i></span>
-                  <span class="switch-label off"><i
-                      class="fa-solid fa-xmark"></i></span>
-                </span>
-              </label>
+          <div class="server-infos-configuration">
+            <div class="individual-server-infos-options">
+              <div class="switch-wrapper-grid">
+                <label class="switch-label"
+                  for="server-status-toggle">Online Status</label>
+                <label class="switch">
+                  <input id="server-status-toggle" type="checkbox">
+                  <span class="slider round">
+                    <span class="switch-label on"><i
+                        class="fa-solid fa-check"></i></span>
+                    <span class="switch-label off"><i
+                        class="fa-solid fa-xmark"></i></span>
+                  </span>
+                </label>
+              </div>
+              <div class="switch-wrapper-grid">
+                <label class="switch-label" for="foundry-version-toggle">Foundry
+                  Version</label>
+                <label class="switch">
+                  <input id="foundry-version-toggle" type="checkbox">
+                  <span class="slider round">
+                    <span class="switch-label on"><i
+                        class="fa-solid fa-check"></i></span>
+                    <span class="switch-label off"><i
+                        class="fa-solid fa-xmark"></i></span>
+                  </span>
+                </label>
+              </div>
+              <div class="switch-wrapper-grid">
+                <label class="switch-label" for="world-toggle">World
+                  Name</label>
+                <label class="switch">
+                  <input id="world-toggle" type="checkbox">
+                  <span class="slider round">
+                    <span class="switch-label on"><i
+                        class="fa-solid fa-check"></i></span>
+                    <span class="switch-label off"><i
+                        class="fa-solid fa-xmark"></i></span>
+                  </span></label>
+              </div>
+              <div class="switch-wrapper-grid">
+                <label class="switch-label" for="game-system-toggle">Game
+                  System</label>
+                <label class="switch">
+                  <input id="game-system-toggle" type="checkbox">
+                  <span class="slider round">
+                    <span class="switch-label on"><i
+                        class="fa-solid fa-check"></i></span>
+                    <span class="switch-label off"><i
+                        class="fa-solid fa-xmark"></i></span>
+                  </span></label>
+              </div>
+              <div class="switch-wrapper-grid">
+                <label class="switch-label" for="game-version-toggle">Game
+                  System
+                  Version</label>
+                <label class="switch">
+                  <input id="game-version-toggle" type="checkbox">
+                  <span class="slider round">
+                    <span class="switch-label on"><i
+                        class="fa-solid fa-check"></i></span>
+                    <span class="switch-label off"><i
+                        class="fa-solid fa-xmark"></i></span>
+                  </span></label>
+              </div>
+              <div class="switch-wrapper-grid">
+                <label class="switch-label" for="online-players-toggle">Online
+                  Players</label>
+                <label class="switch">
+                  <input id="online-players-toggle" type="checkbox">
+                  <span class="slider round">
+                    <span class="switch-label on"><i
+                        class="fa-solid fa-check"></i></span>
+                    <span class="switch-label off"><i
+                        class="fa-solid fa-xmark"></i></span>
+                  </span>
+                </label>
+              </div>
             </div>
-            <div class="switch-wrapper-grid">
-              <label class="switch-label" for="foundry-version-toggle">Foundry
-                Version</label>
-              <label class="switch">
-                <input id="foundry-version-toggle" type="checkbox">
-                <span class="slider round">
-                  <span class="switch-label on"><i
-                      class="fa-solid fa-check"></i></span>
-                  <span class="switch-label off"><i
-                      class="fa-solid fa-xmark"></i></span>
-                </span>
-              </label>
-            </div>
-            <div class="switch-wrapper-grid">
-              <label class="switch-label" for="world-toggle">World Name</label>
-              <label class="switch">
-                <input id="world-toggle" type="checkbox">
-                <span class="slider round">
-                  <span class="switch-label on"><i
-                      class="fa-solid fa-check"></i></span>
-                  <span class="switch-label off"><i
-                      class="fa-solid fa-xmark"></i></span>
-                </span></label>
-            </div>
-            <div class="switch-wrapper-grid">
-              <label class="switch-label" for="game-system-toggle">Game
-                System</label>
-              <label class="switch">
-                <input id="game-system-toggle" type="checkbox">
-                <span class="slider round">
-                  <span class="switch-label on"><i
-                      class="fa-solid fa-check"></i></span>
-                  <span class="switch-label off"><i
-                      class="fa-solid fa-xmark"></i></span>
-                </span></label>
-            </div>
-            <div class="switch-wrapper-grid">
-              <label class="switch-label" for="game-version-toggle">Game System
-                Version</label>
-              <label class="switch">
-                <input id="game-version-toggle" type="checkbox">
-                <span class="slider round">
-                  <span class="switch-label on"><i
-                      class="fa-solid fa-check"></i></span>
-                  <span class="switch-label off"><i
-                      class="fa-solid fa-xmark"></i></span>
-                </span></label>
-            </div>
-            <div class="switch-wrapper-grid">
-              <label class="switch-label" for="online-players-toggle">Online
-                Players</label>
-              <label class="switch">
-                <input id="online-players-toggle" type="checkbox">
-                <span class="slider round">
-                  <span class="switch-label on"><i
-                      class="fa-solid fa-check"></i></span>
-                  <span class="switch-label off"><i
-                      class="fa-solid fa-xmark"></i></span>
-                </span>
-              </label>
+            <div class="server-infos-ping-rate-field field">
+              <label for="server-infos-ping-rate">Server Status Automatic
+                Refresh
+                Rate</label>
+              <div class="tooltip-wrapper">
+                <input type="range" id="server-infos-ping-rate" min="15"
+                  max="60"
+                  step="1" value="30">
+                <div class="tooltip">Seconds</div></div>
             </div>
           </div>
           <div class="discord-rp-field field">

@@ -161,7 +161,7 @@ button:not(.game-button) {
   font-family: var(--font-primary);
 }
 
-button:not(.game-button):not(.configure-game):hover {
+button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
   border: 2px solid var(--color-accent);
   background: var(--color-button-hover-rgba);
 }
@@ -850,26 +850,29 @@ input[type="range"]:focus::-webkit-slider-thumb {
   padding-right: 1rem;
 }
 
-.server-infos-configuration {
+.individual-server-infos-options {
   display: grid;
   grid-template-columns: repeat(3, auto);
   gap: 0.5rem 2rem;
+  font-family: var(--font-secondary);
+  padding: 0.5rem;
+  align-items: center;
 }
 
-.server-infos-configuration.field label {
+.individual-server-infos-options label {
   font-size: 1.15rem;
   margin-right: 0.25rem;
   vertical-align: middle;
 }
 
-.server-infos-configuration .switch-wrapper-grid {
+.individual-server-infos-options .switch-wrapper-grid {
   display: inline-grid;
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0.5rem;
 }
 
-.server-infos-configuration .switch-wrapper-grid .switch {
+.individual-server-infos-options .switch-wrapper-grid .switch {
   justify-self: end;
 }
 

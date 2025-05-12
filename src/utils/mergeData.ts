@@ -34,6 +34,8 @@ export async function mergeAppData(
         imported.serverInfoOptions?.onlinePlayersEnabled ??
         existing.serverInfoOptions.onlinePlayersEnabled,
     },
+    serverInfoPingRate:
+      imported.serverInfoPingRate ?? existing.serverInfoPingRate,
   };
 
   return merged;

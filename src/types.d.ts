@@ -23,6 +23,7 @@ type AppConfig = {
   notificationTimer?: number;
   serverInfoEnabled?: boolean;
   serverInfoOptions?: ServerInfoOptions;
+  serverInfoPingRate?: number;
 };
 
 interface ServerInfoOptions {

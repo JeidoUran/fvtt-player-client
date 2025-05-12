@@ -51,6 +51,7 @@ export const AppConfigSchema = z.object({
   notificationTimer: z.number().optional(),
   serverInfoEnabled: z.boolean().optional(),
   serverInfoOptions: ServerInfoOptionsSchema,
+  serverInfoPingRate: z.number().optional().default(30),
 });
 export type AppConfig = z.infer<typeof AppConfigSchema>;
 

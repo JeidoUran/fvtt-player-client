@@ -39,6 +39,26 @@ function compareSemver(a: string, b: string): number {
   return 0;
 }
 
+let pingIntervalId: number | null = null;
+
+/**
+ * Sets ping interval from user config
+ */
+async function setupPingInterval() {
+  // Read config and retrieve rate (or fallback to 30 000 ms)
+  const cfg = await window.api.localAppConfig();
+  const seconds = cfg.serverInfoPingRate;
+  const rate = Math.max(1, seconds) * 1000;
+
+  // If there was an interval running already, stop it
+  if (pingIntervalId !== null) {
+    clearInterval(pingIntervalId);
+  }
+
+  // Start a new interval
+  pingIntervalId = window.setInterval(refreshAllServerInfos, rate);
+}
+
 /**
  * Dynamically inject or remove a Google Font from a <link> in <head>.
  * key is here to differentiate <link> (ex. "primary" or "secondary").
@@ -192,6 +212,13 @@ document
         "#online-players-toggle",
       ) as HTMLInputElement
     ).checked;
+    const serverInfoPingRate = Number(
+      (
+        closeUserConfig.querySelector(
+          "#server-infos-ping-rate",
+        ) as HTMLInputElement
+      ).value,
+    );
     const config = {
       cachePath,
       autoCacheClear,
@@ -207,6 +234,7 @@ document
         gameSystemVersionEnabled,
         onlinePlayersEnabled,
       },
+      serverInfoPingRate,
     } as AppConfig;
 
     const rawConfig: unknown = {
@@ -219,6 +247,7 @@ document
       customCSS: config.customCSS,
       serverInfoEnabled: config.serverInfoEnabled,
       serverInfoOptions: config.serverInfoOptions,
+      serverInfoPingRate: config.serverInfoPingRate,
     };
 
     const result = AppConfigSchema.safeParse(rawConfig);
@@ -245,6 +274,7 @@ document
     await window.api.saveAppConfig(validConfig);
     applyAppConfig(validConfig);
     refreshAllServerInfos();
+    await setupPingInterval();
     showNotification("Changes saved");
   });
 
@@ -740,11 +770,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     "#server-infos-toggle",
   )!;
   if (appConfig.serverInfoEnabled == true) {
-    serverInfoConfig.style.display = "grid";
+    serverInfoConfig.style.display = "block";
   }
   serverInfoCheckbox.addEventListener("change", () => {
     if (serverInfoCheckbox.checked == true) {
-      serverInfoConfig.style.display = "grid";
+      serverInfoConfig.style.display = "block";
     } else {
       serverInfoConfig.style.display = "none";
     }
@@ -1404,6 +1434,11 @@ function applyAppConfig(config: AppConfig) {
     ).checked = config.serverInfoEnabled;
   }
 
+  const pingInput = document.querySelector(
+    "#server-infos-ping-rate",
+  ) as HTMLInputElement;
+  pingInput.valueAsNumber = config.serverInfoPingRate;
+
   const opts = config.serverInfoOptions!;
 
   (
@@ -1430,7 +1465,7 @@ function applyAppConfig(config: AppConfig) {
   ) as HTMLInputElement)!;
   const serverInfoToggleEnabled = config.serverInfoEnabled ?? true;
   serverInfoToggle.checked = serverInfoToggleEnabled;
-  serverInfoConfig.style.display = serverInfoToggleEnabled ? "grid" : "none";
+  serverInfoConfig.style.display = serverInfoToggleEnabled ? "block" : "none";
 }
 
 function applyThemeConfig(config: ThemeConfig) {
@@ -2037,7 +2072,11 @@ async function createGameList() {
 
   config.games.forEach(createGameItem);
 }
+// Load UI
+await createGameList();
 
-createGameList();
+// Refreshes servers immediatly
 refreshAllServerInfos();
-setInterval(refreshAllServerInfos, 15_000);
+
+// Sets ping interval from user config
+setupPingInterval();

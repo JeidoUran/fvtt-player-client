@@ -810,7 +810,6 @@ textarea {
 }
 
 .toggle-password:hover {
-  box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
   text-shadow: 0 0 4px var(--color-text-primary);
   text-decoration: none;
   cursor: pointer;
@@ -977,26 +976,29 @@ input[type="range"]:focus::-webkit-slider-thumb {
   padding-right: 0.25rem;
 }
 
-.server-infos-configuration {
+.individual-server-infos-options {
   display: grid;
   grid-template-columns: repeat(3, auto);
   gap: 0.5rem 2rem;
+  font-family: var(--font-secondary);
+  padding: 0.5rem;
+  align-items: center;
 }
 
-.server-infos-configuration.field label {
+.individual-server-infos-options label {
   font-size: 1.15rem;
   margin-right: 0.25rem;
   vertical-align: middle;
 }
 
-.server-infos-configuration .switch-wrapper-grid {
+.individual-server-infos-options .switch-wrapper-grid {
   display: inline-grid;
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0.5rem;
 }
 
-.server-infos-configuration .switch-wrapper-grid .switch {
+.individual-server-infos-options .switch-wrapper-grid .switch {
   justify-self: end;
 }
 
