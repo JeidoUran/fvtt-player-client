@@ -961,10 +961,48 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.addEventListener("click", (event) => {
     const target = (event.target as HTMLElement).closest(
-      ".config-main-button",
+      "#configure-game",
     ) as HTMLButtonElement | null;
     if (target) {
       toggleConfigureGame(event as MouseEvent);
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    // was refresh button clicked?
+    const btn = (event.target as HTMLElement).closest(
+      "#refresh-game",
+    ) as HTMLButtonElement | null;
+    if (!btn) return;
+
+    // retrieve <li class="game-item">
+    const li = btn.closest(".game-item") as HTMLElement | null;
+    if (!li) return;
+
+    // extract ID and retrieve correct config
+    const key = li.dataset.gameId;
+    const game = games.find((g) => String(g.id) === key);
+    if (!game) return;
+
+    // animate spinner icon
+    const icon = btn.querySelector("i");
+    if (icon) {
+      const originalClass = icon.className;
+      icon.className = "fa-solid fa-spinner fa-spin";
+
+      updateServerInfos(li, game, seenOffline)
+        .catch((err) => {
+          console.warn(`updateServerInfos failed for ${game.name}:`, err);
+        })
+        .finally(() => {
+          showNotification("Server status refreshed");
+          icon.className = originalClass;
+        });
+    } else {
+      // fallback if no icon
+      updateServerInfos(li, game, seenOffline).catch((err) => {
+        console.warn(`updateServerInfos failed for ${game.name}:`, err);
+      });
     }
   });
 
@@ -1746,7 +1784,7 @@ async function migrateConfig() {
 async function getServerInfo(
   game: GameConfig,
 ): Promise<ServerStatusData | null> {
-  // plus de fetch CORS, on appelle main
+  // no more CORS fetch, go through main.ts
   return window.api.pingServer(game.url);
 }
 async function updateServerInfos(

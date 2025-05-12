@@ -516,8 +516,20 @@ a {
 
 select {
   font-family: var(--font-primary);
-  width: 150px;
-  height: 1.75rem;
+  background: var(--color-button-rgba);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-text-primary);
+  padding: 0.25rem 1rem;
+  font-size: 1rem;
+  width: 15em;
+  height: 2rem;
+}
+
+select option {
+  background: var(--color-button);
+  color: var(--color-text-primary);
+  padding: 0.5rem;
+  line-height: 1.8;
 }
 
 #notification-area {
@@ -590,6 +602,13 @@ select {
 }
 
 .config-main-button {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.game-title-bar .config-main-button {
+  flex: 1;
   position: relative;
   display: flex;
   align-items: stretch;
@@ -994,4 +1013,10 @@ input:checked+.slider:before {
 
 .switch-wrapper-grid .switch .slider {
   line-height: 15px;
+}
+
+.game-title-bar .config-refresh-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }

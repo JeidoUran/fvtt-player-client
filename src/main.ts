@@ -846,7 +846,7 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
 
 ipcMain.handle("ping-server", async (_e, rawUrl: string) => {
   try {
-    // on limite à 5 sec
+    // 5 sec at most before timing out
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
 
@@ -855,9 +855,8 @@ ipcMain.handle("ping-server", async (_e, rawUrl: string) => {
     clearTimeout(timer);
 
     if (!res.ok) return null;
-    return await res.json(); // renvoie l’objet ServerStatusData
+    return await res.json(); // returns ServerStatusData
   } catch (err: any) {
-    // ici pas de CORS, donc on gère juste abort ou erreur réseau
     return null;
   }
 });
