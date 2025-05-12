@@ -93,6 +93,10 @@ async function updateGameList(task: (appConfig: AppConfig) => void) {
   window.api.saveAppConfig(appConfig);
 }
 
+window.api.onDownloadStarted(({ fileName }) => {
+  showNotification(`Downloading update: ${fileName}`);
+});
+
 window.api.showNotification((message: string) => {
   showNotification(message);
 });
@@ -2070,7 +2074,7 @@ async function createGameList() {
   });
 
   let latestVersion: string = "Unknown";
-
+  let latestAssetUrl: string | null = null;
   try {
     const response = await fetch(
       "https://api.github.com/repos/JeidoUran/fvtt-player-client/releases/latest",
@@ -2079,6 +2083,25 @@ async function createGameList() {
     if (response.ok) {
       const data = await response.json();
       latestVersion = data["tag_name"];
+      if (Array.isArray(data.assets)) {
+        const plat = window.api.platform;
+        let exts: string[];
+        if (plat === "win32") {
+          // Squirrel installer
+          exts = ["-setup.exe", ".exe"];
+        } else if (plat === "darwin") {
+          // dmg or zip
+          exts = [".dmg", ".zip"];
+        } else {
+          // deb, rpm then zip
+          exts = [".deb", ".rpm", ".zip"];
+        }
+        // Look for suitable asset
+        const asset = data.assets.find((a: any) =>
+          exts.some((ext) => a.name.endsWith(ext)),
+        );
+        latestAssetUrl = asset?.browser_download_url ?? null;
+      }
     } else {
       showNotification("Failed to fetch latest version number");
       console.warn(
@@ -2094,6 +2117,14 @@ async function createGameList() {
     showNotification("An update is available !");
     document.querySelector(".update-available").classList.remove("hidden2");
     document.querySelector(".version-normal").classList.add("hidden2");
+
+    const btn = document.querySelector<HTMLElement>(".update-available");
+    if (btn && latestAssetUrl) {
+      btn.addEventListener("click", () => {
+        showNotification("Download starting…");
+        window.api.downloadUpdate(latestAssetUrl);
+      });
+    }
   }
 
   gameItemList.querySelectorAll("li").forEach((li) => li.remove());

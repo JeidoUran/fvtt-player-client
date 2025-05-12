@@ -58,6 +58,11 @@ export type ContextBridgeApi = {
   openUserDataFolder: () => Promise<string>;
   showMenu: () => Promise<string>;
   pingServer: (url: string) => Promise<ServerStatusData | null>;
+  downloadUpdate: (assetUrl: string) => Promise<void>;
+  onDownloadStarted: (
+    cb: (info: { fileName: string; savePath: string }) => void,
+  ) => void;
+  platform: NodeJS.Platform;
 };
 const exposedApi: ContextBridgeApi = {
   // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -157,6 +162,15 @@ const exposedApi: ContextBridgeApi = {
   showMenu: () => ipcRenderer.invoke("show-menu") as Promise<string>,
   pingServer: (url: string) =>
     ipcRenderer.invoke("ping-server", url) as Promise<ServerStatusData | null>,
+  downloadUpdate: (url: string) =>
+    ipcRenderer.invoke("download-update", url) as Promise<void>,
+  onDownloadStarted: (cb) =>
+    ipcRenderer.on(
+      "update-download-started",
+      (_e: IpcRendererEvent, info: { fileName: string; savePath: string }) =>
+        cb(info),
+    ),
+  platform: process.platform,
 };
 
 contextBridge.exposeInMainWorld("api", exposedApi);

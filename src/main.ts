@@ -872,6 +872,45 @@ app.on("activate", (_, hasVisibleWindows) => {
   }
 });
 
+let pendingAssetUrl: string | null = null;
+
+ipcMain.handle("download-update", (_e, assetUrl: string) => {
+  pendingAssetUrl = assetUrl;
+  const win = BrowserWindow.getFocusedWindow()!;
+  // triggers will-download in webContents
+  win.webContents.downloadURL(assetUrl);
+});
+
+// Intercepts all downloads and handles saving + installing
+app.on("web-contents-created", (_event, contents) => {
+  contents.session.on("will-download", (event, item) => {
+    const fileName = item.getFilename();
+    const savePath = path.join(app.getPath("temp"), fileName);
+
+    // deletes old path if present
+    try {
+      fs.unlinkSync(savePath);
+    } catch {}
+
+    item.setSavePath(savePath);
+
+    // notify renderer that download has started
+    const win = BrowserWindow.fromWebContents(contents)!;
+    win.webContents.send("update-download-started", { fileName, savePath });
+
+    item.once("done", async (_e, state) => {
+      if (state === "completed") {
+        // launches installer
+        await shell.openPath(savePath);
+        // quit app to let installer do its thing
+        app.quit();
+      } else {
+        dialog.showErrorBox("Update failed", `Download ${state}`);
+      }
+    });
+  });
+});
+
 function getLoginDetails(gameId: GameId): GameUserDataDecrypted {
   const userData = getUserData()[gameId];
   if (!userData) return { user: "", password: "", adminPassword: "" };
