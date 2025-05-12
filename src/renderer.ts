@@ -765,20 +765,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const serverInfoConfig = document.querySelector<HTMLElement>(
     ".server-infos-configuration",
-  )!;
+  );
   const serverInfoCheckbox = document.querySelector<HTMLInputElement>(
     "#server-infos-toggle",
-  )!;
-  if (appConfig.serverInfoEnabled == true) {
-    serverInfoConfig.style.display = "block";
+  );
+  if (serverInfoConfig && serverInfoCheckbox) {
+    const setServerUI = (enabled: boolean) => {
+      // stores toggle status
+      serverInfoCheckbox.checked = enabled;
+      // show/hide server status block
+      serverInfoConfig.style.display = enabled ? "block" : "none";
+      // show/hide every "refresh" buttons
+      document
+        .querySelectorAll<HTMLElement>(".config-main-button.refresh")
+        .forEach((btn) => {
+          btn.style.display = enabled ? "flex" : "none";
+          console.log("test");
+        });
+    };
+
+    // initial state from loaded config
+    setServerUI(appConfig.serverInfoEnabled ?? true);
+    // apply logic to each toggle
+    serverInfoCheckbox.addEventListener("change", () => {
+      setServerUI(serverInfoCheckbox.checked);
+    });
   }
-  serverInfoCheckbox.addEventListener("change", () => {
-    if (serverInfoCheckbox.checked == true) {
-      serverInfoConfig.style.display = "block";
-    } else {
-      serverInfoConfig.style.display = "none";
-    }
-  });
 
   const particlesConfig =
     document.querySelector<HTMLElement>(".particles-config")!;
@@ -1319,6 +1331,17 @@ async function createGameItem(game: GameConfig) {
   });
   gameItemList.appendChild(li);
   await updateServerInfos(li, game, seenOffline);
+
+  // Retrieve app config from userData
+  const appConfig = await window.api.localAppConfig();
+  // Hide or display each "Refresh server" button
+  document
+    .querySelectorAll<HTMLElement>(".config-main-button.refresh")
+    .forEach((btn) => {
+      btn.style.display =
+        (appConfig.serverInfoEnabled ?? true) ? "flex" : "none";
+    });
+
   renderTooltips();
   const userConfiguration = li.querySelector(
     "div.user-configuration",
@@ -1457,15 +1480,23 @@ function applyAppConfig(config: AppConfig) {
     document.querySelector("#online-players-toggle") as HTMLInputElement
   ).checked = opts.onlinePlayersEnabled;
 
-  const serverInfoConfig = (document.querySelector(
+  // Display serverInfo and refresh button
+  const serverInfoConfig = document.querySelector(
     ".server-infos-configuration",
-  ) as HTMLElement)!;
-  const serverInfoToggle = (document.querySelector(
+  ) as HTMLElement | null;
+  const serverInfoToggle = document.querySelector(
     "#server-infos-toggle",
-  ) as HTMLInputElement)!;
-  const serverInfoToggleEnabled = config.serverInfoEnabled ?? true;
-  serverInfoToggle.checked = serverInfoToggleEnabled;
-  serverInfoConfig.style.display = serverInfoToggleEnabled ? "block" : "none";
+  ) as HTMLInputElement | null;
+
+  if (serverInfoConfig && serverInfoToggle) {
+    const enabled = config.serverInfoEnabled ?? true;
+
+    // checks button status
+    serverInfoToggle.checked = enabled;
+
+    // show/hide server status block
+    serverInfoConfig.style.display = enabled ? "block" : "none";
+  }
 }
 
 function applyThemeConfig(config: ThemeConfig) {
@@ -2065,12 +2096,12 @@ async function createGameList() {
     document.querySelector(".version-normal").classList.add("hidden2");
   }
 
-  applyAppConfig(appConfig);
-  applyThemeConfig(themeConfig);
-
   gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 
   config.games.forEach(createGameItem);
+
+  applyAppConfig(appConfig);
+  applyThemeConfig(themeConfig);
 }
 // Load UI
 await createGameList();

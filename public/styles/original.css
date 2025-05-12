@@ -161,7 +161,7 @@ button:not(.game-button) {
   font-family: var(--font-primary);
 }
 
-button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
+button:not(.game-button):not(.configure-game):not(.refresh-game):not(.toggle-password):hover {
   border: 2px solid var(--color-accent);
   background: var(--color-button-hover-rgba);
 }
@@ -465,6 +465,22 @@ a {
   background-color: transparent;
 }
 
+.refresh-game {
+  height: 100%;
+  width: 100%;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.2rem;
+  margin: 0 0.5rem 0 auto;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+
 .configure-game:hover {
   cursor: pointer;
   border: none;
@@ -475,6 +491,19 @@ a {
 }
 
 .configure-game .fa-gear:hover {
+  opacity: 1;
+}
+
+.refresh-game:hover {
+  cursor: pointer;
+  border: none;
+}
+
+.refresh-game .fa-gear {
+  opacity: 0.3;
+}
+
+.refresh-game .fa-gear:hover {
   opacity: 1;
 }
 

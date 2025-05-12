@@ -148,7 +148,7 @@ button:not(.game-button) {
   transition: all 0.3s ease;
 }
 
-button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
+button:not(.game-button):not(.configure-game):not(.refresh-game):not(.toggle-password):hover {
   background: var(--color-button-hover-rgba);
   box-shadow: 0 0 10px var(--color-accent);
   text-shadow: 0 0 4px var(--color-text-primary);
@@ -478,6 +478,23 @@ a {
   background-color: transparent;
 }
 
+.game-title-bar .refresh-game {
+  height: 100%;
+  width: 100%;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0;
+  margin: 0 1rem 0 1rem;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+}
+
 .game-title-bar .config-button-wrapper {
   flex-grow: 1;
   display: flex;
@@ -528,6 +545,10 @@ a {
 }
 
 .game-title-bar .config-main-button:hover .configure-game {
+  transform: scale(1.25);
+}
+
+.game-title-bar .config-main-button:hover .refresh-game {
   transform: scale(1.25);
 }
 
@@ -825,7 +846,18 @@ textarea {
   transition: all 0.3s ease-in-out;
 }
 
+.refresh-game i {
+  transition: all 0.3s ease-in-out;
+}
+
+
 .config-button-wrapper:hover .configure-game i {
+  text-shadow: 0 0 4px var(--color-text-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.config-button-wrapper:hover .refresh-game i {
   text-shadow: 0 0 4px var(--color-text-primary);
   text-decoration: none;
   cursor: pointer;
