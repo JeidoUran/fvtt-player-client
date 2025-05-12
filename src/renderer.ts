@@ -1905,7 +1905,7 @@ async function updateServerInfos(
   const wasOffline = seenOffline.get(idKey) ?? false;
   const nowOffline = info === null;
 
-  // loggue **uniquement** quand on passe de up→down ou down→up
+  // log **only** when status goes up→down or down→up
   if (nowOffline && !wasOffline) {
     console.warn(`Server ${game.name} is unreachable.`);
   }
@@ -1967,12 +1967,12 @@ function refreshAllServerInfos() {
   );
 
   gameItems.forEach((item) => {
-    // Retrouve le GameConfig correspondant via le dataset
+    // Retrieves GameConfig from dataset
     const key = item.dataset.gameId!;
     const game = games.find((g) => String(g.id) === key);
     if (!game) return;
 
-    // Passe désormais seenOffline en 3e argument
+    // Pass seenOffline as 3rd arg
     updateServerInfos(item, game, seenOffline).catch((err) => {
       console.warn(`updateServerInfos failed for ${game.name}:`, err);
     });
