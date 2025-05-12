@@ -2106,7 +2106,7 @@ async function createGameList() {
 // Load UI
 await createGameList();
 
-// Refreshes servers immediatly
+// Refreshes servers
 refreshAllServerInfos();
 
 // Sets ping interval from user config
