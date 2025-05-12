@@ -1004,7 +1004,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.addEventListener("click", (event) => {
     const target = (event.target as HTMLElement).closest(
-      "#configure-game",
+      ".config-main-button.config",
     ) as HTMLButtonElement | null;
     if (target) {
       toggleConfigureGame(event as MouseEvent);
@@ -1014,7 +1014,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.addEventListener("click", (event) => {
     // was refresh button clicked?
     const btn = (event.target as HTMLElement).closest(
-      "#refresh-game",
+      ".config-main-button.refresh",
     ) as HTMLButtonElement | null;
     if (!btn) return;
 
