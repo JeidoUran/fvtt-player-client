@@ -67,7 +67,6 @@ body::after {
 .content {
   user-select: none;
   position: absolute;
-
   color: var(--color-text-primary);
   font-family: "Open Sans", sans-serif;
   font-size: 16px;
@@ -152,7 +151,7 @@ button:not(.game-button) {
 button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
   background: var(--color-button-hover-rgba);
   box-shadow: 0 0 10px var(--color-accent);
-  text-shadow: 0 0 4px var(--color-accent);
+  text-shadow: 0 0 4px var(--color-text-primary);
   text-decoration: none;
   cursor: pointer;
   transform: scale(1.01);
@@ -208,7 +207,6 @@ button:not(.game-button):not(.configure-game):not(.toggle-password):hover {
   overflow: hidden;
   transition: all 0.3s ease-in-out;
   backdrop-filter: blur(5px);
-  text-shadow: 0 0 5px black;
   box-shadow: 0 0 5px black;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -491,7 +489,7 @@ a {
 .game-title-bar .config-button-wrapper:hover {
   background: var(--color-button-hover-rgba);
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
-  text-shadow: 0 0 4px var(--color-accent);
+  text-shadow: 0 0 4px var(--color-text-primary);
   text-decoration: none;
   cursor: pointer;
 }
@@ -588,9 +586,9 @@ a {
 
 select {
   font-family: var(--font-primary);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--color-button-rgba);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-text-primary);
+  border: 2px solid var(--color-text-primary);
   padding: 0.25rem 1rem;
   font-size: 1rem;
   border-radius: 6px;
@@ -598,7 +596,7 @@ select {
 }
 
 select option {
-  background-color: var(--color-background);
+  background: var(--color-button);
   color: var(--color-text-primary);
   padding: 0.5rem;
   line-height: 1.8;
@@ -686,7 +684,7 @@ textarea {
 }
 
 .game-main-button:hover .server-infos {
-  text-shadow: 0 0 1px var(--color-accent);
+  text-shadow: 0 0 1px var(--color-text-primary);
 }
 
 .game-main-button {
@@ -703,7 +701,7 @@ textarea {
   transform: scale(1.03);
   background: var(--color-button-hover-rgba);
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
-  text-shadow: 0 0 3px var(--color-accent);
+  text-shadow: 0 0 3px var(--color-text-primary);
   text-decoration: none;
   cursor: pointer;
 }
@@ -812,7 +810,7 @@ textarea {
 
 .toggle-password:hover {
   box-shadow: 0 0 10px rgba(136, 192, 169, 0.5);
-  text-shadow: 0 0 4px var(--color-accent);
+  text-shadow: 0 0 4px var(--color-text-primary);
   text-decoration: none;
   cursor: pointer;
   transform: scale(1.15);
@@ -828,7 +826,7 @@ textarea {
 }
 
 .config-button-wrapper:hover .configure-game i {
-  text-shadow: 0 0 4px var(--color-accent);
+  text-shadow: 0 0 4px var(--color-text-primary);
   text-decoration: none;
   cursor: pointer;
 }
