@@ -1,4 +1,4 @@
-import { hexToRgba } from "../renderer";
+import { hexToRgba } from "./hexToRgba";
 
 // Canvas and context variables
 let canvas: HTMLCanvasElement;
