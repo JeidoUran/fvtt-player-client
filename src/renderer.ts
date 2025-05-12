@@ -1,6 +1,11 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from "./utils/particles";
-import { AppConfigSchema, ThemeConfigSchema, ParticleOptions } from "./schemas";
+import {
+  AppConfigSchema,
+  ThemeConfigSchema,
+  ParticleOptions,
+  GameConfig,
+} from "./schemas";
 import { mergeAppData, mergeThemeData } from "./utils/mergeData";
 import {
   showNotification,
@@ -14,6 +19,7 @@ let appVersion: string;
 let preventMenuClose = false;
 let lastParticleOptions: ParticleOptions | null = null;
 let games: GameConfig[] = [];
+const seenOffline = new Map<string, boolean>();
 
 function compareSemver(a: string, b: string): number {
   const splitA = a.split(".");
@@ -1243,7 +1249,7 @@ async function createGameItem(game: GameConfig) {
     window.location.href = game.url;
   });
   gameItemList.appendChild(li);
-  await updateServerInfos(li, game);
+  await updateServerInfos(li, game, seenOffline);
   renderTooltips();
   const userConfiguration = li.querySelector(
     "div.user-configuration",
@@ -1737,60 +1743,22 @@ async function migrateConfig() {
   window.api.saveAppConfig(localAppConfig);
 }
 
-function cleanBaseUrl(inputUrl: string): string {
-  try {
-    const url = new URL(inputUrl);
-
-    let baseUrl = `${url.protocol}//${url.hostname}`;
-    if (url.port) {
-      baseUrl += `:${url.port}`;
-    }
-    return baseUrl;
-  } catch (error) {
-    console.error("Invalid URL provided:", inputUrl);
-    return inputUrl;
-  }
-}
-
 async function getServerInfo(
   game: GameConfig,
 ): Promise<ServerStatusData | null> {
-  try {
-    const gameUrl = cleanBaseUrl(game.url);
-    const response = await fetch(`${gameUrl}/api/status`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    });
-
-    if (!response.ok) {
-      console.warn(`Failed to fetch server info for ${game.name}`);
-      return null;
-    }
-
-    const data = await response.json();
-    return {
-      active: data.active,
-      version: data.version,
-      world: data.world,
-      system: data.system,
-      systemVersion: data.systemVersion,
-      users: data.users,
-      uptime: data.uptime,
-    };
-  } catch (error) {
-    console.error(`Error fetching server info for ${game.name}:`, error);
-    return null;
-  }
+  // plus de fetch CORS, on appelle main
+  return window.api.pingServer(game.url);
 }
-
-async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
+async function updateServerInfos(
+  item: HTMLElement,
+  game: GameConfig,
+  seenOffline: Map<string, boolean>,
+) {
   // Retrieve user config
   const { serverInfoEnabled = true, serverInfoOptions } =
     await window.api.localAppConfig();
 
-  const serverInfos = gameItem.querySelector(
+  const serverInfos = item.querySelector(
     ".server-infos",
   ) as HTMLDivElement | null;
   if (!serverInfos) return;
@@ -1844,6 +1812,18 @@ async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
 
   // Ping server
   const info = await getServerInfo(game);
+  const idKey = String(game.id);
+  const wasOffline = seenOffline.get(idKey) ?? false;
+  const nowOffline = info === null;
+
+  // loggue **uniquement** quand on passe de up→down ou down→up
+  if (nowOffline && !wasOffline) {
+    console.warn(`Server ${game.name} is unreachable.`);
+  }
+  if (!nowOffline && wasOffline) {
+    console.info(`Server ${game.name} is back online.`);
+  }
+  seenOffline.set(idKey, nowOffline);
 
   // If it fails, displays "-"
   if (!info) {
@@ -1891,22 +1871,23 @@ async function updateServerInfos(gameItem: HTMLElement, game: GameConfig) {
   }
 }
 
-async function refreshAllServerInfos() {
-  const gameItems = document.querySelectorAll(".game-item");
+function refreshAllServerInfos() {
+  const seenOffline = new Map<string, boolean>();
+  const gameItems = Array.from(
+    document.querySelectorAll<HTMLElement>(".game-item"),
+  );
 
-  for (const item of gameItems) {
-    const gameId = Number(item.getAttribute("data-game-id"));
-    if (!gameId) continue;
+  gameItems.forEach((item) => {
+    // Retrouve le GameConfig correspondant via le dataset
+    const key = item.dataset.gameId!;
+    const game = games.find((g) => String(g.id) === key);
+    if (!game) return;
 
-    const game = games.find((g) => g.id === gameId);
-    if (!game) continue;
-
-    try {
-      await updateServerInfos(item as HTMLElement, game);
-    } catch (err) {
-      console.error("Error in updateServerInfos:", err);
-    }
-  }
+    // Passe désormais seenOffline en 3e argument
+    updateServerInfos(item, game, seenOffline).catch((err) => {
+      console.warn(`updateServerInfos failed for ${game.name}:`, err);
+    });
+  });
 }
 
 function renderTooltips() {
@@ -2034,5 +2015,6 @@ async function createGameList() {
   config.games.forEach(createGameItem);
 }
 
-await createGameList();
-setInterval(refreshAllServerInfos, 15000);
+createGameList();
+refreshAllServerInfos();
+setInterval(refreshAllServerInfos, 15_000);

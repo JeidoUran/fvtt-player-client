@@ -9,6 +9,7 @@ export const optionalUrl = z.preprocess((val) => {
 
 // Primitive type aliases
 export const GameIdSchema = z.union([z.string(), z.number()]);
+export type GameId = z.infer<typeof GameIdSchema>;
 
 // GameConfig
 export const GameConfigSchema = z.object({

@@ -6,7 +6,7 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 
 type GameId = string | number;
 
-type GameConfig = {
+type GameConfigType = {
   name: string;
   url: string;
   id?: GameId;

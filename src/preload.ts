@@ -57,6 +57,7 @@ export type ContextBridgeApi = {
   readFontFile(path: string): Promise<string | null>;
   openUserDataFolder: () => Promise<string>;
   showMenu: () => Promise<string>;
+  pingServer: (url: string) => Promise<ServerStatusData | null>;
 };
 const exposedApi: ContextBridgeApi = {
   // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
@@ -154,6 +155,8 @@ const exposedApi: ContextBridgeApi = {
   openUserDataFolder: () =>
     ipcRenderer.invoke("open-user-data-folder") as Promise<string>,
   showMenu: () => ipcRenderer.invoke("show-menu") as Promise<string>,
+  pingServer: (url: string) =>
+    ipcRenderer.invoke("ping-server", url) as Promise<ServerStatusData | null>,
 };
 
 contextBridge.exposeInMainWorld("api", exposedApi);
@@ -174,5 +177,6 @@ contextBridge.exposeInMainWorld("richPresence", {
   },
   chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font"),
   openUserDataFolder: () => ipcRenderer.invoke("open-user-data-folder"),
-  showMenu: () => ipcRenderer.invoke("app:popup-menu"),
+  showMenu: () => ipcRenderer.invoke("show-menu"),
+  pingServer: (url: string) => ipcRenderer.invoke("ping-server", url),
 });

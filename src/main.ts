@@ -32,6 +32,7 @@ import {
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import fetch from "node-fetch";
 
 if (require("electron-squirrel-startup")) app.quit();
 
@@ -841,6 +842,24 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
     JSON.stringify(currentData, null, 2),
     "utf-8",
   );
+});
+
+ipcMain.handle("ping-server", async (_e, rawUrl: string) => {
+  try {
+    // on limite à 5 sec
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+
+    const pingUrl = new URL("/api/status", rawUrl).toString();
+    const res = await fetch(pingUrl, { signal: controller.signal });
+    clearTimeout(timer);
+
+    if (!res.ok) return null;
+    return await res.json(); // renvoie l’objet ServerStatusData
+  } catch (err: any) {
+    // ici pas de CORS, donc on gère juste abort ou erreur réseau
+    return null;
+  }
 });
 
 ipcMain.on("return-select", (e) => {
