@@ -23,6 +23,10 @@
       "url": "https://github.com/JeidoUran"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JeidoUran/fvtt-player-client.git"
+  },
   "devDependencies": {
     "@electron-forge/cli": "^7.8.0",
     "@electron-forge/maker-deb": "^7.8.0",
