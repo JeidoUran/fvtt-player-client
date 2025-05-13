@@ -934,17 +934,22 @@ app.on("web-contents-created", (_event, contents) => {
           }
 
           if (termCmd) {
-            // 2) lance le terminal en détaché pour sudo dpkg -i
+            // lance un terminal pour sudo dpkg -i
             const installer = spawn(
               termCmd,
               [
                 "--",
                 "bash",
                 "-c",
-                `sudo dpkg -i "${savePath}" && echo; echo "Installation terminée. Appuyez sur Entrée pour fermer." && read`,
+                `sudo dpkg -i "${savePath}" && echo; echo "Update completed. Press Enter to close." && read`,
               ],
-              { detached: true, stdio: "ignore" },
+              { stdio: "ignore" },
             );
+            // Dès que l'installation se termine, on relance l'app puis on quitte
+            installer.on("exit", () => {
+              app.relaunch();
+              app.exit(0);
+            });
             installer.unref();
           } else {
             // fallback minimal
@@ -952,13 +957,16 @@ app.on("web-contents-created", (_event, contents) => {
               detached: true,
               stdio: "ignore",
             }).unref();
+            // en fallback on quitte tout de suite
+            app.relaunch();
+            app.exit(0);
           }
         } else {
-          // Windows/macOS : on garde shell.openPath
+          // Windows/macOS : lance l'installateur et quitte
           await shell.openPath(savePath);
+          app.relaunch();
+          app.exit(0);
         }
-        // quitte tout de suite : le terminal continue de tourner
-        app.quit();
       } else {
         dialog.showErrorBox("Update failed", `Download ${state}`);
       }
