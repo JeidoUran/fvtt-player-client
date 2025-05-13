@@ -916,13 +916,12 @@ app.on("web-contents-created", (_event, contents) => {
     item.once("done", async (_e, state) => {
       if (state === "completed") {
         if (process.platform === "linux") {
-          // 1) liste de terminaux à tester
+          // 1) liste de terminaux, xterm d'abord car il bloque
           const terms = [
+            "xterm",
             "gnome-terminal",
-            "x-terminal-emulator",
             "konsole",
             "xfce4-terminal",
-            "xterm",
           ];
           let termCmd: string | undefined;
           for (const t of terms) {
@@ -934,19 +933,39 @@ app.on("web-contents-created", (_event, contents) => {
           }
 
           if (termCmd) {
-            // lance un terminal pour sudo dpkg -i
-            const installer = spawn(
-              termCmd,
-              [
-                "--",
-                "bash",
-                "-c",
-                `sudo dpkg -i "${savePath}" && echo; echo "Update completed. Press Enter to close." && read`,
-              ],
-              { stdio: "ignore" },
-            );
+            // 2) construit les args selon le terminal
+            let args: string[];
+            if (termCmd === "xterm") {
+              args = [
+                "-hold",
+                "-e",
+                `bash -c "sudo dpkg -i '${savePath}' && echo; echo 'Update completed. Press Enter to exit.'; read"`,
+              ];
+            } else {
+              // gnome-terminal, konsole, etc. : on demande le --wait si possible
+              args =
+                termCmd === "gnome-terminal"
+                  ? [
+                      "--wait",
+                      "--",
+                      "bash",
+                      "-c",
+                      `sudo dpkg -i '${savePath}'; read -p 'Press Enter to close.'`,
+                    ]
+                  : [
+                      "-e",
+                      `bash -c "sudo dpkg -i '${savePath}' && read -p 'Press Enter to close.'"`,
+                    ];
+            }
+
+            // 3) spawn du terminal bloquant
+            const installer = spawn(termCmd, args, {
+              detached: true,
+              stdio: "ignore",
+            });
             // Dès que l'installation se termine, on relance l'app puis on quitte
             installer.on("exit", () => {
+              // sous Linux, on relance après install uniquement
               app.relaunch();
               app.exit(0);
             });
@@ -958,13 +977,11 @@ app.on("web-contents-created", (_event, contents) => {
               stdio: "ignore",
             }).unref();
             // en fallback on quitte tout de suite
-            app.relaunch();
             app.exit(0);
           }
         } else {
           // Windows/macOS : lance l'installateur et quitte
           await shell.openPath(savePath);
-          app.relaunch();
           app.exit(0);
         }
       } else {
