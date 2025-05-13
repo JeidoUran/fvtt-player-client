@@ -1456,11 +1456,11 @@ function applyAppConfig(config: AppConfig) {
       config.discordRP;
   }
 
-  if (config.fullScreenEnabled) {
-    (
-      document.querySelector("#full-screen-toggle") as HTMLInputElement
-    ).checked = config.fullScreenEnabled;
-  }
+  const fsToggle = document.querySelector(
+    "#full-screen-toggle",
+  ) as HTMLInputElement;
+  fsToggle.checked = config.fullScreenEnabled ?? false;
+  window.api.setFullScreen(config.fullScreenEnabled ?? false);
 
   if (config.notificationTimer != null) {
     const inputTimer = document.querySelector(

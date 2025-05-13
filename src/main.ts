@@ -305,6 +305,14 @@ function createWindow(): BrowserWindow {
     },
   });
 
+  // ── Applies fullscreen according to user config ──
+  try {
+    const cfg = getAppConfig();
+    win.setFullScreen(cfg.fullScreenEnabled ?? false);
+  } catch (e) {
+    console.warn("[createWindow] Impossible d’appliquer le plein écran :", e);
+  }
+
   win.webContents.on("page-favicon-updated", (_event, favicons) => {
     if (!favicons.length) return;
     const faviconUrl = favicons[0];
@@ -575,7 +583,7 @@ function createWindow(): BrowserWindow {
   });
 
   win.once("ready-to-show", () => {
-    win.maximize();
+    if (!win.isFullScreen()) win.maximize();
     win.show();
   });
   win.on("closed", () => {
@@ -870,6 +878,12 @@ app.on("activate", (_, hasVisibleWindows) => {
   if (!hasVisibleWindows) {
     createWindow();
   }
+});
+
+ipcMain.on("set-fullscreen", (event, fullscreen: boolean) => {
+  const w = BrowserWindow.fromWebContents(event.sender);
+  if (w) w.setFullScreen(fullscreen);
+  if ((fullscreen = true)) w.maximize();
 });
 
 let pendingAssetUrl: string | null = null;

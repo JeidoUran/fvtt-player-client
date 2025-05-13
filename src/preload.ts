@@ -62,6 +62,7 @@ export type ContextBridgeApi = {
   onDownloadStarted: (
     cb: (info: { fileName: string; savePath: string }) => void,
   ) => void;
+  setFullScreen: (fullscreen: boolean) => void;
   platform: NodeJS.Platform;
 };
 const exposedApi: ContextBridgeApi = {
@@ -171,6 +172,7 @@ const exposedApi: ContextBridgeApi = {
         cb(info),
     ),
   platform: process.platform,
+  setFullScreen: (fs) => ipcRenderer.send("set-fullscreen", fs),
 };
 
 contextBridge.exposeInMainWorld("api", exposedApi);
