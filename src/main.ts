@@ -33,7 +33,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import fetch from "node-fetch";
-import { spawn } from "child_process";
+import { spawn, spawnSync } from "child_process";
 
 if (require("electron-squirrel-startup")) app.quit();
 
@@ -915,27 +915,50 @@ app.on("web-contents-created", (_event, contents) => {
 
     item.once("done", async (_e, state) => {
       if (state === "completed") {
-        // Linux : runs pkexec dpkg -i to force update
         if (process.platform === "linux") {
-          // runs pkexec and awaits its completion
-          const installer = spawn("pkexec", ["dpkg", "-i", savePath], {
-            stdio: "ignore",
-          });
-          installer.on("error", (err) => {
-            console.error("pkexec failed:", err);
-            // fallback
-            shell.openPath(savePath);
-            installer.exitCode === null && app.quit();
-          });
-          installer.on("exit", (_code, signal) => {
-            // Once dpkg is done, quit
-            app.quit();
-          });
+          // 1) liste de terminaux à tester
+          const terms = [
+            "gnome-terminal",
+            "x-terminal-emulator",
+            "konsole",
+            "xfce4-terminal",
+            "xterm",
+          ];
+          let termCmd: string | undefined;
+          for (const t of terms) {
+            const which = spawnSync("which", [t]);
+            if (which.status === 0) {
+              termCmd = t;
+              break;
+            }
+          }
+
+          if (termCmd) {
+            // 2) lance le terminal en détaché pour sudo dpkg -i
+            const installer = spawn(
+              termCmd,
+              [
+                "--",
+                "bash",
+                "-c",
+                `sudo dpkg -i "${savePath}" && echo; echo "Installation terminée. Appuyez sur Entrée pour fermer." && read`,
+              ],
+              { detached: true, stdio: "ignore" },
+            );
+            installer.unref();
+          } else {
+            // fallback minimal
+            spawn("xdg-open", [savePath], {
+              detached: true,
+              stdio: "ignore",
+            }).unref();
+          }
         } else {
-          // Windows/macOS : runs and quits after
+          // Windows/macOS : on garde shell.openPath
           await shell.openPath(savePath);
-          app.quit();
         }
+        // quitte tout de suite : le terminal continue de tourner
+        app.quit();
       } else {
         dialog.showErrorBox("Update failed", `Download ${state}`);
       }
