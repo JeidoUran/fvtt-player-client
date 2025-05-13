@@ -2,6 +2,7 @@
 
 import {
   app,
+  net,
   BrowserWindow,
   ipcMain,
   safeStorage,
@@ -34,6 +35,11 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import fetch from "node-fetch";
 import { spawn, spawnSync } from "child_process";
+
+const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
+  ? "http://localhost:5173"
+  : "";
+const MAIN_WINDOW_VITE_NAME = "main_window";
 
 if (require("electron-squirrel-startup")) app.quit();
 
@@ -111,12 +117,18 @@ function returnToServerSelect(win: BrowserWindow) {
   disableRichPresence();
   closeRichPresenceSocket();
 
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  if (!app.isPackaged && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    win.webContents.openDevTools({ mode: "detach" });
   } else {
-    win.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+    // ► in production, load the file we just packed into /renderer/…
+    const indexHtml = path.join(
+      __dirname,
+      "../../renderer",
+      MAIN_WINDOW_VITE_NAME,
+      "index.html",
     );
+    win.loadFile(indexHtml);
   }
 }
 
@@ -332,16 +344,23 @@ function createWindow(): BrowserWindow {
         console.warn("[Favicon] Could not resolve local URL:", faviconUrl, err);
       }
     } else {
-      fetch(faviconUrl)
-        .then((res) => res.arrayBuffer())
-        .then((buf) => {
-          const icon = nativeImage.createFromBuffer(Buffer.from(buf));
+      const request = net.request(faviconUrl);
+      const chunks: Buffer[] = [];
+      request.on("response", (response) => {
+        response.on("data", (chunk) => chunks.push(chunk));
+        response.on("end", () => {
+          const buffer = Buffer.concat(chunks);
+          const icon = nativeImage.createFromBuffer(buffer);
           if (!icon.isEmpty()) {
             win.setIcon(icon);
-            console.log("[Favicon] Restored from external URL :", faviconUrl);
+            console.log("[Favicon] Restored from external URL:", faviconUrl);
           }
-        })
-        .catch((err) => console.warn("[Favicon] Fetch error :", err));
+        });
+      });
+      request.on("error", (err) =>
+        console.warn("[Favicon] net.request error:", err),
+      );
+      request.end();
     }
   });
 
@@ -394,12 +413,18 @@ function createWindow(): BrowserWindow {
   });
 
   win.menuBarVisible = false;
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  if (!app.isPackaged && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    win.webContents.openDevTools({ mode: "detach" });
   } else {
-    win.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+    // EN PROD on pointe vers /renderer/<name>/index.html
+    const indexHtml = path.join(
+      __dirname,
+      "../../renderer",
+      MAIN_WINDOW_VITE_NAME,
+      "index.html",
     );
+    win.loadFile(indexHtml);
   }
 
   // ── Fallback on HTTP error (502, 503…) when loading /join ──
@@ -692,7 +717,14 @@ app.whenReady().then(async () => {
 
   // Configure cache/session
   const userData = getUserData();
-  if (userData.cachePath) app.setPath("sessionData", userData.cachePath);
+  if (userData.cachePath) {
+    // make sure it’s absolute, e.g. under app.getPath('userData')
+    const absoluteCachePath = path.isAbsolute(userData.cachePath)
+      ? userData.cachePath
+      : path.join(app.getPath("userData"), userData.cachePath);
+
+    app.setPath("sessionData", absoluteCachePath);
+  }
 
   // After rendering index, we notify on migration status
   mainWindow.webContents.once("did-finish-load", async () => {
@@ -832,7 +864,7 @@ ipcMain.handle("select-path", (e) => {
   } else {
     return path.join(
       __dirname,
-      `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`,
+      `../../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`,
     );
   }
 });
