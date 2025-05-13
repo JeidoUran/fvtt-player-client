@@ -2096,7 +2096,7 @@ async function createGameList() {
         let exts: string[];
         if (plat === "win32") {
           // Squirrel installer
-          exts = ["-setup.exe", ".exe"];
+          exts = ["-setup.exe", ".exe", ".zip"];
         } else if (plat === "darwin") {
           // dmg or zip
           exts = [".dmg", ".zip"];
@@ -2104,11 +2104,16 @@ async function createGameList() {
           // deb, rpm then zip
           exts = [".deb", ".rpm", ".zip"];
         }
-        // Look for suitable asset
-        const asset = data.assets.find((a: any) =>
-          exts.some((ext) => a.name.endsWith(ext)),
-        );
-        latestAssetUrl = asset?.browser_download_url ?? null;
+        // Pick the first matching extension in your priority list
+        let assetUrl: string | null = null;
+        for (const ext of exts) {
+          const found = data.assets.find((a: any) => a.name.endsWith(ext));
+          if (found) {
+            assetUrl = found.browser_download_url;
+            break;
+          }
+        }
+        latestAssetUrl = assetUrl;
       }
     } else {
       showNotification("Failed to fetch latest version number");
