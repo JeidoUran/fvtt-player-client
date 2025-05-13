@@ -216,6 +216,9 @@ document
         "#online-players-toggle",
       ) as HTMLInputElement
     ).checked;
+    const fullScreenEnabled = (
+      closeUserConfig.querySelector("#full-screen-toggle") as HTMLInputElement
+    ).checked;
     const serverInfoPingRate = Number(
       (
         closeUserConfig.querySelector(
@@ -239,6 +242,7 @@ document
         onlinePlayersEnabled,
       },
       serverInfoPingRate,
+      fullScreenEnabled,
     } as AppConfig;
 
     const rawConfig: unknown = {
@@ -252,6 +256,7 @@ document
       serverInfoEnabled: config.serverInfoEnabled,
       serverInfoOptions: config.serverInfoOptions,
       serverInfoPingRate: config.serverInfoPingRate,
+      fullScreenEnabled: config.fullScreenEnabled,
     };
 
     const result = AppConfigSchema.safeParse(rawConfig);
@@ -889,6 +894,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       appConfig.customCSS = undefined;
       appConfig.ignoreCertificateErrors = undefined;
       appConfig.discordRP = undefined;
+      appConfig.fullScreenEnabled = undefined;
 
       applyAppConfig(appConfig);
 
@@ -1429,6 +1435,8 @@ function applyAppConfig(config: AppConfig) {
     document.querySelector("#clear-cache-on-close") as HTMLInputElement
   ).checked = false;
   (document.querySelector("#discord-rp") as HTMLInputElement).checked = false;
+  (document.querySelector("#full-screen-toggle") as HTMLInputElement).checked =
+    false;
   if (config.cachePath) {
     (document.querySelector("#cache-path") as HTMLInputElement).value =
       config.cachePath;
@@ -1448,17 +1456,17 @@ function applyAppConfig(config: AppConfig) {
       config.discordRP;
   }
 
+  if (config.fullScreenEnabled) {
+    (
+      document.querySelector("#full-screen-toggle") as HTMLInputElement
+    ).checked = config.fullScreenEnabled;
+  }
+
   if (config.notificationTimer != null) {
     const inputTimer = document.querySelector(
       "#notification-timer",
     ) as HTMLInputElement;
     inputTimer.valueAsNumber = config.notificationTimer;
-  }
-
-  if (config.serverInfoEnabled) {
-    (
-      document.querySelector("#server-infos-toggle") as HTMLInputElement
-    ).checked = config.serverInfoEnabled;
   }
 
   const pingInput = document.querySelector(

@@ -52,6 +52,7 @@ export const AppConfigSchema = z.object({
   serverInfoEnabled: z.boolean().optional(),
   serverInfoOptions: ServerInfoOptionsSchema,
   serverInfoPingRate: z.number().optional().default(30),
+  fullScreenEnabled: z.boolean().optional().default(false),
 });
 export type AppConfig = z.infer<typeof AppConfigSchema>;
 

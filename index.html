@@ -95,164 +95,179 @@
         </div>
 
         <div class="app-configuration hidden2 hidden-display">
-          <div class="cache-path-field">
-            <input id="cache-path" placeholder="Cache Path" type="text" value>
-          </div>
-          <div class="clear-cache-on-close-field field">
-            <label class="switch-label">Clear Cache on Close</label>
-            <label class="switch">
-              <input id="clear-cache-on-close" type="checkbox">
-              <span class="slider round">
-                <span class="switch-label on"><i
-                    class="fa-solid fa-check"></i></span>
-                <span class="switch-label off"><i
-                    class="fa-solid fa-xmark"></i></span>
-              </span>
-            </label>
-          </div>
-          <div class="insecure-ssl-field field">
-            <label class="switch-label">Ignore Certificate Errors</label>
-            <label class="switch">
-              <input id="insecure-ssl" type="checkbox">
-              <span class="slider round">
-                <span class="switch-label on"><i
-                    class="fa-solid fa-check"></i></span>
-                <span class="switch-label off"><i
-                    class="fa-solid fa-xmark"></i></span>
-              </span>
-            </label>
-          </div>
-          <div class="notification-timer-field field">
-            <label for="notification-timer">Notifications Timer</label>
-            <div class="tooltip-wrapper">
-              <input type="range" id="notification-timer" min="3" max="10"
-                step="1" value="3">
-              <div class="tooltip">Seconds</div></div>
-          </div>
-          <div class="server-infos-toggle-field field">
-            <label class="switch-label">Enable Server Status</label>
-            <label class="switch">
-              <input id="server-infos-toggle" type="checkbox">
-              <span class="slider round">
-                <span class="switch-label on"><i
-                    class="fa-solid fa-check"></i></span>
-                <span class="switch-label off"><i
-                    class="fa-solid fa-xmark"></i></span>
-              </span>
-            </label>
-          </div>
-          <div class="server-infos-configuration">
-            <div class="individual-server-infos-options">
-              <div class="switch-wrapper-grid">
-                <label class="switch-label"
-                  for="server-status-toggle">Online Status</label>
-                <label class="switch">
-                  <input id="server-status-toggle" type="checkbox">
-                  <span class="slider round">
-                    <span class="switch-label on"><i
-                        class="fa-solid fa-check"></i></span>
-                    <span class="switch-label off"><i
-                        class="fa-solid fa-xmark"></i></span>
-                  </span>
-                </label>
-              </div>
-              <div class="switch-wrapper-grid">
-                <label class="switch-label" for="foundry-version-toggle">Foundry
-                  Version</label>
-                <label class="switch">
-                  <input id="foundry-version-toggle" type="checkbox">
-                  <span class="slider round">
-                    <span class="switch-label on"><i
-                        class="fa-solid fa-check"></i></span>
-                    <span class="switch-label off"><i
-                        class="fa-solid fa-xmark"></i></span>
-                  </span>
-                </label>
-              </div>
-              <div class="switch-wrapper-grid">
-                <label class="switch-label" for="world-toggle">World
-                  Name</label>
-                <label class="switch">
-                  <input id="world-toggle" type="checkbox">
-                  <span class="slider round">
-                    <span class="switch-label on"><i
-                        class="fa-solid fa-check"></i></span>
-                    <span class="switch-label off"><i
-                        class="fa-solid fa-xmark"></i></span>
-                  </span></label>
-              </div>
-              <div class="switch-wrapper-grid">
-                <label class="switch-label" for="game-system-toggle">Game
-                  System</label>
-                <label class="switch">
-                  <input id="game-system-toggle" type="checkbox">
-                  <span class="slider round">
-                    <span class="switch-label on"><i
-                        class="fa-solid fa-check"></i></span>
-                    <span class="switch-label off"><i
-                        class="fa-solid fa-xmark"></i></span>
-                  </span></label>
-              </div>
-              <div class="switch-wrapper-grid">
-                <label class="switch-label" for="game-version-toggle">Game
-                  System
-                  Version</label>
-                <label class="switch">
-                  <input id="game-version-toggle" type="checkbox">
-                  <span class="slider round">
-                    <span class="switch-label on"><i
-                        class="fa-solid fa-check"></i></span>
-                    <span class="switch-label off"><i
-                        class="fa-solid fa-xmark"></i></span>
-                  </span></label>
-              </div>
-              <div class="switch-wrapper-grid">
-                <label class="switch-label" for="online-players-toggle">Online
-                  Players</label>
-                <label class="switch">
-                  <input id="online-players-toggle" type="checkbox">
-                  <span class="slider round">
-                    <span class="switch-label on"><i
-                        class="fa-solid fa-check"></i></span>
-                    <span class="switch-label off"><i
-                        class="fa-solid fa-xmark"></i></span>
-                  </span>
-                </label>
-              </div>
+          <div class="overflow">
+            <div class="cache-path-field">
+              <input id="cache-path" placeholder="Cache Path" type="text" value>
             </div>
-            <div class="server-infos-ping-rate-field field">
-              <label for="server-infos-ping-rate">Server Status Automatic
-                Refresh
-                Rate</label>
-              <div class="tooltip-wrapper">
-                <input type="range" id="server-infos-ping-rate" min="15"
-                  max="60"
-                  step="1" value="30">
-                <div class="tooltip">Seconds</div></div>
-            </div>
-          </div>
-          <div class="discord-rp-field field">
-            <label class="switch-label"><i class="fa-brands fa-discord"></i>
-              Enable
-              Discord Rich Presence</label>
-            <label class="switch"><div class="tooltip-wrapper"
-                style="display: initial; position: initial;"><input
-                  id="discord-rp" type="checkbox">
+            <div class="clear-cache-on-close-field field">
+              <label class="switch-label">Clear Cache on Close</label>
+              <label class="switch">
+                <input id="clear-cache-on-close" type="checkbox">
                 <span class="slider round">
                   <span class="switch-label on"><i
                       class="fa-solid fa-check"></i></span>
                   <span class="switch-label off"><i
                       class="fa-solid fa-xmark"></i></span>
                 </span>
-                <div class="tooltip">Requires Foundry VTT Rich Presence module
-                  installed per server<br>Turning this option off disables
-                  Discord
-                  Rich Presence globally, regardless of each server's module
-                  settings</div></label></div>
+              </label>
+            </div>
+            <div class="insecure-ssl-field field">
+              <label class="switch-label">Ignore Certificate Errors</label>
+              <label class="switch">
+                <input id="insecure-ssl" type="checkbox">
+                <span class="slider round">
+                  <span class="switch-label on"><i
+                      class="fa-solid fa-check"></i></span>
+                  <span class="switch-label off"><i
+                      class="fa-solid fa-xmark"></i></span>
+                </span>
+              </label>
+            </div>
+            <div class="notification-timer-field field">
+              <label for="notification-timer">Notifications Timer</label>
+              <div class="tooltip-wrapper">
+                <input type="range" id="notification-timer" min="3" max="10"
+                  step="1" value="3">
+                <div class="tooltip">Seconds</div></div>
+            </div>
+            <div class="server-infos-toggle-field field">
+              <label class="switch-label">Enable Server Status</label>
+              <label class="switch">
+                <input id="server-infos-toggle" type="checkbox">
+                <span class="slider round">
+                  <span class="switch-label on"><i
+                      class="fa-solid fa-check"></i></span>
+                  <span class="switch-label off"><i
+                      class="fa-solid fa-xmark"></i></span>
+                </span>
+              </label>
+            </div>
+            <div class="server-infos-configuration">
+              <div class="individual-server-infos-options">
+                <div class="switch-wrapper-grid">
+                  <label class="switch-label"
+                    for="server-status-toggle">Online Status</label>
+                  <label class="switch">
+                    <input id="server-status-toggle" type="checkbox">
+                    <span class="slider round">
+                      <span class="switch-label on"><i
+                          class="fa-solid fa-check"></i></span>
+                      <span class="switch-label off"><i
+                          class="fa-solid fa-xmark"></i></span>
+                    </span>
+                  </label>
+                </div>
+                <div class="switch-wrapper-grid">
+                  <label class="switch-label"
+                    for="foundry-version-toggle">Foundry
+                    Version</label>
+                  <label class="switch">
+                    <input id="foundry-version-toggle" type="checkbox">
+                    <span class="slider round">
+                      <span class="switch-label on"><i
+                          class="fa-solid fa-check"></i></span>
+                      <span class="switch-label off"><i
+                          class="fa-solid fa-xmark"></i></span>
+                    </span>
+                  </label>
+                </div>
+                <div class="switch-wrapper-grid">
+                  <label class="switch-label" for="world-toggle">World
+                    Name</label>
+                  <label class="switch">
+                    <input id="world-toggle" type="checkbox">
+                    <span class="slider round">
+                      <span class="switch-label on"><i
+                          class="fa-solid fa-check"></i></span>
+                      <span class="switch-label off"><i
+                          class="fa-solid fa-xmark"></i></span>
+                    </span></label>
+                </div>
+                <div class="switch-wrapper-grid">
+                  <label class="switch-label" for="game-system-toggle">Game
+                    System</label>
+                  <label class="switch">
+                    <input id="game-system-toggle" type="checkbox">
+                    <span class="slider round">
+                      <span class="switch-label on"><i
+                          class="fa-solid fa-check"></i></span>
+                      <span class="switch-label off"><i
+                          class="fa-solid fa-xmark"></i></span>
+                    </span></label>
+                </div>
+                <div class="switch-wrapper-grid">
+                  <label class="switch-label" for="game-version-toggle">Game
+                    System
+                    Version</label>
+                  <label class="switch">
+                    <input id="game-version-toggle" type="checkbox">
+                    <span class="slider round">
+                      <span class="switch-label on"><i
+                          class="fa-solid fa-check"></i></span>
+                      <span class="switch-label off"><i
+                          class="fa-solid fa-xmark"></i></span>
+                    </span></label>
+                </div>
+                <div class="switch-wrapper-grid">
+                  <label class="switch-label" for="online-players-toggle">Online
+                    Players</label>
+                  <label class="switch">
+                    <input id="online-players-toggle" type="checkbox">
+                    <span class="slider round">
+                      <span class="switch-label on"><i
+                          class="fa-solid fa-check"></i></span>
+                      <span class="switch-label off"><i
+                          class="fa-solid fa-xmark"></i></span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+              <div class="server-infos-ping-rate-field field">
+                <label for="server-infos-ping-rate">Server Status Automatic
+                  Refresh
+                  Rate</label>
+                <div class="tooltip-wrapper">
+                  <input type="range" id="server-infos-ping-rate" min="15"
+                    max="60"
+                    step="1" value="30">
+                  <div class="tooltip">Seconds</div></div>
+              </div>
+            </div>
+            <div class="full-screen-toggle-field field">
+              <label class="switch-label">Force Full Screen</label>
+              <label class="switch">
+                <input id="full-screen-toggle" type="checkbox">
+                <span class="slider round">
+                  <span class="switch-label on"><i
+                      class="fa-solid fa-check"></i></span>
+                  <span class="switch-label off"><i
+                      class="fa-solid fa-xmark"></i></span>
+                </span>
+              </label>
+            </div>
+            <div class="discord-rp-field field">
+              <label class="switch-label"><i class="fa-brands fa-discord"></i>
+                Enable
+                Discord Rich Presence</label>
+              <label class="switch"><div class="tooltip-wrapper"
+                  style="display: initial; position: initial;"><input
+                    id="discord-rp" type="checkbox">
+                  <span class="slider round">
+                    <span class="switch-label on"><i
+                        class="fa-solid fa-check"></i></span>
+                    <span class="switch-label off"><i
+                        class="fa-solid fa-xmark"></i></span>
+                  </span>
+                  <div class="tooltip">Requires Foundry VTT Rich Presence module
+                    installed per server<br>Turning this option off disables
+                    Discord
+                    Rich Presence globally, regardless of each server's module
+                    settings</div></label></div>
+            </div>
+            <div class="download-link">Download the required module <a
+                href="https://github.com/JeidoUran/fvtt-rich-presence"
+                target="_blank">here</a>!</div>
           </div>
-          <div class="download-link">Download the required module <a
-              href="https://github.com/JeidoUran/fvtt-rich-presence"
-              target="_blank">here</a>!</div>
           <div class="button-group">
             <div class="button-row">
               <button id="save-app-config">Save</button>

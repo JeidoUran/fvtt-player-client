@@ -24,6 +24,7 @@ type AppConfig = {
   serverInfoEnabled?: boolean;
   serverInfoOptions?: ServerInfoOptions;
   serverInfoPingRate?: number;
+  fullScreenEnabled?: boolean;
 };
 
 interface ServerInfoOptions {
