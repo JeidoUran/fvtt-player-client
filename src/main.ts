@@ -917,24 +917,25 @@ app.on("web-contents-created", (_event, contents) => {
       if (state === "completed") {
         // Linux : runs pkexec dpkg -i to force update
         if (process.platform === "linux") {
+          // runs pkexec and awaits its completion
           const installer = spawn("pkexec", ["dpkg", "-i", savePath], {
-            detached: true,
             stdio: "ignore",
           });
-          installer.on("error", () => {
-            // if pkexec is missing, fallback to xdg-open
-            spawn("xdg-open", [savePath], {
-              detached: true,
-              stdio: "ignore",
-            }).unref();
+          installer.on("error", (err) => {
+            console.error("pkexec failed:", err);
+            // fallback
+            shell.openPath(savePath);
+            installer.exitCode === null && app.quit();
           });
-          installer.unref();
+          installer.on("exit", (_code, signal) => {
+            // Once dpkg is done, quit
+            app.quit();
+          });
         } else {
-          // Windows/macOS : runs installer with shell.openPath
+          // Windows/macOS : runs and quits after
           await shell.openPath(savePath);
+          app.quit();
         }
-        // quits app to let installer do its thing
-        setTimeout(() => app.quit(), 500);
       } else {
         dialog.showErrorBox("Update failed", `Download ${state}`);
       }
