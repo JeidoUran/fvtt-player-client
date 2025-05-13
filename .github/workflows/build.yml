@@ -1,14 +1,15 @@
 # .github/workflows/build.yml
 permissions:
-  contents: write     # nécessaire pour publisher-github
+  contents: write
+
 name: Build & Publish
 on:
   release:
     types: [published]
   workflow_dispatch:
+
 env:
   node_version: 22
-  # R2/Cldrflare R2 credentials (dans Settings → Actions → Secrets)
   R2_BUCKET:     ${{ secrets.R2_BUCKET }}
   R2_ENDPOINT:   ${{ secrets.R2_ENDPOINT }}
   R2_KEY_ID:     ${{ secrets.R2_KEY_ID }}
@@ -20,48 +21,46 @@ jobs:
     name: Linux x64
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.node_version }}
 
-      - name: Install & Version bump
-        run: |
-          yarn
-          yarn version --no-git-tag-version --new-version ${{ github.event.release.tag_name }}
+      - name: Install dependencies
+        run: yarn
+
+      # On ne bump la version que sur un vrai "release.published"
+      - name: Version bump
+        if: ${{ github.event_name == 'release' }}
+        run: yarn version --no-git-tag-version --new-version ${{ github.event.release.tag_name }}
 
       - name: Build Linux package
         run: yarn make --platform linux
 
       - name: Publish Linux artifacts
         env:
-          GH_TOKEN:    ${{ secrets.GITHUB_TOKEN }}
-          R2_BUCKET:   ${{ env.R2_BUCKET }}
-          R2_ENDPOINT: ${{ env.R2_ENDPOINT }}
-          R2_KEY_ID:   ${{ env.R2_KEY_ID }}
-          R2_SECRET_KEY: ${{ env.R2_SECRET_KEY }}
-          AWS_REGION:  ${{ env.AWS_REGION }}
+          GH_TOKEN:    ${{ secrets.GITHUB_TOKEN }}    # token GitHub Actions pré-populé
         run: yarn electron-forge publish --platform linux --publish=always
 
   build-and-publish-macos:
     name: macOS arm64
     runs-on: macos-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.node_version }}
 
-      - name: Install & Version bump
-        run: |
-          yarn
-          yarn version --no-git-tag-version --new-version ${{ github.event.release.tag_name }}
+      - name: Install dependencies
+        run: yarn
+
+      - name: Version bump
+        if: ${{ github.event_name == 'release' }}
+        run: yarn version --no-git-tag-version --new-version ${{ github.event.release.tag_name }}
 
       - name: Build macOS package
         run: yarn make --platform darwin
@@ -69,29 +68,25 @@ jobs:
       - name: Publish macOS artifacts
         env:
           GH_TOKEN:    ${{ secrets.GITHUB_TOKEN }}
-          R2_BUCKET:   ${{ env.R2_BUCKET }}
-          R2_ENDPOINT: ${{ env.R2_ENDPOINT }}
-          R2_KEY_ID:   ${{ env.R2_KEY_ID }}
-          R2_SECRET_KEY: ${{ env.R2_SECRET_KEY }}
-          AWS_REGION:  ${{ env.AWS_REGION }}
         run: yarn electron-forge publish --platform darwin --publish=always
 
   build-and-publish-windows:
     name: Windows x64
     runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.node_version }}
 
-      - name: Install & Version bump
-        run: |
-          yarn
-          yarn version --no-git-tag-version --new-version ${{ github.event.release.tag_name }}
+      - name: Install dependencies
+        run: yarn
+
+      - name: Version bump
+        if: ${{ github.event_name == 'release' }}
+        run: yarn version --no-git-tag-version --new-version ${{ github.event.release.tag_name }}
 
       - name: Build Windows package
         run: yarn make --platform win32
@@ -99,9 +94,4 @@ jobs:
       - name: Publish Windows artifacts
         env:
           GH_TOKEN:    ${{ secrets.GITHUB_TOKEN }}
-          R2_BUCKET:   ${{ env.R2_BUCKET }}
-          R2_ENDPOINT: ${{ env.R2_ENDPOINT }}
-          R2_KEY_ID:   ${{ env.R2_KEY_ID }}
-          R2_SECRET_KEY: ${{ env.R2_SECRET_KEY }}
-          AWS_REGION:  ${{ env.AWS_REGION }}
         run: yarn electron-forge publish --platform win32 --publish=always
