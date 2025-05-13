@@ -69,6 +69,34 @@ const config: ForgeConfig = {
       ],
     }),
   ],
+  publishers: [
+    {
+      name: "@electron-forge/publisher-github",
+      config: {
+        repository: {
+          owner: "JeidoUran",
+          name: "fvtt-player-client",
+        },
+        prerelease: false,
+      },
+    },
+    {
+      name: "@electron-forge/publisher-s3",
+      // Par défaut cela publie toutes les plateformes,
+      // vous pouvez préciser `platforms: ["linux","darwin","win32"]` si besoin
+      config: {
+        bucket: process.env.R2_BUCKET!, // nom de ton bucket R2
+        endpoint: process.env.R2_ENDPOINT!, // ex. https://<account>.r2.cloudflarestorage.com
+        region: process.env.AWS_REGION || "auto",
+        accessKeyId: process.env.R2_KEY_ID!, // ta clé d’accès R2
+        secretAccessKey: process.env.R2_SECRET_KEY!, // ton secret R2
+        signatureVersion: "v4",
+        s3ForcePathStyle: true, // requis pour R2
+        public: true, // rend les assets publics
+        // folder:         "my-app-updates"               // (optionnel) préfixe dans le bucket
+      },
+    },
+  ],
 };
 
 export default config;
