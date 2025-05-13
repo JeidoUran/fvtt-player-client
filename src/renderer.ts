@@ -2127,7 +2127,7 @@ async function createGameList() {
   }
   document.querySelector("#latest-version").textContent = latestVersion;
   if (compareSemver(appVersion, latestVersion) < 0) {
-    showNotification("An update is available !");
+    showNotification("An update is available!");
     document.querySelector(".update-available").classList.remove("hidden2");
     document.querySelector(".version-normal").classList.add("hidden2");
 

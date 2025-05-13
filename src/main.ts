@@ -33,6 +33,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import fetch from "node-fetch";
+import { spawn } from "child_process";
 
 if (require("electron-squirrel-startup")) app.quit();
 
@@ -914,10 +915,26 @@ app.on("web-contents-created", (_event, contents) => {
 
     item.once("done", async (_e, state) => {
       if (state === "completed") {
-        // launches installer
-        await shell.openPath(savePath);
-        // quit app to let installer do its thing
-        app.quit();
+        // Linux : runs pkexec dpkg -i to force update
+        if (process.platform === "linux") {
+          const installer = spawn("pkexec", ["dpkg", "-i", savePath], {
+            detached: true,
+            stdio: "ignore",
+          });
+          installer.on("error", () => {
+            // if pkexec is missing, fallback to xdg-open
+            spawn("xdg-open", [savePath], {
+              detached: true,
+              stdio: "ignore",
+            }).unref();
+          });
+          installer.unref();
+        } else {
+          // Windows/macOS : runs installer with shell.openPath
+          await shell.openPath(savePath);
+        }
+        // quits app to let installer do its thing
+        setTimeout(() => app.quit(), 500);
       } else {
         dialog.showErrorBox("Update failed", `Download ${state}`);
       }
