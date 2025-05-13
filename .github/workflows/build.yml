@@ -41,7 +41,7 @@ jobs:
 
       - name: Publish Linux artifacts
         env:
-          GH_TOKEN:    ${{ secrets.GITHUB_TOKEN }}    # token GitHub Actions pré-populé
+          GITHUB_TOKEN:  ${{ secrets.GITHUB_TOKEN }}   # token GitHub Actions pré-populé
         run: yarn electron-forge publish --platform linux --publish=always
 
   build-and-publish-macos:
@@ -67,7 +67,7 @@ jobs:
 
       - name: Publish macOS artifacts
         env:
-          GH_TOKEN:    ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
         run: yarn electron-forge publish --platform darwin --publish=always
 
   build-and-publish-windows:
@@ -93,5 +93,5 @@ jobs:
 
       - name: Publish Windows artifacts
         env:
-          GH_TOKEN:    ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
         run: yarn electron-forge publish --platform win32 --publish=always
