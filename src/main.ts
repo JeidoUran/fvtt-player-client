@@ -42,6 +42,7 @@ const fileTransport = log.transports.file;
 fileTransport.level = "info";
 autoUpdater.logger = log;
 autoUpdater.autoDownload = false;
+autoUpdater.forceDevUpdateConfig = true;
 
 const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
   ? "http://localhost:5173"
@@ -780,6 +781,23 @@ app.whenReady().then(async () => {
 
   mainWindow = createWindow();
 
+  // only check once, right after launch
+  autoUpdater
+    .checkForUpdates()
+    .then((result) => {
+      // result has a .updateInfo object
+      const latest = result.updateInfo?.version;
+      const current = app.getVersion();
+
+      if (latest && latest !== current) {
+        notifyMainWindow(`An update is available!`);
+      }
+      // else: no update, do nothing
+    })
+    .catch((err) => {
+      console.error("Update‐check failed:", err);
+      // optionally: notifyMainWindow("Could not check for updates.");
+    });
   // Configure cache/session
   const userData = getUserData();
   if (userData.cachePath) {
@@ -898,7 +916,7 @@ function getThemeConfig(): ThemeConfig {
 
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.on("install-update", () => autoUpdater.quitAndInstall());
+ipcMain.on("install-update", () => autoUpdater.quitAndInstall(true, true));
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
@@ -939,7 +957,7 @@ ipcMain.handle("local-theme-config", () => {
 });
 
 // TODO: Seems unused
-ipcMain.handle("select-path", (e) => {
+/* ipcMain.handle("select-path", (e) => {
   windowsData[e.sender.id].autoLogin = true;
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     return MAIN_WINDOW_VITE_DEV_SERVER_URL;
@@ -949,6 +967,12 @@ ipcMain.handle("select-path", (e) => {
       `../../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`,
     );
   }
+}); */
+
+ipcMain.on("open-external", (_event, url: string) => {
+  shell.openExternal(url).catch((err) => {
+    console.error("Failed to open external URL", url, err);
+  });
 });
 
 ipcMain.handle("cache-path", () => app.getPath("sessionData"));

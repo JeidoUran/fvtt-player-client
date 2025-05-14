@@ -73,6 +73,7 @@ export type ContextBridgeApi = {
   downloadUpdate: () => void;
   /** Tell the main process to install & restart (after “downloaded”) */
   installUpdate: () => void;
+  openExternal: (url: string) => void;
 };
 
 const exposedApi: ContextBridgeApi = {
@@ -191,6 +192,9 @@ const exposedApi: ContextBridgeApi = {
   },
   installUpdate: () => {
     ipcRenderer.send("install-update");
+  },
+  openExternal: (url: string) => {
+    ipcRenderer.send("open-external", url);
   },
 };
 

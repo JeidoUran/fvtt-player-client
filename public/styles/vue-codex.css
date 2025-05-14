@@ -19,6 +19,7 @@
 
 .modal-window {
   transform: scale(0.98);
+  color: var(--color-text-primary);
   background: var(--color-background);
   border: 2px solid rgba(255, 255, 255, 0.15);
   font-family: var(--font-secondary);
@@ -30,6 +31,12 @@
   width: 90%;
 }
 
+.modal-text {
+  display: block;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+}
+
 .modal-buttons {
   margin-top: 1rem;
   display: flex;
@@ -38,5 +45,23 @@
 
 .modal-button {
   padding: 0.75rem 2.25rem;
-  width: 7em;
+  width: 9em;
+}
+
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: scale(1);
 }
