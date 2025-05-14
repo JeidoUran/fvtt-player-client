@@ -28,13 +28,15 @@ jobs:
 
       - name: Create draft release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.tag }}
-          release_name: ${{ github.event.inputs.name || github.event.inputs.tag }}
-          body: ${{ github.event.inputs.body }}
-          draft: true
-          prerelease: false
+          # explicitly pass the token
+          token:          ${{ secrets.GITHUB_TOKEN }}
+          tag_name:       ${{ github.event.inputs.tag }}
+          name:           ${{ github.event.inputs.name || github.event.inputs.tag }}
+          body:           ${{ github.event.inputs.body }}
+          draft:          true
+          prerelease:     false
 
       - name: Set version in package.json
         run: yarn version --no-git-tag-version --new-version ${{ github.event.inputs.tag }}
