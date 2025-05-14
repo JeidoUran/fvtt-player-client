@@ -69,7 +69,9 @@
     "electron-log": "^5.4.0",
     "electron-squirrel-startup": "^1.0.1",
     "electron-updater": "^6.6.2",
+    "element-plus": "^2.9.10",
     "node-fetch": "^3.3.2",
+    "pinia": "^3.0.2",
     "ws": "^8.18.1",
     "zod": "^3.24.4"
   }

@@ -33,7 +33,6 @@ import {
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { spawn, spawnSync } from "child_process";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
 
@@ -42,6 +41,7 @@ const fileTransport = log.transports.file;
   path.join(app.getPath("userData"), "main.log");
 fileTransport.level = "info";
 autoUpdater.logger = log;
+autoUpdater.autoDownload = false;
 
 const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
   ? "http://localhost:5173"
@@ -58,6 +58,21 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
 let mainWindow: BrowserWindow;
+
+function sendUpdateStatus(
+  status:
+    | "checking"
+    | "available"
+    | "not-available"
+    | "progress"
+    | "downloaded"
+    | "error",
+  payload?: any,
+) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("update-status", { status, payload });
+  }
+}
 
 type MigrationStatus = "skipped" | "success" | "failure";
 async function migrateUserData(): Promise<MigrationStatus> {
@@ -114,28 +129,6 @@ async function migrateUserData(): Promise<MigrationStatus> {
   } catch (e) {
     console.warn("[getUserData] Migration failed :", e);
     return "failure";
-  }
-}
-
-function returnToServerSelect(win: BrowserWindow) {
-  const id = win.webContents.id;
-  windowsData[id].autoLogin = true;
-  delete windowsData[id].selectedServerName;
-  disableRichPresence();
-  closeRichPresenceSocket();
-
-  if (!app.isPackaged && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-    win.webContents.openDevTools({ mode: "detach" });
-  } else {
-    // ► in production, load the file we just packed into /renderer/…
-    const indexHtml = path.join(
-      __dirname,
-      "../../renderer",
-      MAIN_WINDOW_VITE_NAME,
-      "index.html",
-    );
-    win.loadFile(indexHtml);
   }
 }
 
@@ -262,6 +255,34 @@ export function getUserData(): UserData {
     );
     // As last resort, return an empty userData
     return UserDataSchema.parse({ app: { games: [] }, theme: {} });
+  }
+}
+
+function returnToServerSelect(win: BrowserWindow) {
+  const id = win.webContents.id;
+  windowsData[id].autoLogin = true;
+  delete windowsData[id].selectedServerName;
+  disableRichPresence();
+  closeRichPresenceSocket();
+
+  if (!app.isPackaged && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    win.webContents.openDevTools({ mode: "detach" });
+  } else {
+    // ► in production, load the file we just packed into /renderer/…
+    const indexHtml = path.join(
+      __dirname,
+      "../../renderer",
+      MAIN_WINDOW_VITE_NAME,
+      "index.html",
+    );
+    win.loadFile(indexHtml);
+  }
+}
+
+function notifyMainWindow(message: string) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("show-notification", message);
   }
 }
 
@@ -628,6 +649,52 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
+autoUpdater.on("checking-for-update", () => {
+  sendUpdateStatus("checking");
+});
+
+autoUpdater.on("update-available", (info) => {
+  sendUpdateStatus("available", info);
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  sendUpdateStatus("not-available");
+});
+
+autoUpdater.on("download-progress", (progress) => {
+  sendUpdateStatus("progress", progress);
+});
+
+autoUpdater.on("update-downloaded", (info) => {
+  sendUpdateStatus("downloaded", info);
+});
+
+autoUpdater.on("error", (err) => {
+  sendUpdateStatus("error", {
+    message: err == null ? "" : (err.stack || err).toString(),
+  });
+});
+
+autoUpdater.on("download-progress", (progressObj) => {
+  let log_message = "Download speed: " + progressObj.bytesPerSecond;
+  log_message = log_message + " - Downloaded " + progressObj.percent + "%";
+  log_message =
+    log_message +
+    " (" +
+    progressObj.transferred +
+    "/" +
+    progressObj.total +
+    ")";
+  notifyMainWindow(log_message);
+});
+
+autoUpdater.on("update-downloaded", async (info) => {
+  await askPrompt("The client will now close and the update will install.", {
+    mode: "alert",
+  });
+  app.quit();
+});
+
 app.whenReady().then(async () => {
   if (require("electron-squirrel-startup")) return;
   // File menu
@@ -826,6 +893,10 @@ function getThemeConfig(): ThemeConfig {
   }
 }
 
+ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
+ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
+ipcMain.on("install-update", () => autoUpdater.quitAndInstall());
+
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
   currentData.app = { ...currentData.app, ...data };
@@ -958,109 +1029,8 @@ ipcMain.on("set-fullscreen", (event, fullscreen: boolean) => {
   if ((fullscreen = true)) w.maximize();
 });
 
-let pendingAssetUrl: string | null = null;
-
-ipcMain.handle("download-update", (_e, assetUrl: string) => {
-  /*   pendingAssetUrl = assetUrl;
-  const win = BrowserWindow.getFocusedWindow()!;
-  // triggers will-download in webContents
-  win.webContents.downloadURL(assetUrl); */
-  autoUpdater.checkForUpdatesAndNotify();
-});
-
-// Intercepts all downloads and handles saving + installing
-app.on("web-contents-created", (_event, contents) => {
-  contents.session.on("will-download", (event, item) => {
-    const fileName = item.getFilename();
-    const savePath = path.join(app.getPath("temp"), fileName);
-
-    // deletes old path if present
-    try {
-      fs.unlinkSync(savePath);
-    } catch {}
-
-    item.setSavePath(savePath);
-
-    // notify renderer that download has started
-    const win = BrowserWindow.fromWebContents(contents)!;
-    win.webContents.send("update-download-started", { fileName, savePath });
-
-    item.once("done", async (_e, state) => {
-      if (state === "completed") {
-        if (process.platform === "linux") {
-          // 1) liste de terminaux, xterm d'abord car il bloque
-          const terms = [
-            "xterm",
-            "gnome-terminal",
-            "konsole",
-            "xfce4-terminal",
-          ];
-          let termCmd: string | undefined;
-          for (const t of terms) {
-            const which = spawnSync("which", [t]);
-            if (which.status === 0) {
-              termCmd = t;
-              break;
-            }
-          }
-
-          if (termCmd) {
-            // 2) construit les args selon le terminal
-            let args: string[];
-            if (termCmd === "xterm") {
-              args = [
-                "-hold",
-                "-e",
-                `bash -c "sudo dpkg -i '${savePath}' && echo; echo 'Update completed. Press Enter to exit.'; read"`,
-              ];
-            } else {
-              // gnome-terminal, konsole, etc. : on demande le --wait si possible
-              args =
-                termCmd === "gnome-terminal"
-                  ? [
-                      "--wait",
-                      "--",
-                      "bash",
-                      "-c",
-                      `sudo dpkg -i '${savePath}'; read -p 'Press Enter to close.'`,
-                    ]
-                  : [
-                      "-e",
-                      `bash -c "sudo dpkg -i '${savePath}' && read -p 'Press Enter to close.'"`,
-                    ];
-            }
-
-            // 3) spawn du terminal bloquant
-            const installer = spawn(termCmd, args, {
-              detached: true,
-              stdio: "ignore",
-            });
-            // Dès que l'installation se termine, on relance l'app puis on quitte
-            installer.on("exit", () => {
-              // sous Linux, on relance après install uniquement
-              app.relaunch();
-              app.exit(0);
-            });
-            installer.unref();
-          } else {
-            // fallback minimal
-            spawn("xdg-open", [savePath], {
-              detached: true,
-              stdio: "ignore",
-            }).unref();
-            // en fallback on quitte tout de suite
-            app.exit(0);
-          }
-        } else {
-          // Windows/macOS : lance l'installateur et quitte
-          await shell.openPath(savePath);
-          app.exit(0);
-        }
-      } else {
-        dialog.showErrorBox("Update failed", `Download ${state}`);
-      }
-    });
-  });
+ipcMain.on("check-for-updates", () => {
+  autoUpdater.checkForUpdates();
 });
 
 app.on("window-all-closed", () => {

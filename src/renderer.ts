@@ -93,10 +93,6 @@ async function updateGameList(task: (appConfig: AppConfig) => void) {
   window.api.saveAppConfig(appConfig);
 }
 
-window.api.onDownloadStarted(({ fileName }) => {
-  showNotification(`Downloading update: ${fileName}`);
-});
-
 window.api.showNotification((message: string) => {
   showNotification(message);
 });
@@ -2130,14 +2126,6 @@ async function createGameList() {
     showNotification("An update is available!");
     document.querySelector(".update-available").classList.remove("hidden2");
     document.querySelector(".version-normal").classList.add("hidden2");
-
-    const btn = document.querySelector<HTMLElement>(".update-available");
-    if (btn && latestAssetUrl) {
-      btn.addEventListener("click", () => {
-        showNotification("Download starting…");
-        window.api.downloadUpdate(latestAssetUrl);
-      });
-    }
   }
 
   gameItemList.querySelectorAll("li").forEach((li) => li.remove());
