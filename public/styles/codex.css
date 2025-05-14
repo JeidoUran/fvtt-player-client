@@ -422,8 +422,8 @@ code.share-output {
 
 .update-available {
   position: absolute;
-  bottom: 0;
-  left: 0;
+  bottom: 2rem;
+  left: 2rem;
   z-index: 1;
 }
 

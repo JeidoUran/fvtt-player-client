@@ -2,7 +2,9 @@
 <template>
   <!-- votre header ou barre d’outils ici, si vous en avez un -->
 
-  <button @click="checkUpdates">Check for updates</button>
+  <button class="update-available" @click="checkUpdates">
+    Check for updates
+  </button>
   <!-- ou, sinon, votre contenu principal : -->
   <!-- <MainWindow /> -->
   <UpdaterModal />
@@ -10,6 +12,8 @@
 
 <script setup lang="ts">
 import UpdaterModal from "./components/UpdaterModal.vue";
+import { useUpdaterStore } from "./stores/updater";
+const updaterStore = useUpdaterStore();
 
 function checkUpdates() {
   window.api.checkForUpdates();
