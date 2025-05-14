@@ -694,6 +694,10 @@ autoUpdater.on("update-downloaded", (info) => {
 });
 
 autoUpdater.on("error", (err) => {
+  if (initialCheckInProgress) {
+    // silence the first “available”
+    return;
+  }
   sendUpdateStatus("error", {
     message: err == null ? "" : (err.stack || err).toString(),
   });
@@ -820,7 +824,7 @@ app.whenReady().then(async () => {
       })
       .catch((err) => {
         console.error("Update‐check failed:", err);
-        // optionally: notifyMainWindow("Could not check for updates.");
+        notifyMainWindow("Could not check for updates");
       })
       .finally(() => {
         // only once the promise settles do we turn off the “initial check” guard
