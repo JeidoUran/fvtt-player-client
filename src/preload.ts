@@ -188,10 +188,11 @@ const exposedApi: ContextBridgeApi = {
       "fullscreen-changed",
       (_e: IpcRendererEvent, isFs: boolean) => cb(isFs),
     ),
+  onUpdaterStatus: (cb) =>
     ipcRenderer.on(
-      "update-download-started",
-      (_e: IpcRendererEvent, info: { fileName: string; savePath: string }) =>
-        cb(info),
+      "update-status",
+      (_e: IpcRendererEvent, data: { status: string; payload?: any }) =>
+        cb(_e, data),
     ),
   checkForUpdates: () => {
     ipcRenderer.send("check-for-updates");
