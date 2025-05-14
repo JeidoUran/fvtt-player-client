@@ -1063,6 +1063,10 @@ app.on("web-contents-created", (_event, contents) => {
   });
 });
 
+app.on("window-all-closed", () => {
+  app.quit();
+});
+
 function getLoginDetails(gameId: GameId): GameUserDataDecrypted {
   const userData = getUserData()[gameId];
   if (!userData) return { user: "", password: "", adminPassword: "" };
