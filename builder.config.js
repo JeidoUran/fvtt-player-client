@@ -47,13 +47,13 @@ module.exports = {
 
   publish: [
     {
-      provider: "s3",
-      bucket: process.env.R2_BUCKET,
-      endpoint: process.env.R2_ENDPOINT,
-      region: process.env.AWS_REGION || "auto",
-      acl: "public-read",
-      path: "/",
-      forcePathStyle: true,
+      provider: "github",
+      releaseType: "draft",
     },
+    // {
+    //   provider: "s3",
+    //   bucket: process.env.R2_BUCKET,
+    //   endpoint: process.env.R2_ENDPOINT,
+    // },
   ],
 };
