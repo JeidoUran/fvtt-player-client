@@ -12,5 +12,6 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
-  }
+  },
+  "include": ["src/**/*.ts", "src/**/*.vue", "src/vue.d.ts"]
 }

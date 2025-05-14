@@ -15,6 +15,25 @@ import {
 import { getContrastColor } from "./utils/getContrastColor";
 import { safePrompt } from "./utils/safePrompt";
 import { hexToRgba } from "./utils/hexToRgba";
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import ElementPlus from "element-plus";
+import "element-plus/dist/index.css";
+import { useUpdaterStore, UpdaterStatus } from "./stores/updater";
+import App from "./App.vue";
+
+const app = createApp(App);
+app.use(createPinia());
+app.use(ElementPlus);
+app.mount("#app");
+
+const updater = useUpdaterStore();
+window.api.onUpdaterStatus((_e, { status, payload }) => {
+  // cast the string to your union type
+  console.log("[Renderer] update-status event:", status, payload);
+  updater.handleStatus({ status: status as UpdaterStatus, payload });
+  console.log("[Renderer] store.visible is now", updater.visible);
+});
 
 let appVersion: string;
 let preventMenuClose = false;
