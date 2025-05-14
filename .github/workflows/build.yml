@@ -1,6 +1,10 @@
-name: 📦 Build & Draft GitHub Release
+# .github/workflows/build-and-publish.yml
+name: 📦 Build & Publish
 
+# fire on every published release, or manual dispatch
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
@@ -9,57 +13,67 @@ on:
       name:
         description: 'Release title'
         required: false
-      body:
-        description: 'Release notes (markdown)'
-        required: false
-
 permissions:
-  contents: write
+  contents: write    # needed to upload release assets
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    # allow electron-builder to upload to GitHub Releases
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # for multi-arch on Linux/macOS:
         arch: [x64, arm64]
       fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node
+      - name: Set up Node.js ${{ matrix.arch }}
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: yarn
+          cache: "yarn"
 
-      - name: Install deps & build
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Bump version to release tag (if running on a release event)
+        if: github.event_name == 'release'
         run: |
-          yarn install --frozen-lockfile
-          yarn build
+          yarn version --no-git-tag-version --new-version ${{ github.event.release.tag_name }}
 
-      - name: Package app (${{ matrix.os }}/${{ matrix.arch }})
+      - name: Build main, preload & renderer
+        run: yarn build
+
+      - name: Package for ${{ matrix.os }}/${{ matrix.arch }}
         shell: bash
         run: |
+          # determine the platform flag
           case "${{ matrix.os }}" in
-            "windows-latest") PLAT="--win" ;;
-            "macos-latest")   PLAT="--mac" ;;
-            "ubuntu-latest")  PLAT="--linux" ;;
+            "windows-latest") PLAT_FLAG="--win" ;;
+            "macos-latest")   PLAT_FLAG="--mac" ;;
+            "ubuntu-latest")  PLAT_FLAG="--linux" ;;
           esac
+  
+          # determine the arch flag
           case "${{ matrix.arch }}" in
-            "x64")   ARCH="--x64" ;;
-            "arm64") ARCH="--arm64" ;;
+            "x64")    ARCH_FLAG="--x64" ;;
+            "arm64")  ARCH_FLAG="--arm64" ;;
           esac
-          npx electron-builder $PLAT $ARCH --publish never
+  
+          # run electron-builder with publish
+          npx electron-builder $PLAT_FLAG $ARCH_FLAG --publish never
 
       - name: Draft GitHub Release & upload all installers
         uses: softprops/action-gh-release@v2
         with:
-          # token is picked up automatically from GITHUB_TOKEN
+          token:          ${{ secrets.GITHUB_TOKEN }}
           tag_name:       ${{ github.event.inputs.tag }}
           name:           ${{ github.event.inputs.name || github.event.inputs.tag }}
-          body:           ${{ github.event.inputs.body }}
           draft:          true
           prerelease:     false
           # glob each installer you want to attach
@@ -68,3 +82,6 @@ jobs:
             dist/*.dmg
             dist/*.AppImage
             dist/*.deb
+  
+
+    # artifacts are automatically attached by electron-builder to the GitHub release
