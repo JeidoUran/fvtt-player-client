@@ -63,7 +63,8 @@
     "dist:mac": "npm run build && electron-builder --config builder.config.js --mac",
     "dist:linux": "npm run build && electron-builder --config builder.config.js --linux",
     "dev": "yarn build && concurrently -k \"yarn dev:renderer\" \"yarn start:electron\"",
-    "publish:dev": "npx electron-builder --publish always --config.publish.provider=s3 --config.publish.endpoint=http://localhost:9000 --config.publish.bucket=test-bucket"
+    "publish:dev": "npx electron-builder --publish always --config.publish.provider=s3 --config.publish.endpoint=http://localhost:9000 --config.publish.bucket=test-bucket",
+    "publish:prod": "npx electron-builder --publish always"
   },
   "dependencies": {
     "@xhayper/discord-rpc": "^1.2.1",
