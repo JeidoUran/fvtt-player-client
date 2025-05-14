@@ -61,7 +61,7 @@
     "dist:win": "npm run build && electron-builder --config builder.config.js --win",
     "dist:mac": "npm run build && electron-builder --config builder.config.js --mac",
     "dist:linux": "npm run build && electron-builder --config builder.config.js --linux",
-    "dev": "concurrently -k \"yarn dev:renderer\" \"yarn start:electron\""
+    "dev": "yarn build && concurrently -k \"yarn dev:renderer\" \"yarn start:electron\""
   },
   "dependencies": {
     "@xhayper/discord-rpc": "^1.2.1",
