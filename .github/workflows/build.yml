@@ -4,15 +4,8 @@ name: 📦 Build & Publish
 # fire on every published release, or manual dispatch
 on:
   release:
-    types: [published]
+    types: [created, published]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Semver tag (e.g. v1.2.3)'
-        required: true
-      name:
-        description: 'Release title'
-        required: false
 permissions:
   contents: write    # needed to upload release assets
 
@@ -66,22 +59,7 @@ jobs:
           esac
   
           # run electron-builder with publish
-          npx electron-builder $PLAT_FLAG $ARCH_FLAG --publish never
-
-      - name: Draft GitHub Release & upload all installers
-        uses: softprops/action-gh-release@v2
-        with:
-          token:          ${{ secrets.GITHUB_TOKEN }}
-          tag_name:       ${{ github.event.inputs.tag }}
-          name:           ${{ github.event.inputs.name || github.event.inputs.tag }}
-          draft:          true
-          prerelease:     false
-          # glob each installer you want to attach
-          files: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.deb
+          npx electron-builder $PLAT_FLAG $ARCH_FLAG --publish always
   
 
     # artifacts are automatically attached by electron-builder to the GitHub release
