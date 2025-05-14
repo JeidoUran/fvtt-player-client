@@ -42,11 +42,21 @@ jobs:
 
       - name: Package for ${{ matrix.os }}/${{ matrix.arch }}
         run: |
+          # determine the platform flag
           case "${{ matrix.os }}" in
-            "windows-latest") PLAT="win" ;;
-            "macos-latest")   PLAT="mac" ;;
-            "ubuntu-latest")  PLAT="linux" ;;
+            "windows-latest") PLAT_FLAG="--win" ;;
+            "macos-latest")   PLAT_FLAG="--mac" ;;
+            "ubuntu-latest")  PLAT_FLAG="--linux" ;;
           esac
-          yarn dist:${PLAT} --${PLAT}-arch ${{ matrix.arch }} --publish always
+  
+          # determine the arch flag
+          case "${{ matrix.arch }}" in
+            "x64")    ARCH_FLAG="--x64" ;;
+            "arm64")  ARCH_FLAG="--arm64" ;;
+          esac
+  
+          # run electron-builder with publish
+          npx electron-builder $PLAT_FLAG $ARCH_FLAG --publish always
+  
 
     # artifacts are automatically attached by electron-builder to the GitHub release
