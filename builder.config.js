@@ -1,6 +1,7 @@
 // builder.config.js
+
 require("dotenv").config(); // if you still need your .env
-// builder.config.js
+
 module.exports = {
   appId: "com.theripper93.fvtt-player-client",
   productName: "FVTT Desktop Client",

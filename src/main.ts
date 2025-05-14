@@ -34,6 +34,14 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { spawn, spawnSync } from "child_process";
+import log from "electron-log";
+import { autoUpdater } from "electron-updater";
+
+const fileTransport = log.transports.file;
+(fileTransport as any).getFile = () =>
+  path.join(app.getPath("userData"), "main.log");
+fileTransport.level = "info";
+autoUpdater.logger = log;
 
 const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
   ? "http://localhost:5173"
@@ -856,6 +864,7 @@ ipcMain.handle("local-theme-config", () => {
   }
 });
 
+// TODO: Seems unused
 ipcMain.handle("select-path", (e) => {
   windowsData[e.sender.id].autoLogin = true;
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -867,6 +876,7 @@ ipcMain.handle("select-path", (e) => {
     );
   }
 });
+
 ipcMain.handle("cache-path", () => app.getPath("sessionData"));
 
 ipcMain.handle("open-user-data-folder", () => {
@@ -951,10 +961,11 @@ ipcMain.on("set-fullscreen", (event, fullscreen: boolean) => {
 let pendingAssetUrl: string | null = null;
 
 ipcMain.handle("download-update", (_e, assetUrl: string) => {
-  pendingAssetUrl = assetUrl;
+  /*   pendingAssetUrl = assetUrl;
   const win = BrowserWindow.getFocusedWindow()!;
   // triggers will-download in webContents
-  win.webContents.downloadURL(assetUrl);
+  win.webContents.downloadURL(assetUrl); */
+  autoUpdater.checkForUpdatesAndNotify();
 });
 
 // Intercepts all downloads and handles saving + installing

@@ -1,7 +1,7 @@
 {
   "name": "vtt-desktop-client",
   "packageManager": "yarn@1.22.22",
-  "version": "1.11.0-dev",
+  "version": "1.11.0",
   "license": "MIT",
   "description": "FVTT Desktop Client",
   "main": ".vite/build/main.js",
@@ -61,10 +61,12 @@
     "dist:win": "npm run build && electron-builder --config builder.config.js --win",
     "dist:mac": "npm run build && electron-builder --config builder.config.js --mac",
     "dist:linux": "npm run build && electron-builder --config builder.config.js --linux",
-    "dev": "yarn build && concurrently -k \"yarn dev:renderer\" \"yarn start:electron\""
+    "dev": "yarn build && concurrently -k \"yarn dev:renderer\" \"yarn start:electron\"",
+    "publish:dev": "npx electron-builder --publish always --config.publish.provider=s3 --config.publish.endpoint=http://localhost:9000 --config.publish.bucket=test-bucket"
   },
   "dependencies": {
     "@xhayper/discord-rpc": "^1.2.1",
+    "electron-log": "^5.4.0",
     "electron-squirrel-startup": "^1.0.1",
     "electron-updater": "^6.6.2",
     "node-fetch": "^3.3.2",
