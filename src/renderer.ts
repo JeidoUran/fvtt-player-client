@@ -103,6 +103,13 @@ window.api.onShowPrompt(({ id, message, options }) => {
   });
 });
 
+window.api.onFullScreenChange((isFs) => {
+  const closeButton = document.querySelector(
+    ".tooltip-wrapper.close-app",
+  ) as HTMLElement;
+  closeButton.style.display = isFs ? "block" : "none";
+});
+
 document.querySelector("#add-game").addEventListener("click", async () => {
   const gameUrlField = document.querySelector("#game-url") as HTMLInputElement;
   const gameNameField = document.querySelector(
@@ -575,6 +582,11 @@ if (openUserDataBtn) {
     }
   });
 }
+
+const closeButton = document.querySelector(".tooltip-wrapper.close-app")!;
+closeButton.addEventListener("click", () => {
+  window.api.closeWindow();
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
   const themeStylesheet = document.getElementById(
@@ -1457,6 +1469,12 @@ function applyAppConfig(config: AppConfig) {
   ) as HTMLInputElement;
   fsToggle.checked = config.fullScreenEnabled ?? false;
   window.api.setFullScreen(config.fullScreenEnabled ?? false);
+  const closeButton = document.querySelector(
+    ".tooltip-wrapper.close-app",
+  ) as HTMLElement;
+  window.api.isFullScreen().then((fs) => {
+    closeButton.style.display = fs ? "block" : "none";
+  });
 
   if (config.notificationTimer != null) {
     const inputTimer = document.querySelector(

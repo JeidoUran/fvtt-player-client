@@ -306,6 +306,15 @@ function askPrompt(
   });
 }
 
+function hookFullScreenEvents(win: BrowserWindow) {
+  win.on("enter-full-screen", () => {
+    win.webContents.send("fullscreen-changed", true);
+  });
+  win.on("leave-full-screen", () => {
+    win.webContents.send("fullscreen-changed", false);
+  });
+}
+
 const windows = new Set<BrowserWindow>();
 
 /** Check if single instance, if not, simply quit new instance */
@@ -345,6 +354,8 @@ function createWindow(): BrowserWindow {
       session: localSession,
     },
   });
+
+  hookFullScreenEvents(win);
 
   // ── Applies fullscreen according to user config ──
   try {
@@ -853,6 +864,18 @@ ipcMain.on("save-user-data", (_e, data: SaveUserData) => {
 ipcMain.handle("get-user-data", (_, gameId: GameId) => getLoginDetails(gameId));
 
 ipcMain.handle("app-version", () => app.getVersion());
+
+ipcMain.handle("is-fullscreen", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  return win ? win.isFullScreen() : false;
+});
+
+ipcMain.on("close-window", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed()) {
+    win.close();
+  }
+});
 
 ipcMain.handle("dialog:choose-font", async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({

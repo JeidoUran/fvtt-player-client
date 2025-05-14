@@ -59,7 +59,12 @@ export type ContextBridgeApi = {
   showMenu: () => Promise<string>;
   pingServer: (url: string) => Promise<ServerStatusData | null>;
   setFullScreen: (fullscreen: boolean) => void;
+  /** ask main “are we full-screen right now?” */
+  isFullScreen: () => Promise<boolean>;
+  /** subscribe to live full-screen changes */
+  onFullScreenChange: (cb: (isFullscreen: boolean) => void) => void;
   platform: NodeJS.Platform;
+  closeWindow: () => void;
   onUpdaterStatus: (
     cb: (
       event: IpcRendererEvent,
@@ -173,12 +178,20 @@ const exposedApi: ContextBridgeApi = {
   pingServer: (url: string) =>
     ipcRenderer.invoke("ping-server", url) as Promise<ServerStatusData | null>,
   platform: process.platform,
+  closeWindow: () => {
+    ipcRenderer.send("close-window");
+  },
   setFullScreen: (fs) => ipcRenderer.send("set-fullscreen", fs),
-  onUpdaterStatus: (cb) =>
+  isFullScreen: () => ipcRenderer.invoke("is-fullscreen"),
+  onFullScreenChange: (cb) =>
     ipcRenderer.on(
-      "update-status",
-      (_e: IpcRendererEvent, data: { status: string; payload?: any }) =>
-        cb(_e, data),
+      "fullscreen-changed",
+      (_e: IpcRendererEvent, isFs: boolean) => cb(isFs),
+    ),
+    ipcRenderer.on(
+      "update-download-started",
+      (_e: IpcRendererEvent, info: { fileName: string; savePath: string }) =>
+        cb(info),
     ),
   checkForUpdates: () => {
     ipcRenderer.send("check-for-updates");
