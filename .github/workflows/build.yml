@@ -1,72 +1,43 @@
-name: 📦 Build & Draft Release
+name: 📦 Build & Draft GitHub Release
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Semver tag to release (e.g. v1.2.3)'
+        description: 'Semver tag (e.g. v1.2.3)'
         required: true
       name:
         description: 'Release title'
         required: false
       body:
-        description: 'Release notes / markdown'
+        description: 'Release notes (markdown)'
         required: false
 
 permissions:
   contents: write
 
 jobs:
-  prepare:
+  build-and-publish:
     runs-on: ubuntu-latest
-    outputs:
-      release_id: ${{ steps.create_release.outputs.id }}
-      upload_url:  ${{ steps.create_release.outputs.upload_url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create draft release
-        id: create_release
-        uses: softprops/action-gh-release@v2
-        with:
-          # explicitly pass the token
-          token:          ${{ secrets.GITHUB_TOKEN }}
-          tag_name:       ${{ github.event.inputs.tag }}
-          name:           ${{ github.event.inputs.name || github.event.inputs.tag }}
-          body:           ${{ github.event.inputs.body }}
-          draft:          true
-          prerelease:     false
-
-      - name: Set version in package.json
-        run: yarn version --no-git-tag-version --new-version ${{ github.event.inputs.tag }}
-
-  build:
-    needs: prepare
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
         arch: [x64, arm64]
       fail-fast: false
-    env:
-      RELEASE_ID: ${{ needs.prepare.outputs.release_id }}
-      UPLOAD_URL: ${{ needs.prepare.outputs.upload_url }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'yarn'
+          cache: yarn
 
-      - name: Install deps
-        run: yarn install --frozen-lockfile
-
-      - name: Build all targets
-        run: yarn build
+      - name: Install deps & build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
 
       - name: Package app (${{ matrix.os }}/${{ matrix.arch }})
         shell: bash
@@ -82,17 +53,18 @@ jobs:
           esac
           npx electron-builder $PLAT $ARCH --publish never
 
-      - name: Upload artifacts to draft release
-        uses: actions/upload-release-asset@v1
+      - name: Draft GitHub Release & upload all installers
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ env.UPLOAD_URL }}
-          asset_path: ./dist/${{ matrix.os == 'windows-latest' && 'win-unpacked' || matrix.os == 'macos-latest' && 'mac' || 'linux-unpacked' }}
-          asset_name: |
-            ${{ matrix.os }}-${{ matrix.arch }}-$(
-              case "${{ matrix.os }}" in
-                "windows-latest") echo Setup-${{ github.event.inputs.tag }}.exe ;;
-                "macos-latest")   echo "${{ github.event.inputs.tag }}.dmg" ;;
-                "ubuntu-latest")  echo "${{ github.event.inputs.tag }}.AppImage" ;;
-              esac
-            )
-          asset_content_type: application/octet-stream
+          # token is picked up automatically from GITHUB_TOKEN
+          tag_name:       ${{ github.event.inputs.tag }}
+          name:           ${{ github.event.inputs.name || github.event.inputs.tag }}
+          body:           ${{ github.event.inputs.body }}
+          draft:          true
+          prerelease:     false
+          # glob each installer you want to attach
+          files: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
