@@ -33,7 +33,6 @@ import {
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import fetch from "node-fetch";
 import { spawn, spawnSync } from "child_process";
 
 const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
@@ -885,21 +884,51 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
   );
 });
 
-ipcMain.handle("ping-server", async (_e, rawUrl: string) => {
-  try {
-    // 5 sec at most before timing out
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-
+ipcMain.handle("ping-server", (_e, rawUrl: string) => {
+  return new Promise<ServerStatusData | null>((resolve) => {
     const pingUrl = new URL("/api/status", rawUrl).toString();
-    const res = await fetch(pingUrl, { signal: controller.signal });
-    clearTimeout(timer);
 
-    if (!res.ok) return null;
-    return await res.json(); // returns ServerStatusData
-  } catch (err: any) {
-    return null;
-  }
+    // fire the request
+    const req = net.request(pingUrl);
+
+    // enforce a 5s timeout
+    const timer = setTimeout(() => {
+      req.abort();
+      resolve(null);
+    }, 5000);
+
+    const chunks: Buffer[] = [];
+    req.on("response", (response) => {
+      clearTimeout(timer);
+
+      // accumulate all data
+      response.on("data", (b) => chunks.push(b));
+      response.on("end", () => {
+        // only parse on 2xx
+        if (
+          response.statusCode &&
+          response.statusCode >= 200 &&
+          response.statusCode < 300
+        ) {
+          try {
+            const json = JSON.parse(Buffer.concat(chunks).toString());
+            resolve(json);
+          } catch {
+            resolve(null);
+          }
+        } else {
+          resolve(null);
+        }
+      });
+    });
+
+    req.on("error", () => {
+      clearTimeout(timer);
+      resolve(null);
+    });
+
+    req.end();
+  });
 });
 
 ipcMain.on("return-select", (e) => {
