@@ -1,46 +1,49 @@
 <template>
   <transition name="fade">
-    <div v-if="store.visible" class="modal-backdrop">
-      <div class="modal-window">
+    <div v-if="store.visible" class="updater-backdrop">
+      <div class="updater-window">
         <div v-if="store.status === 'checking'">Checking for updates…</div>
         <div
           v-else-if="store.status === 'available' && store.payload?.version"
-          class="modal-text"
+          class="updater-text"
         >
           Update <strong>{{ store.payload.version }}</strong> is available!
         </div>
-        <div v-else-if="store.status === 'available'" class="modal-text">
+        <div v-else-if="store.status === 'available'" class="updater-text">
           An update is available!
         </div>
-        <div v-else-if="store.status === 'progress'" class="modal-text">
+        <div v-else-if="store.status === 'progress'" class="updater-text">
           <el-progress :percentage="store.payload.percent" />
         </div>
-        <div v-else-if="store.status === 'downloaded'" class="modal-text">
+        <div v-else-if="store.status === 'downloaded'" class="updater-text">
           Download complete.
         </div>
-        <div v-else-if="store.status === 'error'" class="modal-text">
+        <div v-else-if="store.status === 'error'" class="updater-text">
           Error : {{ store.payload.message }}
         </div>
+        <div class="updater-current-version">
+          Current Version: {{ currentVersion }}
+        </div>
         <span slot="footer" class="dialog-footer">
-          <div class="modal-buttons">
+          <div class="updater-buttons">
             <button
-              class="modal-button"
+              class="updater-button"
               v-if="store.status === 'available'"
               @click="download"
             >
               Download
             </button>
             <button
-              class="modal-button"
+              class="updater-button"
               v-if="store.status === 'downloaded'"
               @click="install"
             >
               Install
             </button>
-            <button class="modal-button" @click="openLatest">
+            <button class="updater-button" @click="openLatest">
               Open GitHub
             </button>
-            <button class="modal-button" @click="store.close">Close</button>
+            <button class="updater-button" @click="store.close">Close</button>
           </div>
         </span>
       </div>
@@ -50,6 +53,18 @@
 
 <script setup lang="ts">
 import { useUpdaterStore } from "../stores/updater";
+import { ref, onMounted } from "vue";
+
+const currentVersion = ref<string>("");
+
+// Fetch the version when the modal mounts
+onMounted(async () => {
+  try {
+    currentVersion.value = await window.api.appVersion();
+  } catch (e) {
+    console.warn("Could not fetch app version:", e);
+  }
+});
 
 const store = useUpdaterStore();
 

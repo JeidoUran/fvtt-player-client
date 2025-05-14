@@ -1,4 +1,4 @@
-.modal-backdrop {
+.updater-backdrop {
   display: flex;
   transition: all 0.3s ease-in-out;
   position: fixed;
@@ -12,12 +12,12 @@
   z-index: 9999;
 }
 
-.modal-backdrop.show {
+.updater-backdrop.show {
   transform: scale(1);
   opacity: 1;
 }
 
-.modal-window {
+.updater-window {
   transform: scale(0.98);
   color: var(--color-text-primary);
   background: var(--color-background);
@@ -31,23 +31,27 @@
   width: 90%;
 }
 
-.modal-text {
+.updater-text {
   display: block;
   margin-block-start: 1em;
   margin-block-end: 1em;
 }
 
-.modal-buttons {
+.updater-buttons {
   margin-top: 1rem;
   display: flex;
   justify-content: space-around;
 }
 
-.modal-button {
+.updater-button {
   padding: 0.75rem 2.25rem;
   width: 9em;
 }
 
+.updater-current-version {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+}
 
 .fade-enter-from,
 .fade-leave-to {
