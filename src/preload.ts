@@ -179,13 +179,14 @@ const exposedApi: ContextBridgeApi = {
       "fullscreen-changed",
       (_e: IpcRendererEvent, isFs: boolean) => cb(isFs),
     ),
+  downloadUpdate: (url: string) =>
+    ipcRenderer.invoke("download-update", url) as Promise<void>,
+  onDownloadStarted: (cb) =>
     ipcRenderer.on(
       "update-download-started",
       (_e: IpcRendererEvent, info: { fileName: string; savePath: string }) =>
         cb(info),
     ),
-  platform: process.platform,
-  setFullScreen: (fs) => ipcRenderer.send("set-fullscreen", fs),
 };
 
 contextBridge.exposeInMainWorld("api", exposedApi);
