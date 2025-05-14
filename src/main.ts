@@ -49,6 +49,8 @@ const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
   : "";
 const MAIN_WINDOW_VITE_NAME = "main_window";
 
+let initialCheckInProgress = true;
+
 if (require("electron-squirrel-startup")) app.quit();
 
 app.commandLine.appendSwitch("force_high_performance_gpu");
@@ -281,9 +283,10 @@ function returnToServerSelect(win: BrowserWindow) {
   }
 }
 
-function notifyMainWindow(message: string) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send("show-notification", message);
+function notifyMainWindow(message: string, winOverride?: BrowserWindow) {
+  const win = winOverride ?? mainWindow;
+  if (win && !win.isDestroyed()) {
+    win.webContents.send("show-notification", message);
   }
 }
 
@@ -662,10 +665,19 @@ function createWindow(): BrowserWindow {
 }
 
 autoUpdater.on("checking-for-update", () => {
+  if (initialCheckInProgress) {
+    // silence the first “checking”
+    return;
+  }
+  // any later “checking” should open the modal
   sendUpdateStatus("checking");
 });
 
 autoUpdater.on("update-available", (info) => {
+  if (initialCheckInProgress) {
+    // silence the first “available”
+    return;
+  }
   sendUpdateStatus("available", info);
 });
 
@@ -781,23 +793,6 @@ app.whenReady().then(async () => {
 
   mainWindow = createWindow();
 
-  // only check once, right after launch
-  autoUpdater
-    .checkForUpdates()
-    .then((result) => {
-      // result has a .updateInfo object
-      const latest = result.updateInfo?.version;
-      const current = app.getVersion();
-
-      if (latest && latest !== current) {
-        notifyMainWindow(`An update is available!`);
-      }
-      // else: no update, do nothing
-    })
-    .catch((err) => {
-      console.error("Update‐check failed:", err);
-      // optionally: notifyMainWindow("Could not check for updates.");
-    });
   // Configure cache/session
   const userData = getUserData();
   if (userData.cachePath) {
@@ -811,18 +806,36 @@ app.whenReady().then(async () => {
 
   // After rendering index, we notify on migration status
   mainWindow.webContents.once("did-finish-load", async () => {
+    // only check once, right after launch
+    autoUpdater
+      .checkForUpdates()
+      .then((result) => {
+        // result has a .updateInfo object
+        const latest = result.updateInfo?.version;
+        const current = app.getVersion();
+
+        if (latest && latest !== current) {
+          notifyMainWindow(`An update is available!`);
+        }
+      })
+      .catch((err) => {
+        console.error("Update‐check failed:", err);
+        // optionally: notifyMainWindow("Could not check for updates.");
+      })
+      .finally(() => {
+        // only once the promise settles do we turn off the “initial check” guard
+        initialCheckInProgress = false;
+      });
+
     if (migrationResult === "success") {
-      mainWindow.webContents.send(
-        "show-notification",
-        "Your user data has been successfully migrated",
-      );
+      notifyMainWindow(`Your user data has been successfully migrated`);
       console.log("Migration successful");
     } else if (migrationResult === "failure") {
       await askPrompt("Could not migrate your user data.", { mode: "alert" });
     }
     // Welcome, new users!
     if (isFirstUser) {
-      mainWindow.webContents.send("show-notification", "Welcome!");
+      notifyMainWindow(`Welcome!`);
     }
   });
 });

@@ -17,11 +17,14 @@ import { safePrompt } from "./utils/safePrompt";
 import { hexToRgba } from "./utils/hexToRgba";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import ElementPlus from "element-plus";
+import "element-plus/dist/index.css";
 import { useUpdaterStore, UpdaterStatus } from "./stores/updater";
 import App from "./App.vue";
 
 const app = createApp(App);
 app.use(createPinia());
+app.use(ElementPlus);
 app.mount("#app");
 
 const updater = useUpdaterStore();
