@@ -43,6 +43,7 @@ fileTransport.level = "info";
 autoUpdater.logger = log;
 autoUpdater.autoDownload = false;
 autoUpdater.forceDevUpdateConfig = true;
+autoUpdater.allowPrerelease = true;
 
 const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
   ? "http://localhost:5173"
