@@ -13,6 +13,9 @@ permissions:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    # allow electron-builder to upload to GitHub Releases
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -41,6 +44,7 @@ jobs:
         run: yarn build
 
       - name: Package for ${{ matrix.os }}/${{ matrix.arch }}
+        shell: bash
         run: |
           # determine the platform flag
           case "${{ matrix.os }}" in
