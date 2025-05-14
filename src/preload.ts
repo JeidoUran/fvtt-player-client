@@ -41,10 +41,6 @@ export type ContextBridgeApi = {
   saveAppConfig: (data: AppConfig) => void;
   saveThemeConfig: (data: ThemeConfig) => void;
   showNotification(callback: (message: string) => void): void;
-  safePrompt(
-    message: string,
-    options?: { mode: "confirm" | "alert" },
-  ): Promise<boolean>;
   onShowPrompt: (
     handler: (event: {
       id: number;
@@ -142,13 +138,6 @@ const exposedApi: ContextBridgeApi = {
         callback(message);
       },
     );
-  },
-  safePrompt: (message, options) => {
-    return ipcRenderer.invoke(
-      "safe-prompt",
-      message,
-      options,
-    ) as Promise<boolean>;
   },
   onShowPrompt: (handler) => {
     ipcRenderer.on(

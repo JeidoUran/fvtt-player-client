@@ -17,14 +17,11 @@ import { safePrompt } from "./utils/safePrompt";
 import { hexToRgba } from "./utils/hexToRgba";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import ElementPlus from "element-plus";
-import "element-plus/dist/index.css";
 import { useUpdaterStore, UpdaterStatus } from "./stores/updater";
 import App from "./App.vue";
 
 const app = createApp(App);
 app.use(createPinia());
-app.use(ElementPlus);
 app.mount("#app");
 
 const updater = useUpdaterStore();
@@ -38,23 +35,6 @@ let preventMenuClose = false;
 let lastParticleOptions: ParticleOptions | null = null;
 let games: GameConfig[] = [];
 const seenOffline = new Map<string, boolean>();
-
-function compareSemver(a: string, b: string): number {
-  const splitA = a.split(".");
-  const splitB = b.split(".");
-
-  let currentA, currentB: number;
-  for (let i = 0; i < splitA.length; i++) {
-    currentA = Number(splitA[i]);
-    currentB = Number(splitB[i]);
-    if (currentA > currentB) {
-      return 1;
-    } else if (currentA < currentB) {
-      return -1;
-    }
-  }
-  return 0;
-}
 
 let pingIntervalId: number | null = null;
 
@@ -2106,62 +2086,6 @@ async function createGameList() {
   games = config.games;
 
   addStyle(config.customCSS ?? "");
-
-  /*   appVersion = await window.api.appVersion();
-  document.querySelectorAll(".current-version").forEach((el) => {
-    el.textContent = appVersion;
-  });
-
-  let latestVersion: string = "Unknown";
-  let latestAssetUrl: string | null = null;
-  try {
-    const response = await fetch(
-      "https://api.github.com/repos/JeidoUran/fvtt-player-client/releases/latest",
-      { mode: "cors" },
-    );
-    if (response.ok) {
-      const data = await response.json();
-      latestVersion = data["tag_name"];
-      if (Array.isArray(data.assets)) {
-        const plat = window.api.platform;
-        let exts: string[];
-        if (plat === "win32") {
-          // Squirrel installer
-          exts = ["-setup.exe", ".exe", ".zip"];
-        } else if (plat === "darwin") {
-          // dmg or zip
-          exts = [".dmg", ".zip"];
-        } else {
-          // deb, rpm then zip
-          exts = [".deb", ".rpm", ".zip"];
-        }
-        // Pick the first matching extension in your priority list
-        let assetUrl: string | null = null;
-        for (const ext of exts) {
-          const found = data.assets.find((a: any) => a.name.endsWith(ext));
-          if (found) {
-            assetUrl = found.browser_download_url;
-            break;
-          }
-        }
-        latestAssetUrl = assetUrl;
-      }
-    } else {
-      showNotification("Failed to fetch latest version number");
-      console.warn(
-        "[FVTT Client] GitHub release fetch failed:",
-        response.status,
-      );
-    }
-  } catch (e) {
-    console.error("[FVTT Client] Failed to fetch latest version:", e);
-  }
-  document.querySelector("#latest-version").textContent = latestVersion;
-  if (compareSemver(appVersion, latestVersion) < 0) {
-    showNotification("An update is available!");
-    document.querySelector(".update-available").classList.remove("hidden2");
-    document.querySelector(".version-normal").classList.add("hidden2");
-  } */
 
   gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 
