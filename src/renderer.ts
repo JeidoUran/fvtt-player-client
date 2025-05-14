@@ -30,9 +30,7 @@ app.mount("#app");
 const updater = useUpdaterStore();
 window.api.onUpdaterStatus((_e, { status, payload }) => {
   // cast the string to your union type
-  console.log("[Renderer] update-status event:", status, payload);
   updater.handleStatus({ status: status as UpdaterStatus, payload });
-  console.log("[Renderer] store.visible is now", updater.visible);
 });
 
 let appVersion: string;
@@ -2109,7 +2107,7 @@ async function createGameList() {
 
   addStyle(config.customCSS ?? "");
 
-  appVersion = await window.api.appVersion();
+  /*   appVersion = await window.api.appVersion();
   document.querySelectorAll(".current-version").forEach((el) => {
     el.textContent = appVersion;
   });
@@ -2163,7 +2161,7 @@ async function createGameList() {
     showNotification("An update is available!");
     document.querySelector(".update-available").classList.remove("hidden2");
     document.querySelector(".version-normal").classList.add("hidden2");
-  }
+  } */
 
   gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 
