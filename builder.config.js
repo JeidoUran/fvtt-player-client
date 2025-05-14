@@ -43,6 +43,7 @@ module.exports = {
   linux: {
     target: ["deb", "rpm"],
     icon: "src/icons/png",
+    maintainer: "JeidoUran <jeido.uran@hotmail.fr>",
   },
 
   publish: [
