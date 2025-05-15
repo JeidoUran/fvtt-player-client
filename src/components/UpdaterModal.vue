@@ -31,7 +31,7 @@
             An update is available!
           </div>
           <div v-else-if="store.status === 'progress'" class="updater-text">
-            <!-- <el-progress :percentage="store.payload.percent.toFixed(1)" /> -->
+            Download in progress…
             <el-progress
               :text-inside="true"
               :stroke-width="24"

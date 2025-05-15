@@ -42,19 +42,29 @@
   max-width: 500px;
   width: 90%;
   font-family: var(--font-secondary);
+  height: 275px;
+  justify-content: space-between;
 }
 
 .updater-overflow {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 0.25rem;
-  min-height: 100px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .updater-text {
   display: block;
   margin-block-start: 1em;
   margin-block-end: 1em;
+  min-height: 50%;
+  width: 100%;
+  max-height: 100%;
 }
 
 .updater-buttons {
