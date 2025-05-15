@@ -38,36 +38,6 @@ import { autoUpdater } from "electron-updater";
 import { spawn } from "child_process";
 import os from "os";
 
-const POLKIT_AGENTS = [
-  "polkit-gnome-authentication-agent-1",
-  "/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1",
-  "/usr/lib/polkit-gnome-1/polkit-gnome-authentication-agent-1",
-  "/usr/libexec/polkit-gnome-authentication-agent-1",
-  "polkit-kde-authentication-agent-1",
-];
-
-function launchPolkitAgent() {
-  for (const bin of POLKIT_AGENTS) {
-    // si c'est un chemin absolu, vérifiez qu'il existe
-    if (bin.startsWith("/") && !fs.existsSync(bin)) {
-      continue;
-    }
-    try {
-      const p = spawn(bin, [], {
-        detached: true,
-        stdio: "ignore",
-        env: process.env,
-      });
-      p.unref();
-      console.log(`✅ Polkit agent lancé : ${bin}`);
-      return;
-    } catch (err) {
-      console.warn(`⚠️ Échec lancement Polkit agent ${bin}`, err);
-    }
-  }
-  console.error("❌ Aucun agent Polkit graphique trouvé !");
-}
-
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
   path.join(app.getPath("userData"), "main.log");
@@ -743,10 +713,6 @@ autoUpdater.on("error", (err) => {
 
 app.whenReady().then(async () => {
   if (require("electron-squirrel-startup")) return;
-
-  if (process.platform === "linux") {
-    launchPolkitAgent();
-  }
 
   // File menu
   const fileMenu: MenuItemConstructorOptions = {
