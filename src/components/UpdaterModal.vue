@@ -2,38 +2,50 @@
   <transition name="fade">
     <div v-if="store.visible" class="updater-backdrop">
       <div class="updater-window">
-        <div v-if="store.status === 'checking'">Checking for updates…</div>
-        <div v-else-if="store.status === 'not-available'" class="updater-text">
-          You are up-to-date.
-        </div>
-        <div
-          v-else-if="store.status === 'available' && store.payload?.version"
-          class="updater-text"
-        >
-          Update
-          <strong class="current-version-inline">{{
-            store.payload.version
-          }}</strong>
-          is available!
-        </div>
-        <div v-else-if="store.status === 'available'" class="updater-text">
-          An update is available!
-        </div>
-        <div v-else-if="store.status === 'progress'" class="updater-text">
-          <!-- <el-progress :percentage="store.payload.percent.toFixed(1)" /> -->
-          <el-progress
-            :text-inside="true"
-            :stroke-width="24"
-            :percentage="store.payload.percent.toFixed(1)"
-            :color="colorset"
+        <div class="updater-overflow">
+          <div
+            v-loading="loading"
+            element-loading-background="transparent"
+            element-loading-text="Checking for updates…"
+            element-loading-custom-class="loading-update-check"
+            v-if="store.status === 'checking'"
+            class="updater-text"
+          ></div>
+          <div
+            v-else-if="store.status === 'not-available'"
+            class="updater-text"
           >
-          </el-progress>
-        </div>
-        <div v-else-if="store.status === 'downloaded'" class="updater-text">
-          Download complete.
-        </div>
-        <div v-else-if="store.status === 'error'" class="updater-text">
-          Error : {{ store.payload.message }}
+            You are up-to-date.
+          </div>
+          <div
+            v-else-if="store.status === 'available' && store.payload?.version"
+            class="updater-text"
+          >
+            Update
+            <strong class="current-version-inline">{{
+              store.payload.version
+            }}</strong>
+            is available!
+          </div>
+          <div v-else-if="store.status === 'available'" class="updater-text">
+            An update is available!
+          </div>
+          <div v-else-if="store.status === 'progress'" class="updater-text">
+            <!-- <el-progress :percentage="store.payload.percent.toFixed(1)" /> -->
+            <el-progress
+              :text-inside="true"
+              :stroke-width="24"
+              :percentage="store.payload.percent.toFixed(1)"
+              :color="colorset"
+            >
+            </el-progress>
+          </div>
+          <div v-else-if="store.status === 'downloaded'" class="updater-text">
+            Download complete.
+          </div>
+          <div v-else-if="store.status === 'error'" class="updater-text">
+            Error : {{ store.payload.message }}
+          </div>
         </div>
         <span slot="footer" class="dialog-footer">
           <div class="updater-current-version">
@@ -82,7 +94,7 @@ interface Versions {
 }
 
 const versions = reactive<Partial<Versions>>({});
-
+const loading = ref(true);
 const colorset = ref("var(--color-accent)");
 
 // Fetch the version when the modal mounts
