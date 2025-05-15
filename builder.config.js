@@ -27,27 +27,27 @@ module.exports = {
   win: {
     target: [{ target: "nsis", arch: ["x64", "ia32"] }, "zip"],
     icon: "src/icons/win/icon.ico",
-    artifactName: "${productName}-${version}_${os}-${arch}.${ext}",
+    artifactName: "${productName}_${version}_${os}-${arch}.${ext}",
   },
   nsis: {
     oneClick: false,
     perMachine: false,
     allowToChangeInstallationDirectory: true,
     include: "build/installer.nsh",
-    artifactName: "${productName}-${version}_${os}-${arch}.${ext}",
+    artifactName: "${productName}_${version}_${os}-${arch}.${ext}",
   },
 
   mac: {
     target: ["dmg", "zip"],
     icon: "src/icons/mac/icon.icns",
-    artifactName: "${productName}-${version}_${os}-${arch}.${ext}",
+    artifactName: "${productName}_${version}_${os}-${arch}.${ext}",
   },
 
   linux: {
     target: ["AppImage", "deb", "rpm", "zip"],
     icon: "src/icons/png",
     maintainer: "JeidoUran <jeido.uran@hotmail.fr>",
-    artifactName: "${productName}-${version}_${os}-${arch}.${ext}",
+    artifactName: "${productName}_${version}_${os}-${arch}.${ext}",
   },
 
   publish: [
