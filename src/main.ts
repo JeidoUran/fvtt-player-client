@@ -35,7 +35,6 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
-import sudo from "sudo-prompt";
 
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
@@ -940,50 +939,7 @@ function getThemeConfig(): ThemeConfig {
 
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.on("install-update", async () => {
-  // 1) Sur Windows/macOS on garde electron-updater
-  if (process.platform === "win32" || process.platform === "darwin") {
-    autoUpdater.quitAndInstall(true, true);
-    return;
-  }
-
-  // 2) Sous Linux on utilise sudo-prompt
-  const version = app.getVersion(); // ex: "1.13.0-pre"
-  // Récupère "/home/<user>"
-  const homeDir = app.getPath("home");
-  // Construit "/home/<user>/.cache/vtt-desktop-client-updater/pending"
-  const pendingDir = path.join(
-    homeDir,
-    ".cache",
-    "vtt-desktop-client-updater",
-    "pending",
-  );
-  // Attention à bien reproduire le nom exact du .deb généré par electron-updater
-  // ici on part sur : FVTT-Desktop-Client_<version>_linux-amd64.deb
-  const arch = process.arch === "x64" ? "amd64" : process.arch;
-  const debName = `FVTT-Desktop-Client_${version}_linux-${arch}.deb`;
-  const debPath = path.join(pendingDir, debName);
-
-  const options = { name: "FVTT Desktop Client" };
-  sudo.exec(
-    // dpkg -i ou fallback apt-get -f install
-    `dpkg -i "${debPath}" || apt-get install -f -y`,
-    options,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error("Update install error:", error, stderr);
-        dialog.showErrorBox(
-          "Update failed",
-          `Could not install update :\n${error.message}`,
-        );
-        return;
-      }
-      // Installation OK → relance l’app
-      app.relaunch();
-      app.exit(0);
-    },
-  );
-});
+ipcMain.on("install-update", () => autoUpdater.quitAndInstall(true, true));
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
