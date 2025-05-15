@@ -41,7 +41,7 @@ module.exports = {
   },
 
   linux: {
-    target: ["deb", "rpm", "AppImage", "zip"],
+    target: ["AppImage", "deb", "rpm", "zip"],
     icon: "src/icons/png",
     maintainer: "JeidoUran <jeido.uran@hotmail.fr>",
   },
@@ -50,6 +50,7 @@ module.exports = {
     {
       provider: "github",
       releaseType: "draft",
+      vPrefixedTagName: "false",
     },
     // {
     //   provider: "s3",
