@@ -36,12 +36,12 @@ module.exports = {
   },
 
   mac: {
-    target: "dmg",
+    target: ["dmg", "zip"],
     icon: "src/icons/mac/icon.icns",
   },
 
   linux: {
-    target: ["deb", "rpm"],
+    target: ["deb", "rpm", "AppImage", "zip"],
     icon: "src/icons/png",
     maintainer: "JeidoUran <jeido.uran@hotmail.fr>",
   },
