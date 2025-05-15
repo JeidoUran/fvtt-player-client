@@ -35,6 +35,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
+import sudo from "sudo-prompt";
 
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
@@ -939,7 +940,44 @@ function getThemeConfig(): ThemeConfig {
 
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.on("install-update", () => autoUpdater.quitAndInstall(true, true));
+ipcMain.handle("install-update", async () => {
+  // 1) Windows (ou Squirrel on macOS) : on laisse electron-updater gérer tout
+  if (process.platform === "win32" || process.platform === "darwin") {
+    // isSilent = true, isForceRunAfter = true
+    autoUpdater.quitAndInstall(true, true);
+    return;
+  }
+
+  // 2) Linux : on invoque la commande dpkg/apt via sudo-prompt
+  const version = app.getVersion();
+  const debPath = path.join(
+    app.getPath("userData"),
+    "pending",
+    `FVTT-Desktop-Client_${version}_amd64.deb`,
+  );
+
+  const options = {
+    name: "FVTT Desktop Client",
+  };
+
+  sudo.exec(
+    `dpkg -i "${debPath}" || apt-get install -f -y`,
+    options,
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error("Update install error:", error, stderr);
+        dialog.showErrorBox(
+          "Mise à jour échouée",
+          `Impossible d’installer la mise à jour :\n${error.message}`,
+        );
+        return;
+      }
+      // tout s’est bien passé → relance de l’app
+      app.relaunch();
+      app.exit(0);
+    },
+  );
+});
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
