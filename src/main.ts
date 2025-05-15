@@ -940,7 +940,7 @@ function getThemeConfig(): ThemeConfig {
 
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.handle("install-update", async () => {
+ipcMain.on("install-update", async () => {
   // 1) Windows (ou Squirrel on macOS) : on laisse electron-updater gérer tout
   if (process.platform === "win32" || process.platform === "darwin") {
     // isSilent = true, isForceRunAfter = true
