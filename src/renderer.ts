@@ -592,6 +592,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const themeStylesheet = document.getElementById(
     "theme-stylesheet",
   ) as HTMLLinkElement;
+  const updaterStylesheet = document.getElementById(
+    "updater-stylesheet",
+  ) as HTMLLinkElement;
   const themeSelector = document.getElementById(
     "theme-selector",
   ) as HTMLSelectElement;
@@ -826,11 +829,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const selectedTheme = themeConfig.baseTheme ?? "codex";
   themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
+  updaterStylesheet.setAttribute(
+    "href",
+    `styles/UpdaterModal-${selectedTheme}.css`,
+  );
   themeSelector.value = selectedTheme;
 
   themeSelector.addEventListener("change", async () => {
     const newTheme = themeSelector.value;
     themeStylesheet.setAttribute("href", `styles/${newTheme}.css`);
+    updaterStylesheet.setAttribute(
+      "href",
+      `styles/UpdaterModal-${newTheme}.css`,
+    );
     const themeConfigMenu = document.querySelector(
       ".theme-configuration",
     ) as HTMLDivElement;
@@ -1173,6 +1184,9 @@ async function applyShareImport() {
   const themeStylesheet = document.getElementById(
     "theme-stylesheet",
   ) as HTMLLinkElement;
+  const updaterStylesheet = document.getElementById(
+    "updater-stylesheet",
+  ) as HTMLLinkElement;
   const txt = (document.getElementById("share-input") as HTMLTextAreaElement)
     .value;
   let data: any;
@@ -1192,6 +1206,10 @@ async function applyShareImport() {
     applyAppConfig(mergedApp);
     applyThemeConfig(mergedTheme);
     themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+    updaterStylesheet.setAttribute(
+      "href",
+      `styles/UpdaterModal-${mergedTheme.baseTheme}.css`,
+    );
     await createGameList();
     return showNotification("Settings imported");
   }
@@ -1206,6 +1224,10 @@ async function applyShareImport() {
     await window.api.saveThemeConfig(mergedTheme);
     applyThemeConfig(mergedTheme);
     themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+    updaterStylesheet.setAttribute(
+      "href",
+      `styles/UpdaterModal-${mergedTheme.baseTheme}.css`,
+    );
     return showNotification("Theme imported");
   }
 
@@ -1215,6 +1237,9 @@ async function applyShareImport() {
 async function importFromFile() {
   const themeStylesheet = document.getElementById(
     "theme-stylesheet",
+  ) as HTMLLinkElement;
+  const updaterStylesheet = document.getElementById(
+    "updater-stylesheet",
   ) as HTMLLinkElement;
   const fileInput = document.getElementById("import-file") as HTMLInputElement;
   fileInput.onchange = async () => {
@@ -1237,6 +1262,10 @@ async function importFromFile() {
       applyAppConfig(mergedApp);
       applyThemeConfig(mergedTheme);
       themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+      updaterStylesheet.setAttribute(
+        "href",
+        `styles/UpdaterModal-${mergedTheme.baseTheme}.css`,
+      );
       await createGameList();
       return showNotification("Settings imported");
     }
@@ -1251,6 +1280,10 @@ async function importFromFile() {
       await window.api.saveThemeConfig(mergedTheme);
       applyThemeConfig(mergedTheme);
       themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+      updaterStylesheet.setAttribute(
+        "href",
+        `styles/UpdaterModal-${mergedTheme.baseTheme}.css`,
+      );
       return showNotification("Theme imported");
     }
 

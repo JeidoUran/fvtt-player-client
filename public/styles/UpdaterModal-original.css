@@ -1,6 +1,5 @@
 .updater-backdrop {
   display: flex;
-  transition: all 0.3s ease-in-out;
   position: fixed;
   top: 0;
   left: 0;
@@ -17,27 +16,44 @@
   opacity: 1;
 }
 
+.loading-update-check .el-loading-spinner .path {
+  color: var(--color-accent);
+  stroke: var(--color-accent);
+}
+
+.loading-update-check .el-loading-spinner .el-loading-text {
+  color: var(--color-text-primary);
+  font-size: 19px;
+}
+
 .updater-window {
   display: flex;
   flex-direction: column;
   transform: scale(0.98);
   color: var(--color-text-primary);
+  width: 90%;
+  height: 300px;
+  justify-content: space-between;
   background: var(--color-background);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  font-family: var(--font-secondary);
-  font-size: 1.35rem;
-  padding: 2rem;
-  border-radius: 0.5rem;
+  border: 2px solid var(--color-text-primary);
+  font-size: 1.25rem;
+  padding: 1.75rem;
   text-align: center;
   max-width: 500px;
   width: 90%;
-  height: 250px;
-  justify-content: space-between;
+  font-family: var(--font-secondary);
+}
+
+.updater-overflow {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+  min-height: 100px;
 }
 
 .updater-text {
   display: block;
-  margin-block-start: 1.5em;
+  margin-block-start: 1em;
   margin-block-end: 1em;
 }
 
@@ -50,7 +66,8 @@
 
 .updater-button {
   padding: 0.75rem 2.25rem;
-  width: 9em;
+  width: 10em;
+  font-size: 1.25rem;
 }
 
 .updater-current-version {
@@ -64,23 +81,6 @@
   font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
   font-size: 1.25rem;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: scale(0.98);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 200ms ease-out, transform 200ms ease-out;
-}
-
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-  transform: scale(1);
 }
 
 .el-progress-bar__outer {

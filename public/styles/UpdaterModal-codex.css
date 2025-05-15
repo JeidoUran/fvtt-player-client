@@ -1,0 +1,118 @@
+.updater-backdrop {
+  display: flex;
+  transition: all 0.3s ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.updater-backdrop.show {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.loading-update-check .el-loading-spinner .path {
+  color: var(--color-accent);
+  stroke: var(--color-accent);
+}
+
+.loading-update-check .el-loading-spinner .el-loading-text {
+  color: var(--color-text-primary);
+  font-size: 19px;
+}
+
+.updater-window {
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.98);
+  color: var(--color-text-primary);
+  background: var(--color-background);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  font-family: var(--font-secondary);
+  font-size: 1.35rem;
+  padding: 1.75rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+  min-height: 300px;
+  max-height: 500px;
+  justify-content: space-between;
+}
+
+.updater-overflow {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+  min-height: 100px;
+}
+
+.updater-text {
+  display: block;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+}
+
+.updater-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin: 1rem 0 0;
+  gap: 1.1rem;
+}
+
+.updater-button {
+  padding: 0.75rem 2.25rem;
+  width: 9em;
+}
+
+.updater-current-version {
+  margin-top: 1rem;
+  font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-size: 16px;
+}
+
+.updater-process-versions {
+  margin-top: 0.25rem;
+}
+
+.current-version-inline {
+  font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-size: 1.25rem;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.el-progress-bar__outer {
+  background-color: #363637 !important;
+}
+
+.el-progress-bar__innerText {
+  font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif !important;
+  color: var(--switch-label-color) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+}
