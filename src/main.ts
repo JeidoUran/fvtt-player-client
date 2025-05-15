@@ -941,38 +941,44 @@ function getThemeConfig(): ThemeConfig {
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
-  // 1) Windows (ou Squirrel on macOS) : on laisse electron-updater gérer tout
+  // 1) Sur Windows/macOS on garde electron-updater
   if (process.platform === "win32" || process.platform === "darwin") {
-    // isSilent = true, isForceRunAfter = true
     autoUpdater.quitAndInstall(true, true);
     return;
   }
 
-  // 2) Linux : on invoque la commande dpkg/apt via sudo-prompt
-  const version = app.getVersion();
-  const debPath = path.join(
-    app.getPath("userData"),
+  // 2) Sous Linux on utilise sudo-prompt
+  const version = app.getVersion(); // ex: "1.13.0-pre"
+  // Récupère "/home/<user>"
+  const homeDir = app.getPath("home");
+  // Construit "/home/<user>/.cache/vtt-desktop-client-updater/pending"
+  const pendingDir = path.join(
+    homeDir,
+    ".cache",
+    "vtt-desktop-client-updater",
     "pending",
-    `FVTT-Desktop-Client_${version}_amd64.deb`,
   );
+  // Attention à bien reproduire le nom exact du .deb généré par electron-updater
+  // ici on part sur : FVTT-Desktop-Client_<version>_linux-amd64.deb
+  const arch = process.arch === "x64" ? "amd64" : process.arch;
+  const debName = `FVTT-Desktop-Client_${version}_linux-${arch}.deb`;
+  const debPath = path.join(pendingDir, debName);
 
-  const options = {
-    name: "FVTT Desktop Client",
-  };
-
+  const options = { name: "FVTT Desktop Client" };
   sudo.exec(
+    // dpkg -i ou fallback apt-get -f install
     `dpkg -i "${debPath}" || apt-get install -f -y`,
     options,
     (error, stdout, stderr) => {
       if (error) {
         console.error("Update install error:", error, stderr);
         dialog.showErrorBox(
-          "Mise à jour échouée",
-          `Impossible d’installer la mise à jour :\n${error.message}`,
+          "Update failed",
+          `Could not install update :\n${error.message}`,
         );
         return;
       }
-      // tout s’est bien passé → relance de l’app
+      // Installation OK → relance l’app
       app.relaunch();
       app.exit(0);
     },
