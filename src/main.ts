@@ -1007,6 +1007,7 @@ ipcMain.on("install-update", async () => {
   }).unref();
 
   // 4) Quitte pour laisser l'install se faire
+  app.relaunch();
   app.quit();
 });
 
