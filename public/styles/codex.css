@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 :root {
   --color-background: #0e1a23;
@@ -68,7 +69,8 @@ body::after {
   user-select: none;
   position: absolute;
   color: var(--color-text-primary);
-  font-family: "Open Sans", sans-serif;
+  font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   margin: 0;
@@ -179,13 +181,6 @@ button:not(.game-button):not(.configure-game):not(.refresh-game):not(.toggle-pas
 .app-configuration button,
 .theme-configuration button {
   padding: 0.7rem 0.5rem;
-}
-
-#info {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  margin-right: 0.1rem;
 }
 
 #game-list {

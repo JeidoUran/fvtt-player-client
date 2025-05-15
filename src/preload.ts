@@ -4,17 +4,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 
-window.addEventListener("DOMContentLoaded", () => {
-  const replaceText = (selector: string, text: string) => {
-    const element = document.getElementById(selector);
-    if (element) element.innerText = text;
-  };
-
-  for (const dependency of ["chrome", "node", "electron"]) {
-    replaceText(`${dependency}-version`, process.versions[dependency]);
-  }
-});
-
 // type SendChannels = "toMain" | "open-game" | "save-user-data" | "app-version" | "cache-path" | "clear-cache";
 // type ReceiveChannels = "fromMain" | "save-user-data" | "app-version" | "cache-path";
 // type RequestChannels = "app-version" | "cache-path" | "get-user-data" | "select-path";
@@ -60,6 +49,7 @@ export type ContextBridgeApi = {
   /** subscribe to live full-screen changes */
   onFullScreenChange: (cb: (isFullscreen: boolean) => void) => void;
   platform: NodeJS.Platform;
+  versions: NodeJS.ProcessVersions;
   closeWindow: () => void;
   onUpdaterStatus: (
     cb: (
@@ -167,7 +157,10 @@ const exposedApi: ContextBridgeApi = {
   showMenu: () => ipcRenderer.invoke("show-menu") as Promise<string>,
   pingServer: (url: string) =>
     ipcRenderer.invoke("ping-server", url) as Promise<ServerStatusData | null>,
+
   platform: process.platform,
+  versions: process.versions,
+
   closeWindow: () => {
     ipcRenderer.send("close-window");
   },

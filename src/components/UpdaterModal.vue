@@ -10,14 +10,24 @@
           v-else-if="store.status === 'available' && store.payload?.version"
           class="updater-text"
         >
-          Update <strong>{{ store.payload.version }}</strong> is available!
+          Update
+          <strong class="current-version-inline">{{
+            store.payload.version
+          }}</strong>
+          is available!
         </div>
         <div v-else-if="store.status === 'available'" class="updater-text">
           An update is available!
         </div>
         <div v-else-if="store.status === 'progress'" class="updater-text">
-          <el-progress />
-          {{ store.payload.percent.toFixed(1) }}%
+          <!-- <el-progress :percentage="store.payload.percent.toFixed(1)" /> -->
+          <el-progress
+            :text-inside="true"
+            :stroke-width="24"
+            :percentage="store.payload.percent.toFixed(1)"
+            :color="colorset"
+          >
+          </el-progress>
         </div>
         <div v-else-if="store.status === 'downloaded'" class="updater-text">
           Download complete.
@@ -25,10 +35,15 @@
         <div v-else-if="store.status === 'error'" class="updater-text">
           Error : {{ store.payload.message }}
         </div>
-        <div class="updater-current-version">
-          Current Version: {{ currentVersion }}
-        </div>
         <span slot="footer" class="dialog-footer">
+          <div class="updater-current-version">
+            FVTT Desktop Client {{ currentVersion }}
+            <div class="updater-process-versions">
+              Node.js {{ versions.node }}, Chromium {{ versions.chrome }},
+              Electron
+              {{ versions.electron }}
+            </div>
+          </div>
           <div class="updater-buttons">
             <button
               class="updater-button"
@@ -57,14 +72,25 @@
 
 <script setup lang="ts">
 import { useUpdaterStore } from "../stores/updater";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive } from "vue";
 
 const currentVersion = ref<string>("");
+interface Versions {
+  chrome: string;
+  node: string;
+  electron: string;
+}
+
+const versions = reactive<Partial<Versions>>({});
+
+const colorset = ref("var(--color-accent)");
 
 // Fetch the version when the modal mounts
 onMounted(async () => {
   try {
+    console.log("→ process.versions exposé:", window.api.versions);
     currentVersion.value = await window.api.appVersion();
+    Object.assign(versions, window.api.versions);
   } catch (e) {
     console.warn("Could not fetch app version:", e);
   }
