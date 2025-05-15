@@ -35,6 +35,21 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
+import { spawn } from "child_process";
+
+if (process.platform === "linux") {
+  const agents = [
+    "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1",
+    "/usr/libexec/polkit-gnome-authentication-agent-1",
+    "/usr/lib/polkit-kde-authentication-agent-1",
+  ];
+  for (const bin of agents) {
+    if (fs.existsSync(bin)) {
+      spawn(bin, [], { detached: true, stdio: "ignore" }).unref();
+      break;
+    }
+  }
+}
 
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
