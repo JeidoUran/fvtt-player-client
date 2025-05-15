@@ -3,6 +3,9 @@
     <div v-if="store.visible" class="updater-backdrop">
       <div class="updater-window">
         <div v-if="store.status === 'checking'">Checking for updates…</div>
+        <div v-else-if="store.status === 'not-available'" class="updater-text">
+          You are up-to-date.
+        </div>
         <div
           v-else-if="store.status === 'available' && store.payload?.version"
           class="updater-text"
@@ -13,7 +16,8 @@
           An update is available!
         </div>
         <div v-else-if="store.status === 'progress'" class="updater-text">
-          <el-progress :percentage="store.payload.percent" />
+          <el-progress />
+          {{ store.payload.percent.toFixed(1) }}%
         </div>
         <div v-else-if="store.status === 'downloaded'" class="updater-text">
           Download complete.

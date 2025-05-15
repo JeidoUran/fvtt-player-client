@@ -42,6 +42,8 @@ const fileTransport = log.transports.file;
 fileTransport.level = "info";
 autoUpdater.logger = log;
 autoUpdater.autoDownload = false;
+
+// TODO: TESTING ONLY, REMOVE THESE LINES BEFORE RELEASE
 autoUpdater.forceDevUpdateConfig = true;
 autoUpdater.allowPrerelease = true;
 
@@ -683,9 +685,12 @@ autoUpdater.on("update-available", (info) => {
 });
 
 autoUpdater.on("update-not-available", (info) => {
+  if (initialCheckInProgress) {
+    // silence the “no update” that always fires at the end of the startup check
+    return;
+  }
   sendUpdateStatus("not-available");
 });
-
 autoUpdater.on("download-progress", (progress) => {
   sendUpdateStatus("progress", progress);
 });
