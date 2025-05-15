@@ -35,8 +35,6 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
-import { spawn } from "child_process";
-import os from "os";
 
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
@@ -942,40 +940,7 @@ function getThemeConfig(): ThemeConfig {
 
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.on("install-update", async () => {
-  // Windows & macOS : on reste sur electron-updater
-  if (process.platform === "win32" || process.platform === "darwin") {
-    autoUpdater.quitAndInstall(true, true);
-    return;
-  }
-
-  // ── Linux ──
-  // 1) Récupère le cache XDG ou retombe sur ~/.cache
-  const cacheDir =
-    process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
-
-  // 2) Construit le chemin vers pending
-  const pendingDir = path.join(
-    cacheDir,
-    `${app.getName().toLowerCase()}-updater`,
-    "pending",
-  );
-  const arch = process.arch === "x64" ? "amd64" : process.arch;
-  const version = app.getVersion();
-  const debName = `${app.getName()}_${version}_linux-${arch}.deb`;
-  const debPath = path.join(pendingDir, debName);
-
-  // 3) Lance pkexec (sans --disable-internal-agent)
-  const cmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
-  spawn("pkexec", ["sh", "-c", cmd], {
-    detached: true,
-    stdio: "ignore",
-  }).unref();
-
-  // 4) Quitte pour laisser l'install se faire
-  app.relaunch();
-  app.quit();
-});
+ipcMain.on("install-update", () => autoUpdater.quitAndInstall(true, true));
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
