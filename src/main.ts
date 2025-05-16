@@ -36,16 +36,13 @@ import { fileURLToPath } from "url";
 import log from "electron-log";
 import { NsisUpdater, MacUpdater, DebUpdater } from "electron-updater";
 
-let autoUpdater;
+let autoUpdater: NsisUpdater | MacUpdater;
 
 if (process.platform === "win32") {
   autoUpdater = new NsisUpdater();
 } else if (process.platform === "darwin") {
   autoUpdater = new MacUpdater(); // Note: OSX apps needs to be signed for auto updates to work.
-} else {
-  autoUpdater = new DebUpdater();
 }
-
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
   path.join(app.getPath("userData"), "main.log");
