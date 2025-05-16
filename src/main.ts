@@ -42,8 +42,10 @@ const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
   path.join(app.getPath("userData"), "main.log");
 fileTransport.level = "info";
+
 autoUpdater.logger = log;
 autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
 
 // TODO: TESTING ONLY, REMOVE THESE LINES BEFORE RELEASE
 autoUpdater.forceDevUpdateConfig = true;
@@ -969,10 +971,7 @@ ipcMain.on("install-update", async () => {
     const cmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
     spawn(
       "x-terminal-emulator",
-      [
-        "-e",
-        `bash -ic '${cmd}; echo; read -p "Appuyez sur Entrée pour fermer…"'`,
-      ],
+      ["-e", `bash -ic '${cmd}; echo; read -p "Press Enter to Close…"'`],
       { detached: true, stdio: "ignore" },
     ).unref();
 
