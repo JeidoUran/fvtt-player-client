@@ -36,23 +36,26 @@ import { fileURLToPath } from "url";
 import log from "electron-log";
 import { NsisUpdater, MacUpdater, DebUpdater } from "electron-updater";
 
-let autoUpdater: NsisUpdater | MacUpdater;
+let updater;
 
 if (process.platform === "win32") {
-  autoUpdater = new NsisUpdater();
+  updater = new NsisUpdater();
 } else if (process.platform === "darwin") {
-  autoUpdater = new MacUpdater(); // Note: OSX apps needs to be signed for auto updates to work.
+  updater = new MacUpdater(); // Note: OSX apps needs to be signed for auto updates to work.
+} else {
+  updater = new DebUpdater();
 }
+
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
   path.join(app.getPath("userData"), "main.log");
 fileTransport.level = "info";
-autoUpdater.logger = log;
-autoUpdater.autoDownload = false;
+updater.logger = log;
+updater.autoDownload = false;
 
 // TODO: TESTING ONLY, REMOVE THESE LINES BEFORE RELEASE
-autoUpdater.forceDevUpdateConfig = true;
-autoUpdater.allowPrerelease = true;
+updater.forceDevUpdateConfig = true;
+updater.allowPrerelease = true;
 
 const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
   ? "http://localhost:5173"
@@ -674,7 +677,7 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
-autoUpdater.on("checking-for-update", () => {
+updater.on("checking-for-update", () => {
   if (initialCheckInProgress) {
     // silence the first “checking”
     return;
@@ -683,7 +686,7 @@ autoUpdater.on("checking-for-update", () => {
   sendUpdateStatus("checking");
 });
 
-autoUpdater.on("update-available", (info) => {
+updater.on("update-available", (info) => {
   if (initialCheckInProgress) {
     // silence the first “available”
     return;
@@ -691,22 +694,22 @@ autoUpdater.on("update-available", (info) => {
   sendUpdateStatus("available", info);
 });
 
-autoUpdater.on("update-not-available", (info) => {
+updater.on("update-not-available", (info) => {
   if (initialCheckInProgress) {
     // silence the “no update” that always fires at the end of the startup check
     return;
   }
   sendUpdateStatus("not-available");
 });
-autoUpdater.on("download-progress", (progress) => {
+updater.on("download-progress", (progress) => {
   sendUpdateStatus("progress", progress);
 });
 
-autoUpdater.on("update-downloaded", (info) => {
+updater.on("update-downloaded", (info) => {
   sendUpdateStatus("downloaded", info);
 });
 
-autoUpdater.on("error", (err) => {
+updater.on("error", (err) => {
   if (initialCheckInProgress) {
     // silence the first “available”
     return;
@@ -825,7 +828,7 @@ app.whenReady().then(async () => {
   // After rendering index, we notify on migration status
   mainWindow.webContents.once("did-finish-load", async () => {
     // only check once, right after launch
-    autoUpdater
+    updater
       .checkForUpdates()
       .then((result) => {
         // result has a .updateInfo object
@@ -945,9 +948,9 @@ function getThemeConfig(): ThemeConfig {
   }
 }
 
-ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
-ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.on("install-update", () => autoUpdater.quitAndInstall(true, true));
+ipcMain.on("check-for-updates", () => updater.checkForUpdates());
+ipcMain.on("download-update", () => updater.downloadUpdate());
+ipcMain.on("install-update", () => updater.quitAndInstall(true, true));
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
@@ -1088,7 +1091,7 @@ ipcMain.on("set-fullscreen", (event, fullscreen: boolean) => {
 });
 
 ipcMain.on("check-for-updates", () => {
-  autoUpdater.checkForUpdates();
+  updater.checkForUpdates();
 });
 
 app.on("window-all-closed", () => {
