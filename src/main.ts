@@ -968,19 +968,20 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
-    const cmd = `dpkg -i "${debPath}" || sudo apt-get install -f -y`;
+    const inner = [
+      `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`,
+      `nohup ${app.getName()} >/dev/null 2>&1 &`,
+    ].join(" && ");
 
-    spawn(
-      "x-terminal-emulator",
-      ["-e", `/usr/bin/pkexec --disable-internal-agent /bin/bash -c '${cmd};'`],
-      {
-        detached: true,
-        stdio: "ignore",
-      },
-    ).unref();
+    // 2) on appelle x-terminal-emulator en séparant bien les args
+    //    -e → commande à exécuter
+    //    ensuite : shell, option interactive (-i), commande (-c ou -ic)
+    spawn("x-terminal-emulator", ["-e", "bash", "-ic", inner], {
+      detached: true,
+      stdio: "ignore",
+    }).unref();
 
     // quit app to let terminal do its magic
-    app.relaunch();
     app.quit();
     return;
   }
