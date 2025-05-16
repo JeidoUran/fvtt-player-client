@@ -44,6 +44,7 @@ if (process.platform === "win32") {
   updater = new MacUpdater(); // Note: OSX apps needs to be signed for auto updates to work.
 } else {
   updater = new DebUpdater();
+  updater.checkForUpdatesAndNotify;
 }
 
 const fileTransport = log.transports.file;
