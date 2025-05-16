@@ -35,7 +35,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
-import { spawn } from "child_process";
+import { spawn, spawnSync } from "child_process";
 import os from "os";
 
 const fileTransport = log.transports.file;
@@ -971,11 +971,11 @@ ipcMain.on("install-update", async () => {
     // On invoque pkexec sur un shell pour gérer le "|| apt-get install -f -y"
     const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
-    spawn(
+    spawnSync(
       "/usr/bin/pkexec",
       ["--disable-internal-agent", "sh", "-c", shellCmd],
-      { detached: true, stdio: "ignore" },
-    ).unref();
+      { stdio: "ignore" },
+    );
 
     // Quitte immédiatement pour laisser pkexec gérer l'install
     app.quit();
