@@ -968,14 +968,19 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
-    const cmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
-    spawn(
-      "x-terminal-emulator",
-      ["-e", `bash -ic '${cmd}; echo; read -p "Press Enter to Close…"'`],
-      { detached: true, stdio: "ignore" },
-    ).unref();
+    const cmd = [
+      // installe le paquet
+      `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`,
+      // relance l’app en tâche de fond
+      `nohup ${app.getName()} >/dev/null 2>&1 &`,
+    ].join(" && ");
 
-    // quitte pour laisser le terminal terminer l’installation
+    spawn("x-terminal-emulator", ["-e", `bash -ic '${cmd}'`], {
+      detached: true,
+      stdio: "ignore",
+    }).unref();
+
+    // on quitte pour laisser le terminal faire son job
     app.quit();
     return;
   }
