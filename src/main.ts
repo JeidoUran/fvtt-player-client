@@ -940,7 +940,13 @@ function getThemeConfig(): ThemeConfig {
 
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.on("install-update", () => autoUpdater.quitAndInstall(true, true));
+ipcMain.on("install-update", async () => {
+  if (process.platform === "win32" || process.platform === "darwin") {
+    autoUpdater.quitAndInstall(true, true);
+    return;
+  }
+  app.quit();
+});
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
