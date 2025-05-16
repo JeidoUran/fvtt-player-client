@@ -968,19 +968,28 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
+    // 2) commande à passer à pkexec
     const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
+    // 3) spawn **non-détaché**, on écoute sa fin
     const child = spawn(
       "/usr/bin/pkexec",
       ["--disable-internal-agent", "sh", "-c", shellCmd],
-      { detached: true, stdio: "ignore" },
+      { stdio: "ignore" },
     );
-    child.unref();
 
-    setTimeout(() => {
+    child.on("error", (err) => {
+      console.error("Échec du lancement de pkexec", err);
+      // Vous pouvez éventuellement afficher un dialog.showErrorBox ici
+    });
+
+    child.on("close", (code) => {
+      // 4) une fois pkexec terminé (après saisie du mot de passe + install),
+      //    on quitte l’app pour que la nouvelle version puisse démarrer
       app.quit();
-    }, 500);
+    });
 
+    // IMPORTANT : on **ne ferme pas** immédiatement l’app, on attend la fin de pkexec
     return;
   }
 
