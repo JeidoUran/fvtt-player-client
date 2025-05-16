@@ -943,10 +943,13 @@ function getThemeConfig(): ThemeConfig {
   }
 }
 
-const pkg = require(path.join(app.getAppPath(), "package.json"));
+const pkgPath = path.join(app.getAppPath(), "package.json");
+const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
+  description?: string;
+};
 
-const RAW_PRODUCT_NAME = pkg.productName as string; // "FVTT Desktop Client"
-const SLUG_PRODUCT_NAME = RAW_PRODUCT_NAME.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
+const rawName = pkg.description ?? app.getName(); // "FVTT Desktop Client"
+const SLUG_NAME = rawName.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
@@ -960,7 +963,7 @@ ipcMain.on("install-update", async () => {
       "pending",
     );
     const arch = process.arch === "x64" ? "amd64" : process.arch;
-    const debName = `${SLUG_PRODUCT_NAME}_${version}_linux-${arch}.deb`;
+    const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
     const cmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
@@ -972,6 +975,8 @@ ipcMain.on("install-update", async () => {
       ],
       { detached: true, stdio: "ignore" },
     ).unref();
+
+    // quitte pour laisser le terminal terminer l’installation
     app.quit();
     return;
   }

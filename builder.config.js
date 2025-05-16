@@ -22,7 +22,6 @@ module.exports = {
 
   extraMetadata: {
     main: ".vite/build/main.js",
-    productName: "FVTT Desktop Client",
   },
 
   win: {
