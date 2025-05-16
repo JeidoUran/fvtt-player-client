@@ -968,11 +968,11 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
-    const cmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
+    const cmd = `dpkg -i "${debPath}" || sudo apt-get install -f -y`;
 
     spawn(
       "x-terminal-emulator",
-      ["-e", `bash -ic '${cmd}; echo; read -p "Press Enter to Close…"'`],
+      ["-e", `/usr/bin/pkexec --disable-internal-agent /bin/bash -c '${cmd};'`],
       {
         detached: true,
         stdio: "ignore",
