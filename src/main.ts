@@ -697,7 +697,10 @@ autoUpdater.on("download-progress", (progress) => {
   sendUpdateStatus("progress", progress);
 });
 
+let downloadedVersion: string | null = null;
+
 autoUpdater.on("update-downloaded", (info) => {
+  downloadedVersion = info.version;
   sendUpdateStatus("downloaded", info);
 });
 
@@ -943,35 +946,31 @@ function getThemeConfig(): ThemeConfig {
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
+  // 2) Détermine la version à installer : téléchargée ou fallback
+  const version = downloadedVersion ?? app.getVersion();
+
   if (process.platform === "linux") {
-    // Construire le path vers le .deb
     const cacheDir =
       process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
-    const pending = path.join(
+    const pendingDir = path.join(
       cacheDir,
-      "vtt-desktop-client-updater",
+      `${app.getName().toLowerCase()}-updater`,
       "pending",
     );
-    const debName = `${app.getName()}_${app.getVersion()}_linux-amd64.deb`;
-    const debPath = path.join(pending, debName);
+    const arch = process.arch === "x64" ? "amd64" : process.arch;
+    const debName = `${app.getName()}_${version}_linux-${arch}.deb`;
+    const debPath = path.join(pendingDir, debName);
 
-    // La commande à passer dans le terminal
     const cmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
-
-    // Lance x-terminal-emulator (symlink Debian vers le terminal par défaut)
     spawn(
       "x-terminal-emulator",
       [
         "-e",
         `bash -ic '${cmd}; echo; read -p "Appuyez sur Entrée pour fermer…"'`,
       ],
-      {
-        detached: true,
-        stdio: "ignore",
-      },
+      { detached: true, stdio: "ignore" },
     ).unref();
 
-    // On ferme l’app pour laisser le terminal faire son job
     app.quit();
     return;
   }
