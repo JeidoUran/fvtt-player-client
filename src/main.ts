@@ -34,29 +34,20 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import log from "electron-log";
-import { NsisUpdater, MacUpdater, DebUpdater } from "electron-updater";
-
-let updater;
-
-if (process.platform === "win32") {
-  updater = new NsisUpdater();
-} else if (process.platform === "darwin") {
-  updater = new MacUpdater(); // Note: OSX apps needs to be signed for auto updates to work.
-} else {
-  updater = new DebUpdater();
-  updater.checkForUpdatesAndNotify;
-}
+import { autoUpdater } from "electron-updater";
+import { spawn } from "child_process";
+import os from "os";
 
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
   path.join(app.getPath("userData"), "main.log");
 fileTransport.level = "info";
-updater.logger = log;
-updater.autoDownload = false;
+autoUpdater.logger = log;
+autoUpdater.autoDownload = false;
 
 // TODO: TESTING ONLY, REMOVE THESE LINES BEFORE RELEASE
-updater.forceDevUpdateConfig = true;
-updater.allowPrerelease = true;
+autoUpdater.forceDevUpdateConfig = true;
+autoUpdater.allowPrerelease = true;
 
 const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
   ? "http://localhost:5173"
@@ -678,7 +669,7 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
-updater.on("checking-for-update", () => {
+autoUpdater.on("checking-for-update", () => {
   if (initialCheckInProgress) {
     // silence the first “checking”
     return;
@@ -687,7 +678,7 @@ updater.on("checking-for-update", () => {
   sendUpdateStatus("checking");
 });
 
-updater.on("update-available", (info) => {
+autoUpdater.on("update-available", (info) => {
   if (initialCheckInProgress) {
     // silence the first “available”
     return;
@@ -695,22 +686,22 @@ updater.on("update-available", (info) => {
   sendUpdateStatus("available", info);
 });
 
-updater.on("update-not-available", (info) => {
+autoUpdater.on("update-not-available", (info) => {
   if (initialCheckInProgress) {
     // silence the “no update” that always fires at the end of the startup check
     return;
   }
   sendUpdateStatus("not-available");
 });
-updater.on("download-progress", (progress) => {
+autoUpdater.on("download-progress", (progress) => {
   sendUpdateStatus("progress", progress);
 });
 
-updater.on("update-downloaded", (info) => {
+autoUpdater.on("update-downloaded", (info) => {
   sendUpdateStatus("downloaded", info);
 });
 
-updater.on("error", (err) => {
+autoUpdater.on("error", (err) => {
   if (initialCheckInProgress) {
     // silence the first “available”
     return;
@@ -829,7 +820,7 @@ app.whenReady().then(async () => {
   // After rendering index, we notify on migration status
   mainWindow.webContents.once("did-finish-load", async () => {
     // only check once, right after launch
-    updater
+    autoUpdater
       .checkForUpdates()
       .then((result) => {
         // result has a .updateInfo object
@@ -949,9 +940,44 @@ function getThemeConfig(): ThemeConfig {
   }
 }
 
-ipcMain.on("check-for-updates", () => updater.checkForUpdates());
-ipcMain.on("download-update", () => updater.downloadUpdate());
-ipcMain.on("install-update", () => updater.quitAndInstall(true, true));
+ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
+ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
+ipcMain.on("install-update", async () => {
+  if (process.platform === "linux") {
+    // Construire le path vers le .deb
+    const cacheDir =
+      process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
+    const pending = path.join(
+      cacheDir,
+      "vtt-desktop-client-updater",
+      "pending",
+    );
+    const debName = `${app.getName()}_${app.getVersion()}_linux-amd64.deb`;
+    const debPath = path.join(pending, debName);
+
+    // La commande à passer dans le terminal
+    const cmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
+
+    // Lance x-terminal-emulator (symlink Debian vers le terminal par défaut)
+    spawn(
+      "x-terminal-emulator",
+      [
+        "-e",
+        `bash -ic '${cmd}; echo; read -p "Appuyez sur Entrée pour fermer…"'`,
+      ],
+      {
+        detached: true,
+        stdio: "ignore",
+      },
+    ).unref();
+
+    // On ferme l’app pour laisser le terminal faire son job
+    app.quit();
+    return;
+  }
+  // Windows / macOS
+  autoUpdater.quitAndInstall(true, true);
+});
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
@@ -1092,7 +1118,7 @@ ipcMain.on("set-fullscreen", (event, fullscreen: boolean) => {
 });
 
 ipcMain.on("check-for-updates", () => {
-  updater.checkForUpdates();
+  autoUpdater.checkForUpdates();
 });
 
 app.on("window-all-closed", () => {
