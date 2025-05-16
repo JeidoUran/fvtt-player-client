@@ -31,7 +31,7 @@ import {
   closeRichPresenceSocket,
 } from "./richPresence/richPresenceSocket";
 import path from "path";
-import fs from "fs";
+import fs from "fs-extra";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
@@ -950,49 +950,65 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
   description?: string;
 };
 
-const rawName = pkg.description ?? app.getName(); // "FVTT Desktop Client"
-const SLUG_NAME = rawName.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
   const version = downloadedVersion ?? app.getVersion();
   if (process.platform === "linux") {
-    const cacheDir =
-      process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
-    const pendingDir = path.join(
-      cacheDir,
-      `${app.getName()}-updater`,
-      "pending",
-    );
-    const arch = process.arch === "x64" ? "amd64" : process.arch;
-    const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
-    const debPath = path.join(pendingDir, debName);
+    const pkgTypeFile = path.join(process.resourcesPath, "package-type");
+    let pkgType: string | undefined;
+    try {
+      if (fs.existsSync(pkgTypeFile)) {
+        pkgType = fs.readFileSync(pkgTypeFile, "utf-8").trim();
+        console.log("Detected package-type:", pkgType);
+      }
+    } catch (e) {
+      console.warn("Could not read package-type:", e);
+    }
+    switch (pkgType) {
+      case "deb": {
+        const rawName = pkg.description ?? app.getName(); // "FVTT Desktop Client"
+        const SLUG_NAME = rawName.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
+        const cacheDir =
+          process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
+        const pendingDir = path.join(
+          cacheDir,
+          `${app.getName()}-updater`,
+          "pending",
+        );
+        const arch = process.arch === "x64" ? "amd64" : process.arch;
+        const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
+        const debPath = path.join(pendingDir, debName);
 
-    // 2) commande à passer à pkexec
-    const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
+        // pkexec command
+        const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
-    // 3) spawn **non-détaché**, on écoute sa fin
-    const child = spawn(
-      "/usr/bin/pkexec",
-      ["--disable-internal-agent", "sh", "-c", shellCmd],
-      { stdio: "ignore" },
-    );
+        const child = spawn(
+          "/usr/bin/pkexec",
+          ["--disable-internal-agent", "sh", "-c", shellCmd],
+          { stdio: "ignore" },
+        );
 
-    child.on("error", (err) => {
-      console.error("Échec du lancement de pkexec", err);
-      // Vous pouvez éventuellement afficher un dialog.showErrorBox ici
-    });
+        child.on("error", (err) => {
+          console.error("Could not run pkexec", err);
+        });
 
-    child.on("close", (code) => {
-      // 4) une fois pkexec terminé (après saisie du mot de passe + install),
-      //    on quitte l’app pour que la nouvelle version puisse démarrer
-      app.quit();
-    });
+        child.on("close", (code) => {
+          // 4) une fois pkexec terminé (après saisie du mot de passe + install),
+          //    on quitte l’app pour que la nouvelle version puisse démarrer
+          app.relaunch();
+          app.quit();
+        });
 
-    // IMPORTANT : on **ne ferme pas** immédiatement l’app, on attend la fin de pkexec
-    return;
+        return;
+      }
+      case "rpm":
+      case "pacman":
+        break;
+      default:
+        break;
+    }
   }
-
   // Windows / macOS
   autoUpdater.quitAndInstall(true, true);
 });
