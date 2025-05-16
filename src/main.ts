@@ -34,7 +34,17 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import log from "electron-log";
-import { autoUpdater } from "electron-updater";
+import { NsisUpdater, MacUpdater, DebUpdater } from "electron-updater";
+
+let autoUpdater;
+
+if (process.platform === "win32") {
+  autoUpdater = new NsisUpdater();
+} else if (process.platform === "darwin") {
+  autoUpdater = new MacUpdater(); // Note: OSX apps needs to be signed for auto updates to work.
+} else {
+  autoUpdater = new DebUpdater();
+}
 
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
@@ -940,13 +950,7 @@ function getThemeConfig(): ThemeConfig {
 
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.on("install-update", async () => {
-  if (process.platform === "win32" || process.platform === "darwin") {
-    autoUpdater.quitAndInstall(true, true);
-    return;
-  }
-  app.quit();
-});
+ipcMain.on("install-update", () => autoUpdater.quitAndInstall(true, true));
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
