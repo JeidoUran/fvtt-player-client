@@ -1,6 +1,6 @@
 // builder.config.js
 
-require("dotenv").config(); // if you still need your .env
+require("dotenv").config();
 
 module.exports = {
   appId: "com.theripper93.fvtt-player-client",
@@ -22,6 +22,7 @@ module.exports = {
 
   extraMetadata: {
     main: ".vite/build/main.js",
+    productName: "FVTT Desktop Client",
   },
 
   win: {
