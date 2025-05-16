@@ -968,10 +968,7 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
-    const cmd = [
-      `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`,
-      `nohup ${app.getName()} >/dev/null 2>&1 &`,
-    ].join(" && ");
+    const cmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
 
     spawn(
       "x-terminal-emulator",
@@ -983,6 +980,7 @@ ipcMain.on("install-update", async () => {
     ).unref();
 
     // quit app to let terminal do its magic
+    app.relaunch();
     app.quit();
     return;
   }
