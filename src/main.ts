@@ -37,6 +37,7 @@ import log from "electron-log";
 import { autoUpdater } from "electron-updater";
 import { spawn } from "child_process";
 import os from "os";
+import pkg from "../package.json";
 
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
@@ -942,25 +943,28 @@ function getThemeConfig(): ThemeConfig {
     return {} as ThemeConfig;
   }
 }
-
+const PRODUCT_NAME = (pkg.productName as string).replace(/\s+/g, "-");
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
   // 2) Détermine la version à installer : téléchargée ou fallback
   const version = downloadedVersion ?? app.getVersion();
-
   if (process.platform === "linux") {
+    // 4) Chemin vers ~/.cache/<slug>-updater/pending
     const cacheDir =
       process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
     const pendingDir = path.join(
       cacheDir,
-      `${app.getName().toLowerCase()}-updater`,
+      `${PRODUCT_NAME.toLowerCase()}-updater`,
       "pending",
     );
+
+    // 5) Nom exact du .deb généré par electron-updater
     const arch = process.arch === "x64" ? "amd64" : process.arch;
-    const debName = `${app.getName()}_${version}_linux-${arch}.deb`;
+    const debName = `${PRODUCT_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
+    // 6) Lancer x-terminal-emulator + sudo dpkg/install
     const cmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
     spawn(
       "x-terminal-emulator",
@@ -971,6 +975,7 @@ ipcMain.on("install-update", async () => {
       { detached: true, stdio: "ignore" },
     ).unref();
 
+    // 7) Quitter l’app pour laisser le terminal faire son job
     app.quit();
     return;
   }
