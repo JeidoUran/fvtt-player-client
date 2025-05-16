@@ -968,18 +968,16 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
-    const cmd = `dpkg -i "${debPath}" || sudo apt-get install -f -y`;
+    // On invoque pkexec sur un shell pour gérer le "|| apt-get install -f -y"
+    const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
     spawn(
-      "x-terminal-emulator",
-      [`/usr/bin/pkexec --disable-internal-agent '${cmd};'`],
-      {
-        detached: true,
-        stdio: "ignore",
-      },
+      "/usr/bin/pkexec",
+      ["--disable-internal-agent", "sh", "-c", shellCmd],
+      { detached: true, stdio: "ignore" },
     ).unref();
 
-    // quit app to let terminal do its magic
+    // Quitte immédiatement pour laisser pkexec gérer l'install
     app.quit();
     return;
   }
