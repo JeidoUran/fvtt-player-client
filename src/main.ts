@@ -35,7 +35,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
-import { spawn } from "child_process";
+import { spawn, spawnSync } from "child_process";
 import os from "os";
 
 const fileTransport = log.transports.file;
@@ -952,6 +952,32 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
 
 const rawName = pkg.description ?? app.getName(); // "FVTT Desktop Client"
 const SLUG_NAME = rawName.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
+
+// Utilitaire pour ouvrir un terminal graphique compatible
+function openTerminal(innerCmd: string) {
+  // Liste d’émulateurs & leurs flags pour exécuter un shell interactif
+  const emulators = [
+    { cmd: "gnome-terminal", args: ["--", "bash", "-ic", innerCmd] },
+    { cmd: "konsole", args: ["-e", "bash", "-ic", innerCmd] },
+    { cmd: "xfce4-terminal", args: ["--command", `bash -ic '${innerCmd}'`] },
+    { cmd: "xterm", args: ["-hold", "-e", `bash -ic '${innerCmd}'`] },
+    { cmd: "lxterminal", args: ["-e", `bash -ic '${innerCmd}'`] },
+    { cmd: "mate-terminal", args: ["--", "bash", "-ic", innerCmd] },
+    { cmd: "x-terminal-emulator", args: ["-e", "bash", "-ic", innerCmd] },
+  ];
+
+  for (const emu of emulators) {
+    const found = spawnSync("which", [emu.cmd], { encoding: "utf-8" });
+    if (found.status === 0) {
+      spawn(emu.cmd, emu.args, { detached: true, stdio: "ignore" }).unref();
+      return;
+    }
+  }
+
+  // Pas de terminal graphique trouvé : fallback sur un bash non-visible
+  spawn("bash", ["-ic", innerCmd], { detached: true, stdio: "ignore" }).unref();
+}
+
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
@@ -968,20 +994,14 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
-    const inner = [
-      `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`,
-      `nohup ${app.getName()} >/dev/null 2>&1 &`,
-    ].join(" && ");
+    // Commande à lancer dans le terminal
+    const innerCmd = [
+      `sudo dpkg -i "${debPath}"`,
+      `|| sudo apt-get install -f -y`,
+      `&& nohup ${app.getName()} >/dev/null 2>&1 & exit`,
+    ].join(" ");
 
-    // 2) on appelle x-terminal-emulator en séparant bien les args
-    //    -e → commande à exécuter
-    //    ensuite : shell, option interactive (-i), commande (-c ou -ic)
-    spawn("x-terminal-emulator", ["-e", "bash", "-ic", inner], {
-      detached: true,
-      stdio: "ignore",
-    }).unref();
-
-    // quit app to let terminal do its magic
+    openTerminal(innerCmd);
     app.quit();
     return;
   }
