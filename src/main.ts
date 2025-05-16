@@ -956,7 +956,7 @@ ipcMain.on("install-update", async () => {
       process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
     const pendingDir = path.join(
       cacheDir,
-      `${SLUG_PRODUCT_NAME.toLowerCase()}-updater`,
+      `${app.getName()}-updater`,
       "pending",
     );
     const arch = process.arch === "x64" ? "amd64" : process.arch;
