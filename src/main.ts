@@ -968,19 +968,22 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
-    // On invoque pkexec sur un shell pour gérer le "|| apt-get install -f -y"
     const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
-    spawnSync(
+    const child = spawn(
       "/usr/bin/pkexec",
       ["--disable-internal-agent", "sh", "-c", shellCmd],
-      { stdio: "ignore" },
+      { detached: true, stdio: "ignore" },
     );
+    child.unref();
 
-    // Quitte immédiatement pour laisser pkexec gérer l'install
-    app.quit();
+    setTimeout(() => {
+      app.quit();
+    }, 500);
+
     return;
   }
+
   // Windows / macOS
   autoUpdater.quitAndInstall(true, true);
 });
