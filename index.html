@@ -10,10 +10,14 @@
     <script crossorigin="anonymous"
       src="https://kit.fontawesome.com/d9351ab632.js"></script>
     <link id="theme-stylesheet" rel="stylesheet" href="styles/codex.css">
+    <link id="updater-stylesheet" rel="stylesheet"
+      href="styles/UpdaterModal-codex.css">
     <!--    <link rel="stylesheet" href="src/style.css">-->
   </head>
   <body>
     <canvas id="particles"></canvas>
+
+    <div id="app"></div>
 
     <div class="content">
       <div class="button-controls">
@@ -34,18 +38,6 @@
             class="config-button"
             id="close-app"><i class="fa-solid fa-xmark"></i></button>
           <div class="tooltip">Close</div></div>
-      </div>
-
-      <div class="update-available hidden2">
-        <a
-          href="https://github.com/JeidoUran/fvtt-player-client/releases/latest"
-          id="download-new" target="_blank">Update
-          Available!</a><span class="current-version"></span> <i
-          class="fa-solid fa-arrow-right"></i> <span id="latest-version"></span>
-      </div>
-
-      <div id="current-version-display" class="version-normal">
-        FVTT Desktop Client <span class="current-version"></span>
       </div>
 
       <section class="menu-container">
@@ -613,9 +605,7 @@
       </div>
 
       <div id="notification-area"></div>
-      <div id="info">Node.js <span id="node-version"></span>,
-        Chromium <span id="chrome-version"></span>,
-        Electron <span id="electron-version"></span></div>
+
     </div>
     <div id="tooltip-layer"></div>
     <script src="/src/renderer.ts" type="module"></script>

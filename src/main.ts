@@ -2,6 +2,7 @@
 
 import {
   app,
+  net,
   BrowserWindow,
   ipcMain,
   safeStorage,
@@ -30,10 +31,32 @@ import {
   closeRichPresenceSocket,
 } from "./richPresence/richPresenceSocket";
 import path from "path";
-import fs from "fs";
+import fs from "fs-extra";
 import { fileURLToPath } from "url";
-import fetch from "node-fetch";
+import log from "electron-log";
+import { autoUpdater } from "electron-updater";
 import { spawn, spawnSync } from "child_process";
+import os from "os";
+
+const fileTransport = log.transports.file;
+(fileTransport as any).getFile = () =>
+  path.join(app.getPath("userData"), "main.log");
+fileTransport.level = "info";
+
+autoUpdater.logger = log;
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
+
+// TODO: TESTING ONLY, REMOVE THESE LINES BEFORE RELEASE
+autoUpdater.forceDevUpdateConfig = true;
+autoUpdater.allowPrerelease = true;
+
+const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
+  ? "http://localhost:5173"
+  : "";
+const MAIN_WINDOW_VITE_NAME = "main_window";
+
+let initialCheckInProgress = true;
 
 if (require("electron-squirrel-startup")) app.quit();
 
@@ -45,6 +68,21 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
 let mainWindow: BrowserWindow;
+
+function sendUpdateStatus(
+  status:
+    | "checking"
+    | "available"
+    | "not-available"
+    | "progress"
+    | "downloaded"
+    | "error",
+  payload?: any,
+) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("update-status", { status, payload });
+  }
+}
 
 type MigrationStatus = "skipped" | "success" | "failure";
 async function migrateUserData(): Promise<MigrationStatus> {
@@ -101,22 +139,6 @@ async function migrateUserData(): Promise<MigrationStatus> {
   } catch (e) {
     console.warn("[getUserData] Migration failed :", e);
     return "failure";
-  }
-}
-
-function returnToServerSelect(win: BrowserWindow) {
-  const id = win.webContents.id;
-  windowsData[id].autoLogin = true;
-  delete windowsData[id].selectedServerName;
-  disableRichPresence();
-  closeRichPresenceSocket();
-
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-    );
   }
 }
 
@@ -246,6 +268,35 @@ export function getUserData(): UserData {
   }
 }
 
+function returnToServerSelect(win: BrowserWindow) {
+  const id = win.webContents.id;
+  windowsData[id].autoLogin = true;
+  delete windowsData[id].selectedServerName;
+  disableRichPresence();
+  closeRichPresenceSocket();
+
+  if (!app.isPackaged && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    win.webContents.openDevTools({ mode: "detach" });
+  } else {
+    // ► in production, load the file we just packed into /renderer/…
+    const indexHtml = path.join(
+      __dirname,
+      "../../renderer",
+      MAIN_WINDOW_VITE_NAME,
+      "index.html",
+    );
+    win.loadFile(indexHtml);
+  }
+}
+
+function notifyMainWindow(message: string, winOverride?: BrowserWindow) {
+  const win = winOverride ?? mainWindow;
+  if (win && !win.isDestroyed()) {
+    win.webContents.send("show-notification", message);
+  }
+}
+
 /**
  * Displays safePrompt in renderer in a given window and retrieve answer
  */
@@ -343,16 +394,23 @@ function createWindow(): BrowserWindow {
         console.warn("[Favicon] Could not resolve local URL:", faviconUrl, err);
       }
     } else {
-      fetch(faviconUrl)
-        .then((res) => res.arrayBuffer())
-        .then((buf) => {
-          const icon = nativeImage.createFromBuffer(Buffer.from(buf));
+      const request = net.request(faviconUrl);
+      const chunks: Buffer[] = [];
+      request.on("response", (response) => {
+        response.on("data", (chunk) => chunks.push(chunk));
+        response.on("end", () => {
+          const buffer = Buffer.concat(chunks);
+          const icon = nativeImage.createFromBuffer(buffer);
           if (!icon.isEmpty()) {
             win.setIcon(icon);
-            console.log("[Favicon] Restored from external URL :", faviconUrl);
+            console.log("[Favicon] Restored from external URL:", faviconUrl);
           }
-        })
-        .catch((err) => console.warn("[Favicon] Fetch error :", err));
+        });
+      });
+      request.on("error", (err) =>
+        console.warn("[Favicon] net.request error:", err),
+      );
+      request.end();
     }
   });
 
@@ -405,12 +463,18 @@ function createWindow(): BrowserWindow {
   });
 
   win.menuBarVisible = false;
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  if (!app.isPackaged && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    win.webContents.openDevTools({ mode: "detach" });
   } else {
-    win.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+    // EN PROD on pointe vers /renderer/<name>/index.html
+    const indexHtml = path.join(
+      __dirname,
+      "../../renderer",
+      MAIN_WINDOW_VITE_NAME,
+      "index.html",
     );
+    win.loadFile(indexHtml);
   }
 
   // ── Fallback on HTTP error (502, 503…) when loading /join ──
@@ -607,8 +671,54 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
+autoUpdater.on("checking-for-update", () => {
+  if (initialCheckInProgress) {
+    // silence the first “checking”
+    return;
+  }
+  // any later “checking” should open the modal
+  sendUpdateStatus("checking");
+});
+
+autoUpdater.on("update-available", (info) => {
+  if (initialCheckInProgress) {
+    // silence the first “available”
+    return;
+  }
+  sendUpdateStatus("available", info);
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  if (initialCheckInProgress) {
+    // silence the “no update” that always fires at the end of the startup check
+    return;
+  }
+  sendUpdateStatus("not-available");
+});
+autoUpdater.on("download-progress", (progress) => {
+  sendUpdateStatus("progress", progress);
+});
+
+let downloadedVersion: string | null = null;
+
+autoUpdater.on("update-downloaded", (info) => {
+  downloadedVersion = info.version;
+  sendUpdateStatus("downloaded", info);
+});
+
+autoUpdater.on("error", (err) => {
+  if (initialCheckInProgress) {
+    // silence the first “available”
+    return;
+  }
+  sendUpdateStatus("error", {
+    message: err == null ? "" : (err.stack || err).toString(),
+  });
+});
+
 app.whenReady().then(async () => {
   if (require("electron-squirrel-startup")) return;
+
   // File menu
   const fileMenu: MenuItemConstructorOptions = {
     label: "File",
@@ -703,22 +813,47 @@ app.whenReady().then(async () => {
 
   // Configure cache/session
   const userData = getUserData();
-  if (userData.cachePath) app.setPath("sessionData", userData.cachePath);
+  if (userData.cachePath) {
+    // make sure it’s absolute, e.g. under app.getPath('userData')
+    const absoluteCachePath = path.isAbsolute(userData.cachePath)
+      ? userData.cachePath
+      : path.join(app.getPath("userData"), userData.cachePath);
+
+    app.setPath("sessionData", absoluteCachePath);
+  }
 
   // After rendering index, we notify on migration status
   mainWindow.webContents.once("did-finish-load", async () => {
+    // only check once, right after launch
+    autoUpdater
+      .checkForUpdates()
+      .then((result) => {
+        // result has a .updateInfo object
+        const latest = result.updateInfo?.version;
+        const current = app.getVersion();
+
+        if (latest && latest !== current) {
+          notifyMainWindow(`An update is available!`);
+        }
+      })
+      .catch((err) => {
+        console.error("Update‐check failed:", err);
+        notifyMainWindow("Could not check for updates");
+      })
+      .finally(() => {
+        // only once the promise settles do we turn off the “initial check” guard
+        initialCheckInProgress = false;
+      });
+
     if (migrationResult === "success") {
-      mainWindow.webContents.send(
-        "show-notification",
-        "Your user data has been successfully migrated",
-      );
+      notifyMainWindow(`Your user data has been successfully migrated`);
       console.log("Migration successful");
     } else if (migrationResult === "failure") {
       await askPrompt("Could not migrate your user data.", { mode: "alert" });
     }
     // Welcome, new users!
     if (isFirstUser) {
-      mainWindow.webContents.send("show-notification", "Welcome!");
+      notifyMainWindow(`Welcome!`);
     }
   });
 });
@@ -791,7 +926,7 @@ ipcMain.handle("read-font-file", async (_e, fontPath: string) => {
 });
 
 function getAppConfig(): AppConfig {
-  // Charge l’app config uniquement depuis userData.json
+  // Loads client data from userData.json
   try {
     const userData = getUserData();
     return userData.app ?? ({} as AppConfig);
@@ -801,7 +936,7 @@ function getAppConfig(): AppConfig {
 }
 
 function getThemeConfig(): ThemeConfig {
-  // Charge le theme uniquement depuis userData.json
+  // Loads theme data from userData.json
   try {
     const userData = getUserData();
     return userData.theme ?? ({} as ThemeConfig);
@@ -809,6 +944,74 @@ function getThemeConfig(): ThemeConfig {
     return {} as ThemeConfig;
   }
 }
+
+const pkgPath = path.join(app.getAppPath(), "package.json");
+const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
+  description?: string;
+};
+
+ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
+ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
+ipcMain.on("install-update", async () => {
+  const version = downloadedVersion ?? app.getVersion();
+  if (process.platform === "linux") {
+    const pkgTypeFile = path.join(process.resourcesPath, "package-type");
+    let pkgType: string | undefined;
+    try {
+      if (fs.existsSync(pkgTypeFile)) {
+        pkgType = fs.readFileSync(pkgTypeFile, "utf-8").trim();
+        console.log("Detected package-type:", pkgType);
+      }
+    } catch (e) {
+      console.warn("Could not read package-type:", e);
+    }
+    switch (pkgType) {
+      case "deb": {
+        const rawName = pkg.description ?? app.getName(); // "FVTT Desktop Client"
+        const SLUG_NAME = rawName.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
+        const cacheDir =
+          process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
+        const pendingDir = path.join(
+          cacheDir,
+          `${app.getName()}-updater`,
+          "pending",
+        );
+        const arch = process.arch === "x64" ? "amd64" : process.arch;
+        const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
+        const debPath = path.join(pendingDir, debName);
+
+        // pkexec command
+        const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
+
+        const child = spawn(
+          "/usr/bin/pkexec",
+          ["--disable-internal-agent", "sh", "-c", shellCmd],
+          { stdio: "ignore" },
+        );
+
+        child.on("error", (err) => {
+          console.error("Could not run pkexec", err);
+        });
+
+        child.on("close", (code) => {
+          // 4) une fois pkexec terminé (après saisie du mot de passe + install),
+          //    on quitte l’app pour que la nouvelle version puisse démarrer
+          app.relaunch();
+          app.quit();
+        });
+
+        return;
+      }
+      case "rpm":
+      case "pacman":
+        break;
+      default:
+        break;
+    }
+  }
+  // Windows / macOS
+  autoUpdater.quitAndInstall(true, true);
+});
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
@@ -848,17 +1051,25 @@ ipcMain.handle("local-theme-config", () => {
   }
 });
 
-ipcMain.handle("select-path", (e) => {
+// TODO: Seems unused
+/* ipcMain.handle("select-path", (e) => {
   windowsData[e.sender.id].autoLogin = true;
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     return MAIN_WINDOW_VITE_DEV_SERVER_URL;
   } else {
     return path.join(
       __dirname,
-      `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`,
+      `../../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`,
     );
   }
+}); */
+
+ipcMain.on("open-external", (_event, url: string) => {
+  shell.openExternal(url).catch((err) => {
+    console.error("Failed to open external URL", url, err);
+  });
 });
+
 ipcMain.handle("cache-path", () => app.getPath("sessionData"));
 
 ipcMain.handle("open-user-data-folder", () => {
@@ -876,21 +1087,51 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
   );
 });
 
-ipcMain.handle("ping-server", async (_e, rawUrl: string) => {
-  try {
-    // 5 sec at most before timing out
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-
+ipcMain.handle("ping-server", (_e, rawUrl: string) => {
+  return new Promise<ServerStatusData | null>((resolve) => {
     const pingUrl = new URL("/api/status", rawUrl).toString();
-    const res = await fetch(pingUrl, { signal: controller.signal });
-    clearTimeout(timer);
 
-    if (!res.ok) return null;
-    return await res.json(); // returns ServerStatusData
-  } catch (err: any) {
-    return null;
-  }
+    // fire the request
+    const req = net.request(pingUrl);
+
+    // enforce a 5s timeout
+    const timer = setTimeout(() => {
+      req.abort();
+      resolve(null);
+    }, 5000);
+
+    const chunks: Buffer[] = [];
+    req.on("response", (response) => {
+      clearTimeout(timer);
+
+      // accumulate all data
+      response.on("data", (b) => chunks.push(b));
+      response.on("end", () => {
+        // only parse on 2xx
+        if (
+          response.statusCode &&
+          response.statusCode >= 200 &&
+          response.statusCode < 300
+        ) {
+          try {
+            const json = JSON.parse(Buffer.concat(chunks).toString());
+            resolve(json);
+          } catch {
+            resolve(null);
+          }
+        } else {
+          resolve(null);
+        }
+      });
+    });
+
+    req.on("error", () => {
+      clearTimeout(timer);
+      resolve(null);
+    });
+
+    req.end();
+  });
 });
 
 ipcMain.on("return-select", (e) => {
@@ -910,108 +1151,12 @@ ipcMain.on("set-fullscreen", (event, fullscreen: boolean) => {
   if ((fullscreen = true)) w.maximize();
 });
 
-let pendingAssetUrl: string | null = null;
-
-ipcMain.handle("download-update", (_e, assetUrl: string) => {
-  pendingAssetUrl = assetUrl;
-  const win = BrowserWindow.getFocusedWindow()!;
-  // triggers will-download in webContents
-  win.webContents.downloadURL(assetUrl);
+ipcMain.on("check-for-updates", () => {
+  autoUpdater.checkForUpdates();
 });
 
-// Intercepts all downloads and handles saving + installing
-app.on("web-contents-created", (_event, contents) => {
-  contents.session.on("will-download", (event, item) => {
-    const fileName = item.getFilename();
-    const savePath = path.join(app.getPath("temp"), fileName);
-
-    // deletes old path if present
-    try {
-      fs.unlinkSync(savePath);
-    } catch {}
-
-    item.setSavePath(savePath);
-
-    // notify renderer that download has started
-    const win = BrowserWindow.fromWebContents(contents)!;
-    win.webContents.send("update-download-started", { fileName, savePath });
-
-    item.once("done", async (_e, state) => {
-      if (state === "completed") {
-        if (process.platform === "linux") {
-          // 1) liste de terminaux, xterm d'abord car il bloque
-          const terms = [
-            "xterm",
-            "gnome-terminal",
-            "konsole",
-            "xfce4-terminal",
-          ];
-          let termCmd: string | undefined;
-          for (const t of terms) {
-            const which = spawnSync("which", [t]);
-            if (which.status === 0) {
-              termCmd = t;
-              break;
-            }
-          }
-
-          if (termCmd) {
-            // 2) construit les args selon le terminal
-            let args: string[];
-            if (termCmd === "xterm") {
-              args = [
-                "-hold",
-                "-e",
-                `bash -c "sudo dpkg -i '${savePath}' && echo; echo 'Update completed. Press Enter to exit.'; read"`,
-              ];
-            } else {
-              // gnome-terminal, konsole, etc. : on demande le --wait si possible
-              args =
-                termCmd === "gnome-terminal"
-                  ? [
-                      "--wait",
-                      "--",
-                      "bash",
-                      "-c",
-                      `sudo dpkg -i '${savePath}'; read -p 'Press Enter to close.'`,
-                    ]
-                  : [
-                      "-e",
-                      `bash -c "sudo dpkg -i '${savePath}' && read -p 'Press Enter to close.'"`,
-                    ];
-            }
-
-            // 3) spawn du terminal bloquant
-            const installer = spawn(termCmd, args, {
-              detached: true,
-              stdio: "ignore",
-            });
-            // Dès que l'installation se termine, on relance l'app puis on quitte
-            installer.on("exit", () => {
-              // sous Linux, on relance après install uniquement
-              app.relaunch();
-              app.exit(0);
-            });
-            installer.unref();
-          } else {
-            // fallback minimal
-            spawn("xdg-open", [savePath], {
-              detached: true,
-              stdio: "ignore",
-            }).unref();
-            // en fallback on quitte tout de suite
-            app.exit(0);
-          }
-        } else {
-          // Windows/macOS : lance l'installateur et quitte
-          await shell.openPath(savePath);
-          app.exit(0);
-        }
-      } else {
-        dialog.showErrorBox("Update failed", `Download ${state}`);
-      }
-    });
-  });
+app.on("window-all-closed", () => {
+  app.quit();
 });
 
 function getLoginDetails(gameId: GameId): GameUserDataDecrypted {
