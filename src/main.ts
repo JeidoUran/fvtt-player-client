@@ -926,7 +926,7 @@ ipcMain.handle("read-font-file", async (_e, fontPath: string) => {
 });
 
 function getAppConfig(): AppConfig {
-  // Charge l’app config uniquement depuis userData.json
+  // Loads client data from userData.json
   try {
     const userData = getUserData();
     return userData.app ?? ({} as AppConfig);
@@ -936,7 +936,7 @@ function getAppConfig(): AppConfig {
 }
 
 function getThemeConfig(): ThemeConfig {
-  // Charge le theme uniquement depuis userData.json
+  // Loads theme data from userData.json
   try {
     const userData = getUserData();
     return userData.theme ?? ({} as ThemeConfig);
@@ -968,19 +968,17 @@ ipcMain.on("install-update", async () => {
     const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
     const debPath = path.join(pendingDir, debName);
 
-    const cmd = [
-      // installe le paquet
+    const inner = [
       `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`,
-      // relance l’app en tâche de fond
       `nohup ${app.getName()} >/dev/null 2>&1 &`,
     ].join(" && ");
 
-    spawn("x-terminal-emulator", ["-e", `bash -ic '${cmd}'`], {
+    spawn("x-terminal-emulator", ["-e", "bash", "-ic", inner], {
       detached: true,
       stdio: "ignore",
     }).unref();
 
-    // on quitte pour laisser le terminal faire son job
+    // quit app to let terminal do its magic
     app.quit();
     return;
   }
