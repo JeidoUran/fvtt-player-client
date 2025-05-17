@@ -8,7 +8,8 @@ export type UpdaterStatus =
   | "not-available"
   | "progress"
   | "downloaded"
-  | "error";
+  | "error"
+  | "installing";
 
 export interface UpdatePayload {
   version?: string;

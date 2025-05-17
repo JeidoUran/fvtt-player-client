@@ -76,7 +76,8 @@ function sendUpdateStatus(
     | "not-available"
     | "progress"
     | "downloaded"
-    | "error",
+    | "error"
+    | "installing",
   payload?: any,
 ) {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -953,6 +954,7 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
+  sendUpdateStatus("installing");
   const version = downloadedVersion ?? app.getVersion();
   if (process.platform === "linux") {
     const pkgTypeFile = path.join(process.resourcesPath, "package-type");

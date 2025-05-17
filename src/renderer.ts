@@ -29,7 +29,6 @@ app.mount("#app");
 
 const updater = useUpdaterStore();
 window.api.onUpdaterStatus((_e, { status, payload }) => {
-  // cast the string to your union type
   updater.handleStatus({ status: status as UpdaterStatus, payload });
 });
 

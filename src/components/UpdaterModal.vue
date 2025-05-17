@@ -43,6 +43,14 @@
           <div v-else-if="store.status === 'downloaded'" class="updater-text">
             Download complete.
           </div>
+          <div
+            v-loading="loading"
+            element-loading-background="transparent"
+            element-loading-text="Installing update…"
+            element-loading-custom-class="loading-update-check"
+            v-if="store.status === 'installing'"
+            class="updater-text"
+          ></div>
           <div v-else-if="store.status === 'error'" class="updater-text">
             Error : {{ store.payload.message }}
           </div>
@@ -100,7 +108,6 @@ const colorset = ref("var(--color-accent)");
 // Fetch the version when the modal mounts
 onMounted(async () => {
   try {
-    console.log("→ process.versions exposé:", window.api.versions);
     currentVersion.value = await window.api.appVersion();
     Object.assign(versions, window.api.versions);
   } catch (e) {
