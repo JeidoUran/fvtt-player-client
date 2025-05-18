@@ -221,6 +221,9 @@ document
     const fullScreenEnabled = (
       closeUserConfig.querySelector("#full-screen-toggle") as HTMLInputElement
     ).checked;
+    const shareSessionWindows = (
+      closeUserConfig.querySelector("#share-session-toggle") as HTMLInputElement
+    ).checked;
     const serverInfoPingRate = Number(
       (
         closeUserConfig.querySelector(
@@ -245,6 +248,7 @@ document
       },
       serverInfoPingRate,
       fullScreenEnabled,
+      shareSessionWindows,
     } as AppConfig;
 
     const rawConfig: unknown = {
@@ -259,6 +263,7 @@ document
       serverInfoOptions: config.serverInfoOptions,
       serverInfoPingRate: config.serverInfoPingRate,
       fullScreenEnabled: config.fullScreenEnabled,
+      shareSessionWindows: config.shareSessionWindows,
     };
 
     const result = AppConfigSchema.safeParse(rawConfig);
@@ -913,6 +918,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       appConfig.ignoreCertificateErrors = undefined;
       appConfig.discordRP = undefined;
       appConfig.fullScreenEnabled = undefined;
+      appConfig.shareSessionWindows = undefined;
 
       applyAppConfig(appConfig);
 
@@ -1477,6 +1483,9 @@ function applyAppConfig(config: AppConfig) {
   (document.querySelector("#discord-rp") as HTMLInputElement).checked = false;
   (document.querySelector("#full-screen-toggle") as HTMLInputElement).checked =
     false;
+  (
+    document.querySelector("#share-session-toggle") as HTMLInputElement
+  ).checked = false;
   if (config.cachePath) {
     (document.querySelector("#cache-path") as HTMLInputElement).value =
       config.cachePath;
@@ -1519,6 +1528,11 @@ function applyAppConfig(config: AppConfig) {
     "#server-infos-ping-rate",
   ) as HTMLInputElement;
   pingInput.valueAsNumber = config.serverInfoPingRate;
+
+  const shareSessionToggle = document.querySelector(
+    "#share-session-toggle",
+  ) as HTMLInputElement;
+  shareSessionToggle.checked = config.shareSessionWindows ?? false;
 
   const opts = config.serverInfoOptions!;
 

@@ -344,9 +344,16 @@ const windowsData = {} as WindowsData;
 let partitionId: number = 0;
 
 function getSession(): Electron.Session {
+  // Lire la config utilisateur
+  const { shareSessionWindows } = getAppConfig();
+  if (shareSessionWindows) {
+    // Toutes les fenêtres partagent la même session
+    return session.defaultSession;
+  }
+  // Comportement actuel : nouvelle partition pour chaque fenêtre
   const partitionIdTemp = partitionId;
   partitionId++;
-  if (partitionIdTemp == 0) return session.defaultSession;
+  if (partitionIdTemp === 0) return session.defaultSession;
   return session.fromPartition(`persist:${partitionIdTemp}`, { cache: true });
 }
 
