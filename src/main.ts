@@ -1090,7 +1090,7 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
 });
 
 ipcMain.handle("ping-server", (_e, rawUrl: string) => {
-  return new Promise<ServerStatusData | null>((resolve) => {
+  return new Promise<ServerStatusData | null>((resolve, reject) => {
     const pingUrl = new URL("/api/status", rawUrl).toString();
 
     // fire the request
@@ -1099,7 +1099,7 @@ ipcMain.handle("ping-server", (_e, rawUrl: string) => {
     // enforce a 5s timeout
     const timer = setTimeout(() => {
       req.abort();
-      resolve(null);
+      reject(new Error("Timeout"));
     }, 5000);
 
     const chunks: Buffer[] = [];
@@ -1110,26 +1110,22 @@ ipcMain.handle("ping-server", (_e, rawUrl: string) => {
       response.on("data", (b) => chunks.push(b));
       response.on("end", () => {
         // only parse on 2xx
-        if (
-          response.statusCode &&
-          response.statusCode >= 200 &&
-          response.statusCode < 300
-        ) {
+        if (response.statusCode! >= 200 && response.statusCode! < 300) {
           try {
             const json = JSON.parse(Buffer.concat(chunks).toString());
             resolve(json);
           } catch {
-            resolve(null);
+            reject(new Error("Invalid JSON"));
           }
         } else {
-          resolve(null);
+          reject(new Error(`HTTP ${response.statusCode}`));
         }
       });
     });
 
-    req.on("error", () => {
+    req.on("error", (err) => {
       clearTimeout(timer);
-      resolve(null);
+      reject(err);
     });
 
     req.end();

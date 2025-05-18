@@ -1957,15 +1957,25 @@ async function updateServerInfos(
   if (usersWrapper)
     usersWrapper.style.display = onlinePlayersEnabled ? "" : "none";
 
-  // Ping server
-  const info = await getServerInfo(game);
+  // Ping server, récupérer le code d’erreur en cas d’échec
+  let info: ServerStatusData | null = null;
+  let errorReason: string | null = null;
+  try {
+    info = await getServerInfo(game);
+  } catch (err: any) {
+    errorReason = err?.message ?? String(err);
+    info = null;
+  }
   const idKey = String(game.id);
   const wasOffline = seenOffline.get(idKey) ?? false;
   const nowOffline = info === null;
 
   // log **only** when status goes up→down or down→up
   if (nowOffline && !wasOffline) {
-    console.warn(`Server ${game.name} is unreachable.`);
+    console.warn(
+      `Server ${game.name} is unreachable.` +
+        (errorReason ? ` Reason: ${errorReason}` : ""),
+    );
   }
   if (!nowOffline && wasOffline) {
     console.info(`Server ${game.name} is back online.`);
