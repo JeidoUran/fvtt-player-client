@@ -82,7 +82,7 @@
             <button class="updater-button" @click="openLatest">
               Open GitHub
             </button>
-            <button class="updater-button" @click="store.close">Close</button>
+            <button v-if="store.status !== 'installing'" class="updater-button" @click="store.close">Close</button>
           </div>
         </span>
       </div>
