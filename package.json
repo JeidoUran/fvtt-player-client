@@ -41,7 +41,7 @@
     "dotenv": "^16.5.0",
     "electron": "^35.2.1",
     "electron-builder": "^26.0.12",
-    "eslint": "^9.26.0",
+    "eslint": "^8.57.1",
     "prettier": "^3.5.3",
     "prettier-eslint": "^16.4.2",
     "prettier-eslint-cli": "^8.0.1",
