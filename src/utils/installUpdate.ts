@@ -75,7 +75,8 @@ export function installRpmUpdate(version: string) {
   // spawn command using pkexec
   const child = spawn(
     "/usr/bin/pkexec",
-    ["--disable-internal-agent", "sh", "-c", shellCmd],
+    //         ↓ on sépare pkexec de la commande
+    ["--disable-internal-agent", "--", "/usr/bin/sh", "-c", shellCmd],
     { stdio: "ignore" },
   );
   child.on("error", (err) => console.error("Could not run pkexec", err));
