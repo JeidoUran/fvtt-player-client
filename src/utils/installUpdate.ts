@@ -56,7 +56,7 @@ export function installRpmUpdate(version: string) {
     process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
   const pendingDir = path.join(cacheDir, `${app.getName()}-updater`, "pending");
   const arch = process.arch === "x64" ? "x86_64" : process.arch;
-  const rpmName = `${SLUG_NAME}-${version}-linux-${arch}.rpm`;
+  const rpmName = `${SLUG_NAME}_${version}_linux-${arch}.rpm`;
   const rpmPath = path.join(pendingDir, rpmName);
 
   // Detect which package manager is used
