@@ -47,7 +47,7 @@ export function installDebUpdate(version: string) {
 }
 
 /**
- * Install RPM via DNF ou YUM, using pkexec as policy kit
+ * Install RPM via DNF or YUM, using pkexec as policy kit
  */
 export function installRpmUpdate(version: string) {
   const rawName = pkg.description ?? app.getName();
@@ -83,19 +83,15 @@ export function installRpmUpdate(version: string) {
     { stdio: "inherit" },
   );
 
-  console.log("[Updater] pkexec lancé avec :", shellCmd);
-
   child.on("error", (err) => {
     console.error("Could not run pkexec", err);
   });
 
   child.on("close", (code) => {
-    console.log(`[Updater] pkexec terminé avec le code: ${code}`);
     if (code !== 0) {
       console.error(`RPM install failed (exit code ${code})`);
       return;
     }
-    console.log("[Updater] Relancement de l'app");
     app.relaunch();
     app.quit();
   });
