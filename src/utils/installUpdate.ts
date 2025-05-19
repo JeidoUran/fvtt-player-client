@@ -43,7 +43,7 @@ export function installDebUpdate(version: string) {
 }
 
 /**
- * Installe RPM via DNF ou YUM, using pkexec as policy kit
+ * Install RPM via DNF ou YUM, using pkexec as policy kit
  */
 export function installRpmUpdate(version: string) {
   const rawName = pkg.description ?? app.getName();
