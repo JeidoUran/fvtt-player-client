@@ -35,7 +35,7 @@ import fs from "fs-extra";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
-import { spawn, spawnSync } from "child_process";
+import { installRpmUpdate, installDebUpdate } from "./utils/installUpdate";
 import os from "os";
 
 const fileTransport = log.transports.file;
@@ -953,11 +953,6 @@ function getThemeConfig(): ThemeConfig {
   }
 }
 
-const pkgPath = path.join(app.getAppPath(), "package.json");
-const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
-  description?: string;
-};
-
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
@@ -976,42 +971,13 @@ ipcMain.on("install-update", async () => {
     }
     switch (pkgType) {
       case "deb": {
-        const rawName = pkg.description ?? app.getName(); // "FVTT Desktop Client"
-        const SLUG_NAME = rawName.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
-        const cacheDir =
-          process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
-        const pendingDir = path.join(
-          cacheDir,
-          `${app.getName()}-updater`,
-          "pending",
-        );
-        const arch = process.arch === "x64" ? "amd64" : process.arch;
-        const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
-        const debPath = path.join(pendingDir, debName);
-
-        // pkexec command
-        const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
-
-        const child = spawn(
-          "/usr/bin/pkexec",
-          ["--disable-internal-agent", "sh", "-c", shellCmd],
-          { stdio: "ignore" },
-        );
-
-        child.on("error", (err) => {
-          console.error("Could not run pkexec", err);
-        });
-
-        child.on("close", (code) => {
-          // 4) une fois pkexec terminé (après saisie du mot de passe + install),
-          //    on quitte l’app pour que la nouvelle version puisse démarrer
-          app.relaunch();
-          app.quit();
-        });
-
+        installDebUpdate(version);
         return;
       }
-      case "rpm":
+      case "rpm": {
+        installRpmUpdate(version);
+        return;
+      }
       case "pacman":
         break;
       default:
