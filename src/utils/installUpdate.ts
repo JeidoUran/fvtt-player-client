@@ -13,8 +13,8 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
  * Install DEB via DPKG, using pkexec as policy kit
  */
 export function installDebUpdate(version: string) {
-  const rawName = pkg.description ?? app.getName();
-  const SLUG_NAME = rawName.replace(/\s+/g, "-");
+  const rawName = pkg.description ?? app.getName(); // "FVTT Desktop Client"
+  const SLUG_NAME = rawName.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
   const cacheDir =
     process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
   const pendingDir = path.join(cacheDir, `${app.getName()}-updater`, "pending");
@@ -22,29 +22,24 @@ export function installDebUpdate(version: string) {
   const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
   const debPath = path.join(pendingDir, debName);
 
-  const shellCmd = `
-set -e
-dpkg -i "${debPath}"
-STATUS=$?
-if [ $STATUS -ne 0 ]; then
-  if dpkg --audit | grep -q 'packages have'; then
-    apt-get install -f -y
-  fi
-fi
-exit $STATUS
-`;
+  // pkexec command
+  const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
   const child = spawn(
     "/usr/bin/pkexec",
-    ["sh", "-c", shellCmd],
-    { stdio: "inherit" }, // Pour débug, sinon "ignore"
+    ["--disable-internal-agent", "sh", "-c", shellCmd],
+    { stdio: "inherit" },
   );
+
+  console.log("[Updater] pkexec lancé avec :", shellCmd);
 
   child.on("error", (err) => {
     console.error("Could not run pkexec", err);
   });
 
   child.on("close", (code) => {
+    // Once installed, relaunch and quit to load new version
+    console.log(`[Updater] pkexec terminé avec le code: ${code}`);
     if (code !== 0) {
       console.error(`DEB install failed (exit code ${code})`);
       return;
