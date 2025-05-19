@@ -56,17 +56,12 @@ export function installRpmUpdate(version: string) {
   const rpmPath = path.join(pendingDir, rpmName);
 
   // Detect which package manager is used
-  const detect = spawnSync(
-    "bash",
-    ["-lc", "command -v dnf || command -v yum"],
-    { encoding: "utf8" },
-  );
-  const pm = detect.stdout.trim();
+  const packageManager = this.spawnSyncLog("which dnf || which yum");
   let shellCmd: string;
 
-  if (pm) {
+  if (packageManager) {
     // Use DNF or YUM
-    shellCmd = `${pm} install -y "${rpmPath}"`;
+    shellCmd = `${packageManager} install -y "${rpmPath}"`;
   } else {
     // Fallback to rpm -Uvh if neither
     shellCmd = `rpm -Uvh "${rpmPath}"`;
@@ -78,9 +73,7 @@ export function installRpmUpdate(version: string) {
     ["--disable-internal-agent", "sh", "-c", shellCmd],
     { stdio: "ignore" },
   );
-  child.on("error", (err) =>
-    console.error("Échec de l’élévation pour RPM :", err),
-  );
+  child.on("error", (err) => console.error("Could not run pkexec", err));
   child.on("close", () => {
     // Once installed, relaunch and quit to load new version
     app.relaunch();
