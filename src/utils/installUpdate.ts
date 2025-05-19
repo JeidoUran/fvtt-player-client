@@ -56,12 +56,17 @@ export function installRpmUpdate(version: string) {
   const rpmPath = path.join(pendingDir, rpmName);
 
   // Detect which package manager is used
-  const packageManager = this.spawnSyncLog("which dnf || which yum");
+  const detect = spawnSync(
+    "bash",
+    ["-lc", "command -v dnf || command -v yum"],
+    { encoding: "utf8" },
+  );
+  const pm = detect.stdout.trim();
   let shellCmd: string;
 
-  if (packageManager) {
+  if (pm) {
     // Use DNF or YUM
-    shellCmd = `${packageManager} install -y "${rpmPath}"`;
+    shellCmd = `${pm} install -y "${rpmPath}"`;
   } else {
     // Fallback to rpm -Uvh if neither
     shellCmd = `rpm -Uvh "${rpmPath}"`;
