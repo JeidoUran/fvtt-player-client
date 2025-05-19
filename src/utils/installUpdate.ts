@@ -37,6 +37,10 @@ export function installDebUpdate(version: string) {
 
   child.on("close", (code) => {
     // Once installed, relaunch and quit to load new version
+    if (code !== 0) {
+      console.error(`DEB install failed (exit code ${code})`);
+      return;
+    }
     app.relaunch();
     app.quit();
   });
@@ -75,13 +79,23 @@ export function installRpmUpdate(version: string) {
   // spawn command using pkexec
   const child = spawn(
     "/usr/bin/pkexec",
-    //         ↓ on sépare pkexec de la commande
     ["--disable-internal-agent", "--", "/usr/bin/sh", "-c", shellCmd],
-    { stdio: "ignore" },
+    { stdio: "inherit" }, // ← temporairement, pour voir le prompt et tout le reste
   );
-  child.on("error", (err) => console.error("Could not run pkexec", err));
-  child.on("close", () => {
-    // Once installed, relaunch and quit to load new version
+
+  console.log("[Updater] pkexec lancé avec :", shellCmd);
+
+  child.on("error", (err) => {
+    console.error("Could not run pkexec", err);
+  });
+
+  child.on("close", (code) => {
+    console.log(`[Updater] pkexec terminé avec le code: ${code}`);
+    if (code !== 0) {
+      console.error(`RPM install failed (exit code ${code})`);
+      return;
+    }
+    console.log("[Updater] Relancement de l'app");
     app.relaunch();
     app.quit();
   });
