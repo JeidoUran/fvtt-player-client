@@ -23,11 +23,26 @@ export function installDebUpdate(version: string) {
   const debPath = path.join(pendingDir, debName);
 
   // pkexec command
-  const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
+  const userEnv = process.env;
+  const shellCmd = `
+  export DISPLAY=${userEnv.DISPLAY}
+  export XAUTHORITY=${userEnv.XAUTHORITY}
+  export DBUS_SESSION_BUS_ADDRESS=${userEnv.DBUS_SESSION_BUS_ADDRESS}
+  dpkg -i "${debPath}"
+  STATUS=$?
+  if [ $STATUS -ne 0 ]; then
+    if dpkg --audit | grep -q 'packages have'; then
+      apt-get install -f -y
+    fi
+  fi
+  exit $STATUS
+  `;
 
-  const child = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", shellCmd], {
-    stdio: "inherit",
-  });
+  const child = spawn(
+    "/usr/bin/pkexec",
+    ["--disable-internal-agent", "/bin/sh", "-c", shellCmd],
+    { stdio: "inherit" },
+  );
 
   console.log("[Updater] pkexec lancé avec :", shellCmd);
 
