@@ -3,6 +3,7 @@ import path from "path";
 import os from "os";
 import fs from "fs-extra";
 import { spawn, spawnSync } from "child_process";
+import sudo from "sudo-prompt";
 
 const pkgPath = path.join(app.getAppPath(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
@@ -22,55 +23,16 @@ export function installDebUpdate(version: string) {
   const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
   const debPath = path.resolve(pendingDir, debName);
 
-  // Step 1: Install the deb
-  const installCmd = `dpkg -i "${debPath}"`;
-  const fixCmd = `apt-get install -f -y`;
+  const installCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
-  const env = {
-    ...process.env,
-    DISPLAY: process.env.DISPLAY || ":0",
-    XAUTHORITY:
-      process.env.XAUTHORITY ||
-      `/run/user/${process.getuid?.() ?? process.env.USER}/.Xauthority`,
-    DBUS_SESSION_BUS_ADDRESS: process.env.DBUS_SESSION_BUS_ADDRESS,
-    WAYLAND_DISPLAY: process.env.WAYLAND_DISPLAY,
-    XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR,
-  };
-
-  console.log("pkexec env:", env);
-
-  const child = spawn(
-    "/usr/bin/pkexec",
-    ["--disable-internal-agent", "/bin/sh", "-c", installCmd],
-    {
-      stdio: "inherit",
-      env,
-    },
-  );
-
-  child.on("error", (err) => {
-    console.error("Could not run pkexec", err);
-  });
-
-  child.on("close", (code) => {
-    if (code === 0) {
-      app.relaunch();
-      app.quit();
+  sudo.exec(installCmd, { name: app.getName() }, (error, stdout, stderr) => {
+    if (error) {
+      console.error("Sudo-prompt error:", error);
       return;
     }
-    // If dpkg failed, try to fix dependencies
-    console.log("[Updater] dpkg failed, trying apt-get install -f -y");
-    const fixChild = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", fixCmd], {
-      stdio: "inherit",
-    });
-    fixChild.on("close", (fixCode) => {
-      if (fixCode !== 0) {
-        console.error(`apt-get install -f failed (exit code ${fixCode})`);
-        return;
-      }
-      app.relaunch();
-      app.quit();
-    });
+    console.log("Sudo-prompt output:", stdout, stderr);
+    app.relaunch();
+    app.quit();
   });
 }
 
