@@ -163,6 +163,8 @@ web_modules/
 
 # Output of 'npm pack'
 *.tgz
+!vendor/
+!vendor/*.tgz
 
 # Yarn Integrity file
 .yarn-integrity
