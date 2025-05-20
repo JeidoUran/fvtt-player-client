@@ -10,11 +10,11 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
 };
 
 /**
- * Install DEB via DPKG, using pkexec as policy kit
+ * Install DEB via DPKG, using pkexec
  */
 export function installDebUpdate(version: string) {
-  const rawName = pkg.description ?? app.getName(); // "FVTT Desktop Client"
-  const SLUG_NAME = rawName.replace(/\s+/g, "-"); // "FVTT-Desktop-Client"
+  const rawName = pkg.description ?? app.getName();
+  const SLUG_NAME = rawName.replace(/\s+/g, "-");
   const cacheDir =
     process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
   const pendingDir = path.join(cacheDir, `${app.getName()}-updater`, "pending");
@@ -22,43 +22,42 @@ export function installDebUpdate(version: string) {
   const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
   const debPath = path.resolve(pendingDir, debName);
 
-  // pkexec command
-  const shellCmd = `
-    echo "[Updater] Commande exécutée avec : dpkg -i '${debPath}'" ;
-    dpkg -i '${debPath}' || DEBIAN_FRONTEND=noninteractive apt-get install -f -y
-  `;
+  // Step 1: Install the deb
+  const installCmd = `dpkg -i "${debPath}"`;
+  const fixCmd = `apt-get install -f -y`;
 
-  const child = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", shellCmd], {
+  const child = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", installCmd], {
     stdio: "inherit",
-    env: {
-      ...process.env,
-      DISPLAY: process.env.DISPLAY ?? ":0",
-      XAUTHORITY:
-        process.env.XAUTHORITY ?? path.join(os.homedir(), ".Xauthority"),
-      LANG: "C.UTF-8", // utile pour éviter des prompts bloquants
-    },
   });
-
-  console.log("[Updater] pkexec lancé avec :", shellCmd);
 
   child.on("error", (err) => {
     console.error("Could not run pkexec", err);
   });
 
   child.on("close", (code) => {
-    // Once installed, relaunch and quit to load new version
-    console.log(`[Updater] pkexec terminé avec le code: ${code}`);
-    if (code !== 0) {
-      console.error(`DEB install failed (exit code ${code})`);
+    if (code === 0) {
+      app.relaunch();
+      app.quit();
       return;
     }
-    app.relaunch();
-    app.quit();
+    // If dpkg failed, try to fix dependencies
+    console.log("[Updater] dpkg failed, trying apt-get install -f -y");
+    const fixChild = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", fixCmd], {
+      stdio: "inherit",
+    });
+    fixChild.on("close", (fixCode) => {
+      if (fixCode !== 0) {
+        console.error(`apt-get install -f failed (exit code ${fixCode})`);
+        return;
+      }
+      app.relaunch();
+      app.quit();
+    });
   });
 }
 
 /**
- * Install RPM via DNF or YUM, using pkexec as policy kit
+ * Install RPM via DNF or YUM, using pkexec
  */
 export function installRpmUpdate(version: string) {
   const rawName = pkg.description ?? app.getName();
