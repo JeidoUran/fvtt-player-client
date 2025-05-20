@@ -3,6 +3,7 @@ import path from "path";
 import os from "os";
 import fs from "fs-extra";
 import { spawn, spawnSync } from "child_process";
+import { sendUpdateStatus } from "src/main";
 
 const pkgPath = path.join(app.getAppPath(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
@@ -23,29 +24,28 @@ export function installDebUpdate(version: string) {
   const debPath = path.join(pendingDir, debName);
 
   // pkexec command
-  const userEnv = process.env;
-  const shellCmd = `
-  export DISPLAY=${userEnv.DISPLAY}
-  export XAUTHORITY=${userEnv.XAUTHORITY}
-  export DBUS_SESSION_BUS_ADDRESS=${userEnv.DBUS_SESSION_BUS_ADDRESS}
-  dpkg -i "${debPath}"
-  STATUS=$?
-  if [ $STATUS -ne 0 ]; then
-    if dpkg --audit | grep -q 'packages have'; then
-      apt-get install -f -y
-    fi
-  fi
-  exit $STATUS
-  `;
+  const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
-  const child = spawn(
-    "/usr/bin/pkexec",
-    ["--disable-internal-agent", "/bin/sh", "-c", shellCmd],
-    { stdio: "inherit" },
-  );
+  const child = spawn("/usr/bin/pkexec", ["sh", "-c", shellCmd], {
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      DISPLAY: process.env.DISPLAY,
+      XAUTHORITY: process.env.XAUTHORITY,
+      DBUS_SESSION_BUS_ADDRESS: process.env.DBUS_SESSION_BUS_ADDRESS,
+    },
+  });
 
   console.log("[Updater] pkexec lancé avec :", shellCmd);
 
+  console.log("[Updater] DISPLAY:", process.env.DISPLAY);
+  console.log("[Updater] XAUTHORITY:", process.env.XAUTHORITY);
+  console.log(
+    "[Updater] DBUS_SESSION_BUS_ADDRESS:",
+    process.env.DBUS_SESSION_BUS_ADDRESS,
+  );
+
+  sendUpdateStatus("installing");
   child.on("error", (err) => {
     console.error("Could not run pkexec", err);
   });
@@ -98,7 +98,7 @@ export function installRpmUpdate(version: string) {
     ["--disable-internal-agent", "/bin/sh", "-c", shellCmd],
     { stdio: "inherit" },
   );
-
+  sendUpdateStatus("installing");
   child.on("error", (err) => {
     console.error("Could not run pkexec", err);
   });

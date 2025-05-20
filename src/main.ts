@@ -69,7 +69,7 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 
 let mainWindow: BrowserWindow;
 
-function sendUpdateStatus(
+export function sendUpdateStatus(
   status:
     | "checking"
     | "available"
@@ -956,7 +956,6 @@ function getThemeConfig(): ThemeConfig {
 ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
 ipcMain.on("install-update", async () => {
-  sendUpdateStatus("installing");
   const version = downloadedVersion ?? app.getVersion();
   if (process.platform === "linux") {
     const pkgTypeFile = path.join(process.resourcesPath, "package-type");
