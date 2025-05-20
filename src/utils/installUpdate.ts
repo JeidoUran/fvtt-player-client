@@ -26,8 +26,11 @@ export function installDebUpdate(version: string) {
   const installCmd = `dpkg -i "${debPath}"`;
   const fixCmd = `apt-get install -f -y`;
 
+  console.log("Launching pkexec with env DISPLAY:", process.env.DISPLAY);
+
   const child = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", installCmd], {
     stdio: "inherit",
+    env: process.env,
   });
 
   child.on("error", (err) => {
