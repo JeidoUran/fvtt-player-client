@@ -39,10 +39,14 @@ export function installDebUpdate(version: string) {
 
   console.log("pkexec env:", env);
 
-  const child = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", installCmd], {
-    stdio: "inherit",
-    env,
-  });
+  const child = spawn(
+    "/usr/bin/pkexec",
+    ["--disable-internal-agent", "/bin/sh", "-c", installCmd],
+    {
+      stdio: "inherit",
+      env,
+    },
+  );
 
   child.on("error", (err) => {
     console.error("Could not run pkexec", err);
