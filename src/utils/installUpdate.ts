@@ -23,21 +23,11 @@ export function installDebUpdate(version: string) {
   const debPath = path.join(pendingDir, debName);
 
   // pkexec command
-  const shellCmd = `
-set -e
-dpkg -i "${debPath}"
-STATUS=$?
-if [ $STATUS -ne 0 ]; then
-  if dpkg --audit | grep -q 'packages have'; then
-    apt-get install -f -y
-  fi
-fi
-exit $STATUS
-`;
+  const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
   const child = spawn(
     "/usr/bin/pkexec",
-    ["--disable-internal-agent", "sh", "-c", shellCmd],
+    ["--disable-internal-agent", "/bin/sh", "-c", shellCmd],
     { stdio: "inherit" },
   );
 
