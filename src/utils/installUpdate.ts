@@ -25,11 +25,9 @@ export function installDebUpdate(version: string) {
   // pkexec command
   const shellCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
-  const child = spawn(
-    "/usr/bin/pkexec",
-    ["--disable-internal-agent", "/bin/sh", "-c", shellCmd],
-    { stdio: "inherit" },
-  );
+  const child = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", shellCmd], {
+    stdio: "inherit",
+  });
 
   console.log("[Updater] pkexec lancé avec :", shellCmd);
 
