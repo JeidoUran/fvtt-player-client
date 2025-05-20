@@ -25,7 +25,7 @@ export function installDebUpdate(version: string) {
 
   const installCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
 
-  sudo.exec(installCmd, { name: app.getName() }, (error, stdout, stderr) => {
+  sudo.exec(installCmd, { name: pkg.description }, (error, stdout, stderr) => {
     if (error) {
       console.error("Sudo-prompt error:", error);
       return;
