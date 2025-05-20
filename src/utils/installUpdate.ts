@@ -24,21 +24,13 @@ export function installDebUpdate(version: string) {
 
   // pkexec command
   const shellCmd = `
-  dpkg -i "${debPath}" > /tmp/dpkg.log 2>&1;
-  if [ $? -ne 0 ]; then
-    echo "[Updater] dpkg failed, trying apt-get -f" >> /tmp/dpkg.log;
-    apt-get install -f -y >> /tmp/aptfix.log 2>&1;
-  fi
+  dpkg -i "${debPath}" || \
+  DEBIAN_FRONTEND=noninteractive apt-get install -f -y
 `;
 
   const child = spawn(
     "/usr/bin/pkexec",
-    [
-      "--disable-internal-agent",
-      "/bin/sh",
-      "-c",
-      `${shellCmd} > /tmp/instlog.txt 2>&1`,
-    ],
+    ["--disable-internal-agent", "/bin/sh", "-c", shellCmd],
     { stdio: "inherit" },
   );
 
