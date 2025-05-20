@@ -20,19 +20,24 @@ export function installDebUpdate(version: string) {
   const pendingDir = path.join(cacheDir, `${app.getName()}-updater`, "pending");
   const arch = process.arch === "x64" ? "amd64" : process.arch;
   const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
-  const debPath = path.join(pendingDir, debName);
+  const debPath = path.resolve(pendingDir, debName);
 
   // pkexec command
   const shellCmd = `
-  dpkg -i "${debPath}" || \
-  DEBIAN_FRONTEND=noninteractive apt-get install -f -y
-`;
+    echo "[Updater] Commande exécutée avec : dpkg -i '${debPath}'" ;
+    dpkg -i '${debPath}' || DEBIAN_FRONTEND=noninteractive apt-get install -f -y
+  `;
 
-  const child = spawn(
-    "/usr/bin/pkexec",
-    ["--disable-internal-agent", "/bin/sh", "-c", shellCmd],
-    { stdio: "inherit" },
-  );
+  const child = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", shellCmd], {
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      DISPLAY: process.env.DISPLAY ?? ":0",
+      XAUTHORITY:
+        process.env.XAUTHORITY ?? path.join(os.homedir(), ".Xauthority"),
+      LANG: "C.UTF-8", // utile pour éviter des prompts bloquants
+    },
+  });
 
   console.log("[Updater] pkexec lancé avec :", shellCmd);
 
