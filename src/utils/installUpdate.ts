@@ -3,7 +3,6 @@ import path from "path";
 import os from "os";
 import fs from "fs-extra";
 import { spawn, spawnSync } from "child_process";
-import { sendUpdateStatus } from "src/main";
 
 const pkgPath = path.join(app.getAppPath(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
@@ -45,7 +44,6 @@ export function installDebUpdate(version: string) {
     process.env.DBUS_SESSION_BUS_ADDRESS,
   );
 
-  sendUpdateStatus("installing");
   child.on("error", (err) => {
     console.error("Could not run pkexec", err);
   });
@@ -98,7 +96,6 @@ export function installRpmUpdate(version: string) {
     ["--disable-internal-agent", "/bin/sh", "-c", shellCmd],
     { stdio: "inherit" },
   );
-  sendUpdateStatus("installing");
   child.on("error", (err) => {
     console.error("Could not run pkexec", err);
   });

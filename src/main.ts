@@ -970,10 +970,12 @@ ipcMain.on("install-update", async () => {
     }
     switch (pkgType) {
       case "deb": {
+        sendUpdateStatus("installing");
         installDebUpdate(version);
         return;
       }
       case "rpm": {
+        sendUpdateStatus("installing");
         installRpmUpdate(version);
         return;
       }
