@@ -26,11 +26,22 @@ export function installDebUpdate(version: string) {
   const installCmd = `dpkg -i "${debPath}"`;
   const fixCmd = `apt-get install -f -y`;
 
-  console.log("Launching pkexec with env DISPLAY:", process.env.DISPLAY);
+  const env = {
+    ...process.env,
+    DISPLAY: process.env.DISPLAY || ":0",
+    XAUTHORITY:
+      process.env.XAUTHORITY ||
+      `/run/user/${process.getuid?.() ?? process.env.USER}/.Xauthority`,
+    DBUS_SESSION_BUS_ADDRESS: process.env.DBUS_SESSION_BUS_ADDRESS,
+    WAYLAND_DISPLAY: process.env.WAYLAND_DISPLAY,
+    XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR,
+  };
+
+  console.log("pkexec env:", env);
 
   const child = spawn("/usr/bin/pkexec", ["/bin/sh", "-c", installCmd], {
     stdio: "inherit",
-    env: process.env,
+    env,
   });
 
   child.on("error", (err) => {
