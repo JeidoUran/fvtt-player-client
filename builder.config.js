@@ -44,7 +44,7 @@ module.exports = {
   },
 
   linux: {
-    target: ["AppImage", "deb", "rpm", "zip"],
+    target: ["AppImage", "deb", "rpm", "zip", "tar.gz"],
     icon: "src/icons/png",
     maintainer: "JeidoUran <jeido.uran@hotmail.fr>",
     artifactName: "${productName}_${version}_${os}-${arch}.${ext}",
