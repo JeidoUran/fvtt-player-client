@@ -61,5 +61,4 @@ jobs:
           # run electron-builder with publish
           npx electron-builder $PLAT_FLAG $ARCH_FLAG --publish always
   
-
     # artifacts are automatically attached by electron-builder to the GitHub release

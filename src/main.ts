@@ -38,9 +38,6 @@ import { autoUpdater } from "electron-updater";
 import { installDebUpdate } from "./utils/installUpdate";
 import { sendUpdateStatus, setUpdateWindow } from "./utils/updateStatus";
 
-// workaround for gtk version preventing app launch on certain Linux distros while using Electron 36
-app.commandLine.appendSwitch("gtk-version", "3");
-
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
   path.join(app.getPath("userData"), "main.log");
@@ -62,6 +59,9 @@ const MAIN_WINDOW_VITE_NAME = "main_window";
 let initialCheckInProgress = true;
 
 if (require("electron-squirrel-startup")) app.quit();
+
+// workaround for gtk version preventing app launch on certain Linux distros while using Electron 36
+app.commandLine.appendSwitch("gtk-version", "3");
 
 app.commandLine.appendSwitch("force_high_performance_gpu");
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
@@ -331,13 +331,13 @@ const windowsData = {} as WindowsData;
 let partitionId: number = 0;
 
 function getSession(): Electron.Session {
-  // Lire la config utilisateur
+  // Read user config
   const { shareSessionWindows } = getAppConfig();
   if (shareSessionWindows) {
-    // Toutes les fenêtres partagent la même session
+    // All windows share the same session
     return session.defaultSession;
   }
-  // Comportement actuel : nouvelle partition pour chaque fenêtre
+  // Current behavior : new partition for each window
   const partitionIdTemp = partitionId;
   partitionId++;
   if (partitionIdTemp === 0) return session.defaultSession;
