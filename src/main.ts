@@ -36,8 +36,9 @@ import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
 import { installDebUpdate } from "./utils/installUpdate";
+import { sendUpdateStatus, setUpdateWindow } from "./utils/updateStatus";
 
-// workaround for gtk version preventing app launch on certain Linux distros on Electron 36
+// workaround for gtk version preventing app launch on certain Linux distros while using Electron 36
 app.commandLine.appendSwitch("gtk-version", "3");
 
 const fileTransport = log.transports.file;
@@ -70,22 +71,6 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
 let mainWindow: BrowserWindow;
-
-export function sendUpdateStatus(
-  status:
-    | "checking"
-    | "available"
-    | "not-available"
-    | "progress"
-    | "downloaded"
-    | "error"
-    | "installing",
-  payload?: any,
-) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send("update-status", { status, payload });
-  }
-}
 
 type MigrationStatus = "skipped" | "success" | "failure";
 async function migrateUserData(): Promise<MigrationStatus> {
@@ -820,6 +805,7 @@ app.whenReady().then(async () => {
   const isFirstUser = !fs.existsSync(userDataPath);
 
   mainWindow = createWindow();
+  setUpdateWindow(mainWindow);
 
   // Configure cache/session
   const userData = getUserData();
@@ -977,6 +963,7 @@ ipcMain.on("install-update", async () => {
         return;
       }
       case "rpm":
+        break;
       case "pacman":
         break;
       default:
@@ -984,6 +971,7 @@ ipcMain.on("install-update", async () => {
     }
   }
   // Windows / macOS / Linux RPM
+  sendUpdateStatus("installing");
   autoUpdater.quitAndInstall(true, true);
 });
 
