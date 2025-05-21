@@ -1,6 +1,6 @@
 {
   "name": "vtt-desktop-client",
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "yarn@4.9.1",
   "version": "1.13.0-pre",
   "license": "MIT",
   "description": "FVTT Desktop Client",
