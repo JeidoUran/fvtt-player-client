@@ -35,8 +35,10 @@ import fs from "fs-extra";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { autoUpdater } from "electron-updater";
-import { installRpmUpdate, installDebUpdate } from "./utils/installUpdate";
-import os from "os";
+import { installDebUpdate } from "./utils/installUpdate";
+
+// workaround for gtk version preventing app launch on certain Linux distros on Electron 36
+app.commandLine.appendSwitch("gtk-version", "3");
 
 const fileTransport = log.transports.file;
 (fileTransport as any).getFile = () =>
@@ -974,18 +976,14 @@ ipcMain.on("install-update", async () => {
         installDebUpdate(version);
         return;
       }
-      case "rpm": {
-        /*         sendUpdateStatus("installing");
-        installRpmUpdate(version);
-        return; */
-      }
+      case "rpm":
       case "pacman":
         break;
       default:
         break;
     }
   }
-  // Windows / macOS
+  // Windows / macOS / Linux RPM
   autoUpdater.quitAndInstall(true, true);
 });
 
