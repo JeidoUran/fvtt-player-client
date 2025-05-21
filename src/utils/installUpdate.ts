@@ -3,7 +3,6 @@ import path from "path";
 import os from "os";
 import fs from "fs-extra";
 import { spawn, spawnSync } from "child_process";
-import sudo from "sudo-prompt";
 
 const pkgPath = path.join(app.getAppPath(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
@@ -23,17 +22,31 @@ export function installDebUpdate(version: string) {
   const debName = `${SLUG_NAME}_${version}_linux-${arch}.deb`;
   const debPath = path.resolve(pendingDir, debName);
 
-  const installCmd = `dpkg -i "${debPath}" || apt-get install -f -y`;
+  const shellCmd = `sudo dpkg -i "${debPath}" || sudo apt-get install -f -y`;
 
-  sudo.exec(
-    "echo Hello",
-    { name: pkg.description },
-    (error, stdout, stderr) => {
-      console.log("Result:", error, stdout, stderr);
-      app.relaunch();
-      app.quit();
-    },
-  );
+  // Utilise un terminal graphique plutôt que pkexec
+  const terminalCommand = [
+    "x-terminal-emulator",
+    "-e",
+    `bash -c '${shellCmd}; read -p "Press Enter to close..."'`,
+  ];
+
+  const child = spawn(terminalCommand[0], terminalCommand.slice(1), {
+    stdio: "inherit",
+  });
+
+  child.on("error", (err) => {
+    console.error("Could not launch terminal to install update:", err);
+  });
+
+  child.on("close", (code) => {
+    if (code !== 0) {
+      console.error(`Could not install .deb file (exit code ${code})`);
+      return;
+    }
+    app.relaunch();
+    app.quit();
+  });
 }
 
 /**
