@@ -23,11 +23,11 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Enable Corepack
         run: corepack enable
         
+      - uses: actions/checkout@v4
+
       - name: Set up Node.js ${{ matrix.arch }}
         uses: actions/setup-node@v4
         with:
