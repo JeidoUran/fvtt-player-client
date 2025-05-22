@@ -73,7 +73,6 @@
     "electron-updater": "file:vendor/electron-updater-6.6.4.tgz",
     "element-plus": "^2.9.10",
     "fs-extra": "^11.3.0",
-    "node-fetch": "^3.3.2",
     "pinia": "^3.0.2",
     "vue": "^3.5.13",
     "ws": "^8.18.1",
