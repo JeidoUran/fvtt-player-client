@@ -3,8 +3,6 @@ name: 📦 Build & Publish
 
 # fire on every published release, or manual dispatch
 on:
-  release:
-    types: [created, published]
   workflow_dispatch:
 permissions:
   contents: write    # needed to upload release assets
@@ -36,11 +34,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-
-      - name: Bump version to release tag (if running on a release event)
-        if: github.event_name == 'release'
-        run: |
-          yarn version --no-git-tag-version --new-version ${{ github.event.release.tag_name }}
 
       - name: Build main, preload & renderer
         run: yarn build
