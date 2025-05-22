@@ -71,6 +71,7 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
 let mainWindow: BrowserWindow;
+let lastUpdateRequestingWindow: BrowserWindow | null = null;
 
 type MigrationStatus = "skipped" | "success" | "failure";
 async function migrateUserData(): Promise<MigrationStatus> {
@@ -368,7 +369,7 @@ function createWindow(): BrowserWindow {
     const cfg = getAppConfig();
     win.setFullScreen(cfg.fullScreenEnabled ?? false);
   } catch (e) {
-    console.warn("[createWindow] Impossible d’appliquer le plein écran :", e);
+    console.warn("[createWindow] Could not apply fullscreen :", e);
   }
 
   win.webContents.on("page-favicon-updated", (_event, favicons) => {
@@ -680,7 +681,7 @@ autoUpdater.on("update-available", (info) => {
     // silence the first “available”
     return;
   }
-  sendUpdateStatus("available", info);
+  sendUpdateStatus("available", info, lastUpdateRequestingWindow);
 });
 
 autoUpdater.on("update-not-available", (info) => {
@@ -688,17 +689,17 @@ autoUpdater.on("update-not-available", (info) => {
     // silence the “no update” that always fires at the end of the startup check
     return;
   }
-  sendUpdateStatus("not-available");
+  sendUpdateStatus("not-available", info, lastUpdateRequestingWindow);
 });
 autoUpdater.on("download-progress", (progress) => {
-  sendUpdateStatus("progress", progress);
+  sendUpdateStatus("progress", progress, lastUpdateRequestingWindow);
 });
 
 let downloadedVersion: string | null = null;
 
 autoUpdater.on("update-downloaded", (info) => {
   downloadedVersion = info.version;
-  sendUpdateStatus("downloaded", info);
+  sendUpdateStatus("downloaded", info, lastUpdateRequestingWindow);
 });
 
 autoUpdater.on("error", (err) => {
@@ -706,9 +707,13 @@ autoUpdater.on("error", (err) => {
     // silence the first “available”
     return;
   }
-  sendUpdateStatus("error", {
-    message: err == null ? "" : (err.stack || err).toString(),
-  });
+  sendUpdateStatus(
+    "error",
+    {
+      message: err == null ? "" : (err.stack || err).toString(),
+    },
+    lastUpdateRequestingWindow,
+  );
 });
 
 app.whenReady().then(async () => {
@@ -941,9 +946,15 @@ function getThemeConfig(): ThemeConfig {
   }
 }
 
-ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
+ipcMain.on("check-for-updates", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  lastUpdateRequestingWindow = win;
+  sendUpdateStatus("checking", undefined, win);
+  autoUpdater.checkForUpdates();
+});
 ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-ipcMain.on("install-update", async () => {
+ipcMain.on("install-update", async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
   const version = downloadedVersion ?? app.getVersion();
   if (process.platform === "linux") {
     const pkgTypeFile = path.join(process.resourcesPath, "package-type");
@@ -958,7 +969,7 @@ ipcMain.on("install-update", async () => {
     }
     switch (pkgType) {
       case "deb": {
-        sendUpdateStatus("installing");
+        sendUpdateStatus("installing", undefined, win);
         installDebUpdate(version);
         return;
       }
@@ -971,7 +982,7 @@ ipcMain.on("install-update", async () => {
     }
   }
   // Windows / macOS / Linux RPM
-  sendUpdateStatus("installing");
+  sendUpdateStatus("installing", undefined, win);
   autoUpdater.quitAndInstall(true, true);
 });
 
@@ -1107,10 +1118,6 @@ ipcMain.on("set-fullscreen", (event, fullscreen: boolean) => {
   const w = BrowserWindow.fromWebContents(event.sender);
   if (w) w.setFullScreen(fullscreen);
   if ((fullscreen = true)) w.maximize();
-});
-
-ipcMain.on("check-for-updates", () => {
-  autoUpdater.checkForUpdates();
 });
 
 app.on("window-all-closed", () => {

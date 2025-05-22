@@ -1,9 +1,9 @@
 import { BrowserWindow } from "electron";
 
-let mainWindow: BrowserWindow | null = null;
+let fallbackWindow: BrowserWindow | null = null;
 
 export function setUpdateWindow(win: BrowserWindow) {
-  mainWindow = win;
+  fallbackWindow = win;
 }
 
 export function sendUpdateStatus(
@@ -16,8 +16,10 @@ export function sendUpdateStatus(
     | "error"
     | "installing",
   payload?: any,
+  win?: BrowserWindow,
 ) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send("update-status", { status, payload });
+  const target = win ?? fallbackWindow;
+  if (target && !target.isDestroyed()) {
+    target.webContents.send("update-status", { status, payload });
   }
 }
