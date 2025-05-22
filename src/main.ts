@@ -47,10 +47,6 @@ autoUpdater.logger = log;
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = false;
 
-// TODO: TESTING ONLY, REMOVE THESE LINES BEFORE RELEASE
-autoUpdater.forceDevUpdateConfig = true;
-autoUpdater.allowPrerelease = true;
-
 const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
   ? "http://localhost:5173"
   : "";
