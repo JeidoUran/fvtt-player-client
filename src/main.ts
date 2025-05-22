@@ -2,6 +2,7 @@
 
 import {
   app,
+  net,
   BrowserWindow,
   ipcMain,
   safeStorage,
@@ -30,11 +31,33 @@ import {
   closeRichPresenceSocket,
 } from "./richPresence/richPresenceSocket";
 import path from "path";
-import fs from "fs";
+import fs from "fs-extra";
 import { fileURLToPath } from "url";
-import fetch from "node-fetch";
+import log from "electron-log";
+import { autoUpdater } from "electron-updater";
+import { installDebUpdate } from "./utils/installUpdate";
+import { sendUpdateStatus, setUpdateWindow } from "./utils/updateStatus";
+
+const fileTransport = log.transports.file;
+(fileTransport as any).getFile = () =>
+  path.join(app.getPath("userData"), "main.log");
+fileTransport.level = "info";
+
+autoUpdater.logger = log;
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
+
+const MAIN_WINDOW_VITE_DEV_SERVER_URL = !app.isPackaged
+  ? "http://localhost:5173"
+  : "";
+const MAIN_WINDOW_VITE_NAME = "main_window";
+
+let initialCheckInProgress = true;
 
 if (require("electron-squirrel-startup")) app.quit();
+
+// workaround for gtk version preventing app launch on certain Linux distros while using Electron 36
+app.commandLine.appendSwitch("gtk-version", "3");
 
 app.commandLine.appendSwitch("force_high_performance_gpu");
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
@@ -44,6 +67,7 @@ app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 //app.commandLine.appendSwitch("ignore-certificate-errors");
 
 let mainWindow: BrowserWindow;
+let lastUpdateRequestingWindow: BrowserWindow | null = null;
 
 type MigrationStatus = "skipped" | "success" | "failure";
 async function migrateUserData(): Promise<MigrationStatus> {
@@ -100,22 +124,6 @@ async function migrateUserData(): Promise<MigrationStatus> {
   } catch (e) {
     console.warn("[getUserData] Migration failed :", e);
     return "failure";
-  }
-}
-
-function returnToServerSelect(win: BrowserWindow) {
-  const id = win.webContents.id;
-  windowsData[id].autoLogin = true;
-  delete windowsData[id].selectedServerName;
-  disableRichPresence();
-  closeRichPresenceSocket();
-
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-    );
   }
 }
 
@@ -245,6 +253,35 @@ export function getUserData(): UserData {
   }
 }
 
+function returnToServerSelect(win: BrowserWindow) {
+  const id = win.webContents.id;
+  windowsData[id].autoLogin = true;
+  delete windowsData[id].selectedServerName;
+  disableRichPresence();
+  closeRichPresenceSocket();
+
+  if (!app.isPackaged && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    win.webContents.openDevTools({ mode: "detach" });
+  } else {
+    // ► in production, load the file we just packed into /renderer/…
+    const indexHtml = path.join(
+      __dirname,
+      "../../renderer",
+      MAIN_WINDOW_VITE_NAME,
+      "index.html",
+    );
+    win.loadFile(indexHtml);
+  }
+}
+
+function notifyMainWindow(message: string, winOverride?: BrowserWindow) {
+  const win = winOverride ?? mainWindow;
+  if (win && !win.isDestroyed()) {
+    win.webContents.send("show-notification", message);
+  }
+}
+
 /**
  * Displays safePrompt in renderer in a given window and retrieve answer
  */
@@ -265,6 +302,15 @@ function askPrompt(
   });
 }
 
+function hookFullScreenEvents(win: BrowserWindow) {
+  win.on("enter-full-screen", () => {
+    win.webContents.send("fullscreen-changed", true);
+  });
+  win.on("leave-full-screen", () => {
+    win.webContents.send("fullscreen-changed", false);
+  });
+}
+
 const windows = new Set<BrowserWindow>();
 
 /** Check if single instance, if not, simply quit new instance */
@@ -282,9 +328,16 @@ const windowsData = {} as WindowsData;
 let partitionId: number = 0;
 
 function getSession(): Electron.Session {
+  // Read user config
+  const { shareSessionWindows } = getAppConfig();
+  if (shareSessionWindows) {
+    // All windows share the same session
+    return session.defaultSession;
+  }
+  // Current behavior : new partition for each window
   const partitionIdTemp = partitionId;
   partitionId++;
-  if (partitionIdTemp == 0) return session.defaultSession;
+  if (partitionIdTemp === 0) return session.defaultSession;
   return session.fromPartition(`persist:${partitionIdTemp}`, { cache: true });
 }
 
@@ -305,6 +358,16 @@ function createWindow(): BrowserWindow {
     },
   });
 
+  hookFullScreenEvents(win);
+
+  // ── Applies fullscreen according to user config ──
+  try {
+    const cfg = getAppConfig();
+    win.setFullScreen(cfg.fullScreenEnabled ?? false);
+  } catch (e) {
+    console.warn("[createWindow] Could not apply fullscreen :", e);
+  }
+
   win.webContents.on("page-favicon-updated", (_event, favicons) => {
     if (!favicons.length) return;
     const faviconUrl = favicons[0];
@@ -323,16 +386,23 @@ function createWindow(): BrowserWindow {
         console.warn("[Favicon] Could not resolve local URL:", faviconUrl, err);
       }
     } else {
-      fetch(faviconUrl)
-        .then((res) => res.arrayBuffer())
-        .then((buf) => {
-          const icon = nativeImage.createFromBuffer(Buffer.from(buf));
+      const request = net.request(faviconUrl);
+      const chunks: Buffer[] = [];
+      request.on("response", (response) => {
+        response.on("data", (chunk) => chunks.push(chunk));
+        response.on("end", () => {
+          const buffer = Buffer.concat(chunks);
+          const icon = nativeImage.createFromBuffer(buffer);
           if (!icon.isEmpty()) {
             win.setIcon(icon);
-            console.log("[Favicon] Restored from external URL :", faviconUrl);
+            console.log("[Favicon] Restored from external URL:", faviconUrl);
           }
-        })
-        .catch((err) => console.warn("[Favicon] Fetch error :", err));
+        });
+      });
+      request.on("error", (err) =>
+        console.warn("[Favicon] net.request error:", err),
+      );
+      request.end();
     }
   });
 
@@ -385,12 +455,18 @@ function createWindow(): BrowserWindow {
   });
 
   win.menuBarVisible = false;
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  if (!app.isPackaged && MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    win.webContents.openDevTools({ mode: "detach" });
   } else {
-    win.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+    // EN PROD on pointe vers /renderer/<name>/index.html
+    const indexHtml = path.join(
+      __dirname,
+      "../../renderer",
+      MAIN_WINDOW_VITE_NAME,
+      "index.html",
     );
+    win.loadFile(indexHtml);
   }
 
   // ── Fallback on HTTP error (502, 503…) when loading /join ──
@@ -575,7 +651,7 @@ function createWindow(): BrowserWindow {
   });
 
   win.once("ready-to-show", () => {
-    win.maximize();
+    if (!win.isFullScreen()) win.maximize();
     win.show();
   });
   win.on("closed", () => {
@@ -587,8 +663,58 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
+autoUpdater.on("checking-for-update", () => {
+  if (initialCheckInProgress) {
+    // silence the first “checking”
+    return;
+  }
+  // any later “checking” should open the modal
+  sendUpdateStatus("checking");
+});
+
+autoUpdater.on("update-available", (info) => {
+  if (initialCheckInProgress) {
+    // silence the first “available”
+    return;
+  }
+  sendUpdateStatus("available", info, lastUpdateRequestingWindow);
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  if (initialCheckInProgress) {
+    // silence the “no update” that always fires at the end of the startup check
+    return;
+  }
+  sendUpdateStatus("not-available", info, lastUpdateRequestingWindow);
+});
+autoUpdater.on("download-progress", (progress) => {
+  sendUpdateStatus("progress", progress, lastUpdateRequestingWindow);
+});
+
+let downloadedVersion: string | null = null;
+
+autoUpdater.on("update-downloaded", (info) => {
+  downloadedVersion = info.version;
+  sendUpdateStatus("downloaded", info, lastUpdateRequestingWindow);
+});
+
+autoUpdater.on("error", (err) => {
+  if (initialCheckInProgress) {
+    // silence the first “available”
+    return;
+  }
+  sendUpdateStatus(
+    "error",
+    {
+      message: err == null ? "" : (err.stack || err).toString(),
+    },
+    lastUpdateRequestingWindow,
+  );
+});
+
 app.whenReady().then(async () => {
   if (require("electron-squirrel-startup")) return;
+
   // File menu
   const fileMenu: MenuItemConstructorOptions = {
     label: "File",
@@ -680,25 +806,51 @@ app.whenReady().then(async () => {
   const isFirstUser = !fs.existsSync(userDataPath);
 
   mainWindow = createWindow();
+  setUpdateWindow(mainWindow);
 
   // Configure cache/session
   const userData = getUserData();
-  if (userData.cachePath) app.setPath("sessionData", userData.cachePath);
+  if (userData.cachePath) {
+    // make sure it’s absolute, e.g. under app.getPath('userData')
+    const absoluteCachePath = path.isAbsolute(userData.cachePath)
+      ? userData.cachePath
+      : path.join(app.getPath("userData"), userData.cachePath);
+
+    app.setPath("sessionData", absoluteCachePath);
+  }
 
   // After rendering index, we notify on migration status
   mainWindow.webContents.once("did-finish-load", async () => {
+    // only check once, right after launch
+    autoUpdater
+      .checkForUpdates()
+      .then((result) => {
+        // result has a .updateInfo object
+        const latest = result.updateInfo?.version;
+        const current = app.getVersion();
+
+        if (latest && latest !== current) {
+          notifyMainWindow(`An update is available!`);
+        }
+      })
+      .catch((err) => {
+        console.error("Update‐check failed:", err);
+        notifyMainWindow("Could not check for updates");
+      })
+      .finally(() => {
+        // only once the promise settles do we turn off the “initial check” guard
+        initialCheckInProgress = false;
+      });
+
     if (migrationResult === "success") {
-      mainWindow.webContents.send(
-        "show-notification",
-        "Your user data has been successfully migrated",
-      );
+      notifyMainWindow(`Your user data has been successfully migrated`);
       console.log("Migration successful");
     } else if (migrationResult === "failure") {
       await askPrompt("Could not migrate your user data.", { mode: "alert" });
     }
     // Welcome, new users!
     if (isFirstUser) {
-      mainWindow.webContents.send("show-notification", "Welcome!");
+      notifyMainWindow(`Welcome!`);
     }
   });
 });
@@ -739,6 +891,18 @@ ipcMain.handle("get-user-data", (_, gameId: GameId) => getLoginDetails(gameId));
 
 ipcMain.handle("app-version", () => app.getVersion());
 
+ipcMain.handle("is-fullscreen", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  return win ? win.isFullScreen() : false;
+});
+
+ipcMain.on("close-window", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed()) {
+    win.close();
+  }
+});
+
 ipcMain.handle("dialog:choose-font", async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     title: "Select a font file",
@@ -759,7 +923,7 @@ ipcMain.handle("read-font-file", async (_e, fontPath: string) => {
 });
 
 function getAppConfig(): AppConfig {
-  // Charge l’app config uniquement depuis userData.json
+  // Loads client data from userData.json
   try {
     const userData = getUserData();
     return userData.app ?? ({} as AppConfig);
@@ -769,7 +933,7 @@ function getAppConfig(): AppConfig {
 }
 
 function getThemeConfig(): ThemeConfig {
-  // Charge le theme uniquement depuis userData.json
+  // Loads theme data from userData.json
   try {
     const userData = getUserData();
     return userData.theme ?? ({} as ThemeConfig);
@@ -777,6 +941,46 @@ function getThemeConfig(): ThemeConfig {
     return {} as ThemeConfig;
   }
 }
+
+ipcMain.on("check-for-updates", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  lastUpdateRequestingWindow = win;
+  sendUpdateStatus("checking", undefined, win);
+  autoUpdater.checkForUpdates();
+});
+ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
+ipcMain.on("install-update", async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const version = downloadedVersion ?? app.getVersion();
+  if (process.platform === "linux") {
+    const pkgTypeFile = path.join(process.resourcesPath, "package-type");
+    let pkgType: string | undefined;
+    try {
+      if (fs.existsSync(pkgTypeFile)) {
+        pkgType = fs.readFileSync(pkgTypeFile, "utf-8").trim();
+        console.log("Detected package-type:", pkgType);
+      }
+    } catch (e) {
+      console.warn("Could not read package-type:", e);
+    }
+    switch (pkgType) {
+      case "deb": {
+        sendUpdateStatus("installing", undefined, win);
+        installDebUpdate(version);
+        return;
+      }
+      case "rpm":
+        break;
+      case "pacman":
+        break;
+      default:
+        break;
+    }
+  }
+  // Windows / macOS / Linux RPM
+  sendUpdateStatus("installing", undefined, win);
+  autoUpdater.quitAndInstall(true, true);
+});
 
 ipcMain.on("save-app-config", (_e, data: AppConfig) => {
   const currentData = getUserData();
@@ -816,17 +1020,25 @@ ipcMain.handle("local-theme-config", () => {
   }
 });
 
-ipcMain.handle("select-path", (e) => {
+// TODO: Seems unused
+/* ipcMain.handle("select-path", (e) => {
   windowsData[e.sender.id].autoLogin = true;
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     return MAIN_WINDOW_VITE_DEV_SERVER_URL;
   } else {
     return path.join(
       __dirname,
-      `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`,
+      `../../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`,
     );
   }
+}); */
+
+ipcMain.on("open-external", (_event, url: string) => {
+  shell.openExternal(url).catch((err) => {
+    console.error("Failed to open external URL", url, err);
+  });
 });
+
 ipcMain.handle("cache-path", () => app.getPath("sessionData"));
 
 ipcMain.handle("open-user-data-folder", () => {
@@ -844,21 +1056,47 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
   );
 });
 
-ipcMain.handle("ping-server", async (_e, rawUrl: string) => {
-  try {
-    // 5 sec at most before timing out
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-
+ipcMain.handle("ping-server", (_e, rawUrl: string) => {
+  return new Promise<ServerStatusData | null>((resolve, reject) => {
     const pingUrl = new URL("/api/status", rawUrl).toString();
-    const res = await fetch(pingUrl, { signal: controller.signal });
-    clearTimeout(timer);
 
-    if (!res.ok) return null;
-    return await res.json(); // returns ServerStatusData
-  } catch (err: any) {
-    return null;
-  }
+    // fire the request
+    const req = net.request(pingUrl);
+
+    // enforce a 5s timeout
+    const timer = setTimeout(() => {
+      req.abort();
+      reject(new Error("Timeout"));
+    }, 5000);
+
+    const chunks: Buffer[] = [];
+    req.on("response", (response) => {
+      clearTimeout(timer);
+
+      // accumulate all data
+      response.on("data", (b) => chunks.push(b));
+      response.on("end", () => {
+        // only parse on 2xx
+        if (response.statusCode! >= 200 && response.statusCode! < 300) {
+          try {
+            const json = JSON.parse(Buffer.concat(chunks).toString());
+            resolve(json);
+          } catch {
+            reject(new Error("Invalid JSON"));
+          }
+        } else {
+          reject(new Error(`HTTP ${response.statusCode}`));
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+
+    req.end();
+  });
 });
 
 ipcMain.on("return-select", (e) => {
@@ -870,6 +1108,16 @@ app.on("activate", (_, hasVisibleWindows) => {
   if (!hasVisibleWindows) {
     createWindow();
   }
+});
+
+ipcMain.on("set-fullscreen", (event, fullscreen: boolean) => {
+  const w = BrowserWindow.fromWebContents(event.sender);
+  if (w) w.setFullScreen(fullscreen);
+  if ((fullscreen = true)) w.maximize();
+});
+
+app.on("window-all-closed", () => {
+  app.quit();
 });
 
 function getLoginDetails(gameId: GameId): GameUserDataDecrypted {

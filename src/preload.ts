@@ -4,17 +4,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 
-window.addEventListener("DOMContentLoaded", () => {
-  const replaceText = (selector: string, text: string) => {
-    const element = document.getElementById(selector);
-    if (element) element.innerText = text;
-  };
-
-  for (const dependency of ["chrome", "node", "electron"]) {
-    replaceText(`${dependency}-version`, process.versions[dependency]);
-  }
-});
-
 // type SendChannels = "toMain" | "open-game" | "save-user-data" | "app-version" | "cache-path" | "clear-cache";
 // type ReceiveChannels = "fromMain" | "save-user-data" | "app-version" | "cache-path";
 // type RequestChannels = "app-version" | "cache-path" | "get-user-data" | "select-path";
@@ -41,10 +30,6 @@ export type ContextBridgeApi = {
   saveAppConfig: (data: AppConfig) => void;
   saveThemeConfig: (data: ThemeConfig) => void;
   showNotification(callback: (message: string) => void): void;
-  safePrompt(
-    message: string,
-    options?: { mode: "confirm" | "alert" },
-  ): Promise<boolean>;
   onShowPrompt: (
     handler: (event: {
       id: number;
@@ -58,7 +43,29 @@ export type ContextBridgeApi = {
   openUserDataFolder: () => Promise<string>;
   showMenu: () => Promise<string>;
   pingServer: (url: string) => Promise<ServerStatusData | null>;
+  setFullScreen: (fullscreen: boolean) => void;
+  /** ask main “are we full-screen right now?” */
+  isFullScreen: () => Promise<boolean>;
+  /** subscribe to live full-screen changes */
+  onFullScreenChange: (cb: (isFullscreen: boolean) => void) => void;
+  platform: NodeJS.Platform;
+  versions: NodeJS.ProcessVersions;
+  closeWindow: () => void;
+  onUpdaterStatus: (
+    cb: (
+      event: IpcRendererEvent,
+      data: { status: string; payload?: any },
+    ) => void,
+  ) => void;
+  /** Manually ask the main process to check for updates */
+  checkForUpdates: () => void;
+  /** Tell the main process to download the update (after “available”) */
+  downloadUpdate: () => void;
+  /** Tell the main process to install & restart (after “downloaded”) */
+  installUpdate: () => void;
+  openExternal: (url: string) => void;
 };
+
 const exposedApi: ContextBridgeApi = {
   // request(channel: RequestChannels, ...args: unknown[]): Promise<unknown> {
   //     return ipcRenderer.invoke(channel, ...args);
@@ -123,13 +130,6 @@ const exposedApi: ContextBridgeApi = {
       },
     );
   },
-  safePrompt: (message, options) => {
-    return ipcRenderer.invoke(
-      "safe-prompt",
-      message,
-      options,
-    ) as Promise<boolean>;
-  },
   onShowPrompt: (handler) => {
     ipcRenderer.on(
       "show-prompt",
@@ -157,6 +157,38 @@ const exposedApi: ContextBridgeApi = {
   showMenu: () => ipcRenderer.invoke("show-menu") as Promise<string>,
   pingServer: (url: string) =>
     ipcRenderer.invoke("ping-server", url) as Promise<ServerStatusData | null>,
+
+  platform: process.platform,
+  versions: process.versions,
+
+  closeWindow: () => {
+    ipcRenderer.send("close-window");
+  },
+  setFullScreen: (fs) => ipcRenderer.send("set-fullscreen", fs),
+  isFullScreen: () => ipcRenderer.invoke("is-fullscreen"),
+  onFullScreenChange: (cb) =>
+    ipcRenderer.on(
+      "fullscreen-changed",
+      (_e: IpcRendererEvent, isFs: boolean) => cb(isFs),
+    ),
+  onUpdaterStatus: (cb) =>
+    ipcRenderer.on(
+      "update-status",
+      (_e: IpcRendererEvent, data: { status: string; payload?: any }) =>
+        cb(_e, data),
+    ),
+  checkForUpdates: () => {
+    ipcRenderer.send("check-for-updates");
+  },
+  downloadUpdate: () => {
+    ipcRenderer.send("download-update");
+  },
+  installUpdate: () => {
+    ipcRenderer.send("install-update");
+  },
+  openExternal: (url: string) => {
+    ipcRenderer.send("open-external", url);
+  },
 };
 
 contextBridge.exposeInMainWorld("api", exposedApi);
@@ -169,14 +201,39 @@ contextBridge.exposeInMainWorld("richPresence", {
     largeImageText?: string;
     smallImageKey?: string;
     smallImageText?: string;
-  }) => {
-    ipcRenderer.send("update-rich-presence", payload);
-  },
-  enable: () => {
-    ipcRenderer.send("enable-discord-rpc");
-  },
+  }) => ipcRenderer.send("update-rich-presence", payload),
+  enable: () => ipcRenderer.send("enable-discord-rpc"),
+});
+contextBridge.exposeInMainWorld("dialogApi", {
   chooseFontFile: () => ipcRenderer.invoke("dialog:choose-font"),
   openUserDataFolder: () => ipcRenderer.invoke("open-user-data-folder"),
   showMenu: () => ipcRenderer.invoke("show-menu"),
   pingServer: (url: string) => ipcRenderer.invoke("ping-server", url),
+});
+
+contextBridge.exposeInMainWorld("updater", {
+  /**
+   * Subscribe to status updates:
+   *   {status: 'checking'|'available'|... , payload?: any}
+   */
+  onStatus: (
+    cb: (
+      event: IpcRendererEvent,
+      data: { status: string; payload?: any },
+    ) => void,
+  ) => {
+    ipcRenderer.on("update-status", cb);
+  },
+  /** Trigger a manual check-for-updates */
+  checkForUpdates: () => {
+    ipcRenderer.send("check-for-updates");
+  },
+  /** After “available” you call this to start download */
+  downloadUpdate: () => {
+    ipcRenderer.send("download-update");
+  },
+  /** After “downloaded” you call this to install & restart */
+  installUpdate: () => {
+    ipcRenderer.send("install-update");
+  },
 });

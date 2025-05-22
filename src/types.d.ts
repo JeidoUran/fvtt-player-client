@@ -24,6 +24,8 @@ type AppConfig = {
   serverInfoEnabled?: boolean;
   serverInfoOptions?: ServerInfoOptions;
   serverInfoPingRate?: number;
+  fullScreenEnabled?: boolean;
+  shareSessionWindows?: boolean;
 };
 
 interface ServerInfoOptions {

@@ -15,29 +15,28 @@ import {
 import { getContrastColor } from "./utils/getContrastColor";
 import { safePrompt } from "./utils/safePrompt";
 import { hexToRgba } from "./utils/hexToRgba";
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import ElementPlus from "element-plus";
+import "element-plus/dist/index.css";
+import { useUpdaterStore, UpdaterStatus } from "./stores/updater";
+import App from "./App.vue";
+
+const app = createApp(App);
+app.use(createPinia());
+app.use(ElementPlus);
+app.mount("#app");
+
+const updater = useUpdaterStore();
+window.api.onUpdaterStatus((_e, { status, payload }) => {
+  updater.handleStatus({ status: status as UpdaterStatus, payload });
+});
 
 let appVersion: string;
 let preventMenuClose = false;
 let lastParticleOptions: ParticleOptions | null = null;
 let games: GameConfig[] = [];
 const seenOffline = new Map<string, boolean>();
-
-function compareSemver(a: string, b: string): number {
-  const splitA = a.split(".");
-  const splitB = b.split(".");
-
-  let currentA, currentB: number;
-  for (let i = 0; i < splitA.length; i++) {
-    currentA = Number(splitA[i]);
-    currentB = Number(splitB[i]);
-    if (currentA > currentB) {
-      return 1;
-    } else if (currentA < currentB) {
-      return -1;
-    }
-  }
-  return 0;
-}
 
 let pingIntervalId: number | null = null;
 
@@ -101,6 +100,13 @@ window.api.onShowPrompt(({ id, message, options }) => {
   safePrompt(message, options).then((answer) => {
     window.api.sendPromptResponse(id, answer);
   });
+});
+
+window.api.onFullScreenChange((isFs) => {
+  const closeButton = document.querySelector(
+    ".tooltip-wrapper.close-app",
+  ) as HTMLElement;
+  closeButton.style.display = isFs ? "block" : "none";
 });
 
 document.querySelector("#add-game").addEventListener("click", async () => {
@@ -212,6 +218,12 @@ document
         "#online-players-toggle",
       ) as HTMLInputElement
     ).checked;
+    const fullScreenEnabled = (
+      closeUserConfig.querySelector("#full-screen-toggle") as HTMLInputElement
+    ).checked;
+    const shareSessionWindows = (
+      closeUserConfig.querySelector("#share-session-toggle") as HTMLInputElement
+    ).checked;
     const serverInfoPingRate = Number(
       (
         closeUserConfig.querySelector(
@@ -235,6 +247,8 @@ document
         onlinePlayersEnabled,
       },
       serverInfoPingRate,
+      fullScreenEnabled,
+      shareSessionWindows,
     } as AppConfig;
 
     const rawConfig: unknown = {
@@ -248,6 +262,8 @@ document
       serverInfoEnabled: config.serverInfoEnabled,
       serverInfoOptions: config.serverInfoOptions,
       serverInfoPingRate: config.serverInfoPingRate,
+      fullScreenEnabled: config.fullScreenEnabled,
+      shareSessionWindows: config.shareSessionWindows,
     };
 
     const result = AppConfigSchema.safeParse(rawConfig);
@@ -571,9 +587,17 @@ if (openUserDataBtn) {
   });
 }
 
+const closeButton = document.querySelector(".tooltip-wrapper.close-app")!;
+closeButton.addEventListener("click", () => {
+  window.api.closeWindow();
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   const themeStylesheet = document.getElementById(
     "theme-stylesheet",
+  ) as HTMLLinkElement;
+  const updaterStylesheet = document.getElementById(
+    "updater-stylesheet",
   ) as HTMLLinkElement;
   const themeSelector = document.getElementById(
     "theme-selector",
@@ -809,11 +833,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const selectedTheme = themeConfig.baseTheme ?? "codex";
   themeStylesheet.setAttribute("href", `styles/${selectedTheme}.css`);
+  updaterStylesheet.setAttribute(
+    "href",
+    `styles/UpdaterModal-${selectedTheme}.css`,
+  );
   themeSelector.value = selectedTheme;
 
   themeSelector.addEventListener("change", async () => {
     const newTheme = themeSelector.value;
     themeStylesheet.setAttribute("href", `styles/${newTheme}.css`);
+    updaterStylesheet.setAttribute(
+      "href",
+      `styles/UpdaterModal-${newTheme}.css`,
+    );
     const themeConfigMenu = document.querySelector(
       ".theme-configuration",
     ) as HTMLDivElement;
@@ -885,6 +917,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       appConfig.customCSS = undefined;
       appConfig.ignoreCertificateErrors = undefined;
       appConfig.discordRP = undefined;
+      appConfig.fullScreenEnabled = undefined;
+      appConfig.shareSessionWindows = undefined;
 
       applyAppConfig(appConfig);
 
@@ -1155,6 +1189,9 @@ async function applyShareImport() {
   const themeStylesheet = document.getElementById(
     "theme-stylesheet",
   ) as HTMLLinkElement;
+  const updaterStylesheet = document.getElementById(
+    "updater-stylesheet",
+  ) as HTMLLinkElement;
   const txt = (document.getElementById("share-input") as HTMLTextAreaElement)
     .value;
   let data: any;
@@ -1174,6 +1211,10 @@ async function applyShareImport() {
     applyAppConfig(mergedApp);
     applyThemeConfig(mergedTheme);
     themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+    updaterStylesheet.setAttribute(
+      "href",
+      `styles/UpdaterModal-${mergedTheme.baseTheme}.css`,
+    );
     await createGameList();
     return showNotification("Settings imported");
   }
@@ -1188,6 +1229,10 @@ async function applyShareImport() {
     await window.api.saveThemeConfig(mergedTheme);
     applyThemeConfig(mergedTheme);
     themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+    updaterStylesheet.setAttribute(
+      "href",
+      `styles/UpdaterModal-${mergedTheme.baseTheme}.css`,
+    );
     return showNotification("Theme imported");
   }
 
@@ -1197,6 +1242,9 @@ async function applyShareImport() {
 async function importFromFile() {
   const themeStylesheet = document.getElementById(
     "theme-stylesheet",
+  ) as HTMLLinkElement;
+  const updaterStylesheet = document.getElementById(
+    "updater-stylesheet",
   ) as HTMLLinkElement;
   const fileInput = document.getElementById("import-file") as HTMLInputElement;
   fileInput.onchange = async () => {
@@ -1219,6 +1267,10 @@ async function importFromFile() {
       applyAppConfig(mergedApp);
       applyThemeConfig(mergedTheme);
       themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+      updaterStylesheet.setAttribute(
+        "href",
+        `styles/UpdaterModal-${mergedTheme.baseTheme}.css`,
+      );
       await createGameList();
       return showNotification("Settings imported");
     }
@@ -1233,6 +1285,10 @@ async function importFromFile() {
       await window.api.saveThemeConfig(mergedTheme);
       applyThemeConfig(mergedTheme);
       themeStylesheet.href = `styles/${mergedTheme.baseTheme}.css`;
+      updaterStylesheet.setAttribute(
+        "href",
+        `styles/UpdaterModal-${mergedTheme.baseTheme}.css`,
+      );
       return showNotification("Theme imported");
     }
 
@@ -1425,6 +1481,11 @@ function applyAppConfig(config: AppConfig) {
     document.querySelector("#clear-cache-on-close") as HTMLInputElement
   ).checked = false;
   (document.querySelector("#discord-rp") as HTMLInputElement).checked = false;
+  (document.querySelector("#full-screen-toggle") as HTMLInputElement).checked =
+    false;
+  (
+    document.querySelector("#share-session-toggle") as HTMLInputElement
+  ).checked = false;
   if (config.cachePath) {
     (document.querySelector("#cache-path") as HTMLInputElement).value =
       config.cachePath;
@@ -1444,6 +1505,18 @@ function applyAppConfig(config: AppConfig) {
       config.discordRP;
   }
 
+  const fsToggle = document.querySelector(
+    "#full-screen-toggle",
+  ) as HTMLInputElement;
+  fsToggle.checked = config.fullScreenEnabled ?? false;
+  window.api.setFullScreen(config.fullScreenEnabled ?? false);
+  const closeButton = document.querySelector(
+    ".tooltip-wrapper.close-app",
+  ) as HTMLElement;
+  window.api.isFullScreen().then((fs) => {
+    closeButton.style.display = fs ? "block" : "none";
+  });
+
   if (config.notificationTimer != null) {
     const inputTimer = document.querySelector(
       "#notification-timer",
@@ -1451,16 +1524,15 @@ function applyAppConfig(config: AppConfig) {
     inputTimer.valueAsNumber = config.notificationTimer;
   }
 
-  if (config.serverInfoEnabled) {
-    (
-      document.querySelector("#server-infos-toggle") as HTMLInputElement
-    ).checked = config.serverInfoEnabled;
-  }
-
   const pingInput = document.querySelector(
     "#server-infos-ping-rate",
   ) as HTMLInputElement;
   pingInput.valueAsNumber = config.serverInfoPingRate;
+
+  const shareSessionToggle = document.querySelector(
+    "#share-session-toggle",
+  ) as HTMLInputElement;
+  shareSessionToggle.checked = config.shareSessionWindows ?? false;
 
   const opts = config.serverInfoOptions!;
 
@@ -1899,15 +1971,25 @@ async function updateServerInfos(
   if (usersWrapper)
     usersWrapper.style.display = onlinePlayersEnabled ? "" : "none";
 
-  // Ping server
-  const info = await getServerInfo(game);
+  // Ping server, récupérer le code d’erreur en cas d’échec
+  let info: ServerStatusData | null = null;
+  let errorReason: string | null = null;
+  try {
+    info = await getServerInfo(game);
+  } catch (err: any) {
+    errorReason = err?.message ?? String(err);
+    info = null;
+  }
   const idKey = String(game.id);
   const wasOffline = seenOffline.get(idKey) ?? false;
   const nowOffline = info === null;
 
   // log **only** when status goes up→down or down→up
   if (nowOffline && !wasOffline) {
-    console.warn(`Server ${game.name} is unreachable.`);
+    console.warn(
+      `Server ${game.name} is unreachable.` +
+        (errorReason ? ` Reason: ${errorReason}` : ""),
+    );
   }
   if (!nowOffline && wasOffline) {
     console.info(`Server ${game.name} is back online.`);
@@ -2063,38 +2145,6 @@ async function createGameList() {
   games = config.games;
 
   addStyle(config.customCSS ?? "");
-
-  appVersion = await window.api.appVersion();
-  document.querySelectorAll(".current-version").forEach((el) => {
-    el.textContent = appVersion;
-  });
-
-  let latestVersion: string = "Unknown";
-
-  try {
-    const response = await fetch(
-      "https://api.github.com/repos/JeidoUran/fvtt-player-client/releases/latest",
-      { mode: "cors" },
-    );
-    if (response.ok) {
-      const data = await response.json();
-      latestVersion = data["tag_name"];
-    } else {
-      showNotification("Failed to fetch latest version number");
-      console.warn(
-        "[FVTT Client] GitHub release fetch failed:",
-        response.status,
-      );
-    }
-  } catch (e) {
-    console.error("[FVTT Client] Failed to fetch latest version:", e);
-  }
-  document.querySelector("#latest-version").textContent = latestVersion;
-  if (compareSemver(appVersion, latestVersion) < 0) {
-    showNotification("An update is available !");
-    document.querySelector(".update-available").classList.remove("hidden2");
-    document.querySelector(".version-normal").classList.add("hidden2");
-  }
 
   gameItemList.querySelectorAll("li").forEach((li) => li.remove());
 

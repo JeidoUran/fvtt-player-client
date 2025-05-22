@@ -36,6 +36,9 @@ export async function mergeAppData(
     },
     serverInfoPingRate:
       imported.serverInfoPingRate ?? existing.serverInfoPingRate,
+    fullScreenEnabled: imported.fullScreenEnabled ?? existing.fullScreenEnabled,
+    shareSessionWindows:
+      imported.shareSessionWindows ?? existing.shareSessionWindows,
   };
 
   return merged;
