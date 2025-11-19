@@ -40,7 +40,7 @@
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "electron": "^39.2.2",
-    "electron-builder": "26.3.0",
+    "electron-builder": "26.0.12",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2",
     "prettier-eslint": "^16.4.2",
