@@ -27,9 +27,9 @@ jobs:
         uses: threeal/setup-yarn-action@v2.0.0
 
       - name: Set up Node.js ${{ matrix.arch }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 25
           cache: "yarn"
 
       - name: Install dependencies
