@@ -3,24 +3,13 @@
     <div v-if="store.visible" class="updater-backdrop">
       <div class="updater-window">
         <div class="updater-overflow">
-          <div
-            v-loading="loading"
-            element-loading-background="transparent"
-            element-loading-text="Checking for updates…"
-            element-loading-custom-class="loading-update-check"
-            v-if="store.status === 'checking'"
-            class="updater-text"
-          ></div>
-          <div
-            v-else-if="store.status === 'not-available'"
-            class="updater-text"
-          >
+          <div v-loading="loading" element-loading-background="transparent" element-loading-text="Checking for updates…"
+            element-loading-custom-class="loading-update-check" v-if="store.status === 'checking'" class="updater-text">
+          </div>
+          <div v-else-if="store.status === 'not-available'" class="updater-text">
             You are up-to-date.
           </div>
-          <div
-            v-else-if="store.status === 'available' && store.payload?.version"
-            class="updater-text"
-          >
+          <div v-else-if="store.status === 'available' && store.payload?.version" class="updater-text">
             Update
             <strong class="current-version-inline">{{
               store.payload.version
@@ -32,25 +21,16 @@
           </div>
           <div v-else-if="store.status === 'progress'" class="updater-text">
             Download in progress…
-            <el-progress
-              :text-inside="true"
-              :stroke-width="24"
-              :percentage="store.payload.percent.toFixed(1)"
-              :color="colorset"
-            >
+            <el-progress :text-inside="true" :stroke-width="24" :percentage="store.payload.percent.toFixed(1)"
+              :color="colorset">
             </el-progress>
           </div>
           <div v-else-if="store.status === 'downloaded'" class="updater-text">
             Download complete.
           </div>
-          <div
-            v-loading="loading"
-            element-loading-background="transparent"
-            element-loading-text="Installing update…"
-            element-loading-custom-class="loading-update-check"
-            v-if="store.status === 'installing'"
-            class="updater-text"
-          ></div>
+          <div v-loading="loading" element-loading-background="transparent" element-loading-text="Installing update…"
+            element-loading-custom-class="loading-update-check" v-if="store.status === 'installing'"
+            class="updater-text"></div>
           <div v-else-if="store.status === 'error'" class="updater-text">
             Error : {{ store.payload.message }}
           </div>
@@ -65,18 +45,10 @@
             </div>
           </div>
           <div class="updater-buttons">
-            <button
-              class="updater-button"
-              v-if="store.status === 'available'"
-              @click="download"
-            >
+            <button class="updater-button" v-if="store.status === 'available'" @click="download">
               Download
             </button>
-            <button
-              class="updater-button"
-              v-if="store.status === 'downloaded'"
-              @click="install"
-            >
+            <button class="updater-button" v-if="store.status === 'downloaded'" @click="install">
               Install
             </button>
             <button class="updater-button" @click="openLatest">

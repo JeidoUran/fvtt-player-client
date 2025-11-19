@@ -27,6 +27,18 @@
   z-index: 1;
 }
 
+#app {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  gap: 1rem;
+}
+
 body {
   background: var(--color-background);
   background-size: cover;
@@ -861,31 +873,6 @@ textarea {
 .input-large.user-password,
 .input-large.admin-password {
   margin-right: 0;
-}
-
-.download-link,
-.download-link a {
-  margin-top: -0.25rem;
-  font-size: 1rem;
-  font-family: var(--font-secondary);
-}
-
-.download-link {
-  padding-left: 0.5rem;
-  padding-bottom: 0.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.download-link a {
-  color: #3ae7e7;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.download-link a:hover {
-  text-shadow: 0 0 4px #98e4f7;
-  text-decoration: none;
-  transition: all 0.3s ease;
 }
 
 /*********** Baseline, reset styles ***********/

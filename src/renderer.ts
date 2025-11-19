@@ -20,14 +20,17 @@ import { createPinia } from "pinia";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
 import { useUpdaterStore, UpdaterStatus } from "./stores/updater";
+import { useUiStore } from "./stores/ui";
 import App from "./App.vue";
 
 const app = createApp(App);
-app.use(createPinia());
+const pinia = createPinia();
+app.use(pinia);
 app.use(ElementPlus);
 app.mount("#app");
 
 const updater = useUpdaterStore();
+const ui = useUiStore();
 window.api.onUpdaterStatus((_e, { status, payload }) => {
   updater.handleStatus({ status: status as UpdaterStatus, payload });
 });
@@ -1083,9 +1086,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  document
-    .getElementById("open-config")
-    ?.addEventListener("click", () => toggleMenu(".app-configuration"));
+document
+  .getElementById("open-config")
+  ?.addEventListener("click", () => {
+    ui.toggleAppConfig();
+  });
   document
     .getElementById("open-theme")
     ?.addEventListener("click", () => toggleMenu(".theme-configuration"));

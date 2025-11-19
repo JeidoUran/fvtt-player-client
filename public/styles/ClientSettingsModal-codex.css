@@ -1,0 +1,92 @@
+.notification-timer-field,
+.server-infos-ping-rate-field {
+  display: flex;
+  align-items: center;
+}
+
+.notification-timer-field .el-slider,
+.server-infos-ping-rate-field .el-slider {
+  margin-top: 0;
+  width: 20%;
+}
+
+.notification-timer-field .tooltip-wrapper,
+.server-infos-ping-rate-field .tooltip-wrapper {
+  font-size: 14px;
+  color: var(--color-accent);
+  line-height: 44px;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 0;
+}
+
+.notification-timer-field .tooltip-wrapper+.el-slider,
+.server-infos-ping-rate-field .tooltip-wrapper+.el-slider {
+  flex: 0 0 70%;
+}
+
+.el-slider__bar {
+  background-color: var(--color-accent) !important;
+}
+
+.el-slider__button {
+  border: 2px solid #000000 !important;
+}
+
+.el-input__wrapper {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  margin-top: 8px !important;
+}
+
+.is-checked .el-switch__core .el-switch__inner .is-icon {
+  color: var(--switch-label-color) !important;
+}
+
+.el-switch__core .el-switch__inner .is-icon {
+  color: var(#CCCCCC) !important;
+}
+
+.el-icon {
+  width: 1.5em !important;
+}
+
+.el-icon svg {
+  height: 1.5em !important;
+  width: 1.5em !important;
+}
+
+.el-switch__core .el-switch__action {
+  border: solid 1px rgb(59, 59, 59) !important;
+}
+
+.el-button {
+  height: 48px !important;
+}
+
+.download-link,
+.download-link a {
+  margin-top: -0.25rem;
+  font-size: 1rem;
+  font-family: var(--font-secondary);
+  color: var(--color-text-primary);
+}
+
+.download-link {
+  padding-left: 0.5rem;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.download-link a {
+  color: #3ae7e7;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.download-link a:hover {
+  text-shadow: 0 0 4px #98e4f7;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
