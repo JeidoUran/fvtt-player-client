@@ -5,7 +5,7 @@ export const CURRENT_SCHEMA_VERSION = 2;
 export const optionalUrl = z.preprocess((val) => {
   if (typeof val === "string" && val.trim() === "") return undefined;
   return val;
-}, z.string().url().optional());
+}, z.url().optional());
 
 // Primitive type aliases
 export const GameIdSchema = z.union([z.string(), z.number()]);
@@ -30,7 +30,7 @@ export const ServerInfoOptionsSchema = z
     gameSystemVersionEnabled: z.boolean().optional(),
     onlinePlayersEnabled: z.boolean().optional(),
   })
-  .default({
+  .prefault({
     statusEnabled: true,
     foundryVersionEnabled: true,
     worldEnabled: false,
@@ -51,9 +51,9 @@ export const AppConfigSchema = z.object({
   notificationTimer: z.number().optional(),
   serverInfoEnabled: z.boolean().optional(),
   serverInfoOptions: ServerInfoOptionsSchema,
-  serverInfoPingRate: z.number().optional().default(30),
-  fullScreenEnabled: z.boolean().optional().default(false),
-  shareSessionWindows: z.boolean().optional().default(false),
+  serverInfoPingRate: z.number().optional().prefault(30),
+  fullScreenEnabled: z.boolean().optional().prefault(false),
+  shareSessionWindows: z.boolean().optional().prefault(false),
 });
 export type AppConfig = z.infer<typeof AppConfigSchema>;
 
@@ -66,7 +66,7 @@ export const ParticleOptionsSchema = z
     color: z.string().optional(),
     alpha: z.number().optional(),
   })
-  .default({
+  .prefault({
     count: 100,
     speedYMin: 0.1,
     speedYMax: 0.3,
@@ -79,24 +79,24 @@ export type ParticleOptions = z.infer<typeof ParticleOptionsSchema>;
 // schemas.ts
 
 export const ThemeConfigSchema = z.object({
-  background: z.string().default(""),
-  backgrounds: z.array(z.string()).default([]),
-  backgroundColor: z.string().default("#0e1a23"),
-  textColor: z.string().default("#88c0a9"),
-  accentColor: z.string().default("#98e4f7"),
-  buttonColorAlpha: z.number().default(0.65),
-  buttonColor: z.string().default("#14141e"),
-  buttonColorHoverAlpha: z.number().default(0.95),
-  buttonColorHover: z.string().default("#28283c"),
-  particlesEnabled: z.boolean().default(true),
+  background: z.string().prefault(""),
+  backgrounds: z.array(z.string()).prefault([]),
+  backgroundColor: z.string().prefault("#0e1a23"),
+  textColor: z.string().prefault("#88c0a9"),
+  accentColor: z.string().prefault("#98e4f7"),
+  buttonColorAlpha: z.number().prefault(0.65),
+  buttonColor: z.string().prefault("#14141e"),
+  buttonColorHoverAlpha: z.number().prefault(0.95),
+  buttonColorHover: z.string().prefault("#28283c"),
+  particlesEnabled: z.boolean().prefault(true),
   particleOptions: ParticleOptionsSchema,
-  baseTheme: z.string().default("codex"),
-  fontPrimary: z.string().default(""),
-  fontPrimaryUrl: optionalUrl.default(""),
+  baseTheme: z.string().prefault("codex"),
+  fontPrimary: z.string().prefault(""),
+  fontPrimaryUrl: optionalUrl.prefault(""),
   fontPrimaryName: z.string().optional(),
   fontPrimaryFilePath: z.string().optional(),
-  fontSecondary: z.string().default(""),
-  fontSecondaryUrl: optionalUrl.default(""),
+  fontSecondary: z.string().prefault(""),
+  fontSecondaryUrl: optionalUrl.prefault(""),
   fontSecondaryName: z.string().optional(),
   fontSecondaryFilePath: z.string().optional(),
 });
@@ -107,8 +107,8 @@ const UserDataStaticSchema = z.object({
   cachePath: z.string().optional(),
   app: AppConfigSchema.optional(),
   theme: ThemeConfigSchema.optional(),
-  schemaVersion: z.number().default(CURRENT_SCHEMA_VERSION),
-  lastRunAppVersion: z.string().default("0.0.0"),
+  schemaVersion: z.number().prefault(CURRENT_SCHEMA_VERSION),
+  lastRunAppVersion: z.string().prefault("0.0.0"),
 });
 
 // GameUserData
