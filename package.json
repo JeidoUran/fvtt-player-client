@@ -1,6 +1,6 @@
 {
   "name": "vtt-desktop-client",
-  "packageManager": "yarn@4.9.1",
+  "packageManager": "yarn@4.11.0",
   "version": "1.13.0",
   "license": "MIT",
   "description": "FVTT Desktop Client",
@@ -31,25 +31,25 @@
     "extends": "builder.config.js"
   },
   "devDependencies": {
-    "@eslint/js": "^9.26.0",
-    "@types/node": "^22.15.21",
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/parser": "^8.32.0",
-    "@vitejs/plugin-vue": "^5.2.4",
-    "concurrently": "^9.1.2",
-    "cross-env": "^7.0.3",
-    "dotenv": "^16.5.0",
-    "electron": "^36.2.1",
-    "electron-builder": "^26.0.12",
-    "eslint": "^8.57.1",
-    "prettier": "^3.5.3",
+    "@typescript-eslint/parser": "^8.47.0",
+    "@vitejs/plugin-vue": "^6.0.2",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.2.3",
+    "electron": "^39.2.2",
+    "electron-builder": "26.0.12",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
     "prettier-eslint": "^16.4.2",
     "prettier-eslint-cli": "^8.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.0",
-    "vite": "^6.3.5",
-    "vue-eslint-parser": "^10.1.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.47.0",
+    "vite": "^7.2.2",
+    "vue-eslint-parser": "^10.2.0"
   },
   "scripts": {
     "build:main": "vite build --config vite.main.config.ts",
@@ -67,15 +67,15 @@
     "publish:prod": "npx electron-builder --publish always"
   },
   "dependencies": {
-    "@xhayper/discord-rpc": "^1.2.1",
-    "electron-log": "^5.4.0",
+    "@xhayper/discord-rpc": "^1.3.0",
+    "electron-log": "^5.4.3",
     "electron-squirrel-startup": "^1.0.1",
     "electron-updater": "file:vendor/electron-updater-6.6.4.tgz",
-    "element-plus": "^2.9.10",
-    "fs-extra": "^11.3.0",
-    "pinia": "^3.0.2",
-    "vue": "^3.5.13",
-    "ws": "^8.18.1",
-    "zod": "^3.25.20"
+    "element-plus": "^2.11.8",
+    "fs-extra": "^11.3.2",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.24",
+    "ws": "^8.18.3",
+    "zod": "^3.25.76"
   }
 }
