@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div v-if="store.visible" class="updater-backdrop">
+    <div v-if="store.visible" class="backdrop">
       <div class="updater-window">
         <div class="updater-overflow">
           <div v-loading="loading" element-loading-background="transparent" element-loading-text="Checking for updates…"

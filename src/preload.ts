@@ -228,11 +228,11 @@ contextBridge.exposeInMainWorld("updater", {
   checkForUpdates: () => {
     ipcRenderer.send("check-for-updates");
   },
-  /** After “available” you call this to start download */
+  /** After “available”, call this to start download */
   downloadUpdate: () => {
     ipcRenderer.send("download-update");
   },
-  /** After “downloaded” you call this to install & restart */
+  /** After “downloaded”, call this to install & restart */
   installUpdate: () => {
     ipcRenderer.send("install-update");
   },

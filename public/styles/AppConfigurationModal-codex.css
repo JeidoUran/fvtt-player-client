@@ -1,3 +1,17 @@
+.app-configuration {
+  box-shadow: 0 0 5px black;
+  flex-direction: column;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  padding: 0.5rem;
+  background: var(--color-background);
+  pointer-events: all;
+  border-radius: 12px;
+  min-width: 30vw;
+  max-height: 65vh;
+  z-index: 100;
+}
+
 .notification-timer-field,
 .server-infos-ping-rate-field {
   display: flex;
@@ -63,6 +77,10 @@
 
 .el-button {
   height: 48px !important;
+}
+
+.el-button:hover {
+  color: var(--color-text-primary) !important;
 }
 
 .download-link,

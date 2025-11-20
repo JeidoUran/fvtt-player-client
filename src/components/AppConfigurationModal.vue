@@ -1,5 +1,6 @@
 <template>
   <transition name="fade">
+    <div v-if="visible" class="backdrop">
     <div class="app-configuration" v-if="visible">
       <div class="overflow">
         <!-- Cache Path -->
@@ -230,6 +231,7 @@
         </el-button>
       </div>
     </div>
+    </div>
   </transition>
 </template>
 
@@ -264,6 +266,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: AppConfigurationForm): void
   (e: 'update:visible', value: boolean): void
+  (e: 'cancel'): void
   (e: 'save', value: AppConfigurationForm): void
   (e: 'reset'): void
   (e: 'clear-cache'): void
@@ -318,6 +321,7 @@ function onOpenUserData() {
 }
 
 function onCancel() {
+  emit('cancel')
   emit('update:visible', false)
 }
 </script>

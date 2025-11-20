@@ -1,22 +1,3 @@
-.updater-backdrop {
-  display: flex;
-  transition: all 0.3s ease-in-out;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.updater-backdrop.show {
-  transform: scale(1);
-  opacity: 1;
-}
-
 .loading-update-check .el-loading-spinner .path {
   color: var(--color-accent);
   stroke: var(--color-accent);
@@ -92,23 +73,6 @@
   font-family: Inter, 'Helvetica Neue', Helvetica, 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
   font-size: 1.25rem;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: scale(0.98);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 200ms ease-out, transform 200ms ease-out;
-}
-
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-  transform: scale(1);
 }
 
 .el-progress-bar__outer {

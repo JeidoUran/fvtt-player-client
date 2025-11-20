@@ -34,8 +34,38 @@
   width: 100%;
   height: 100%;
   position: absolute;
-  z-index: 100;
   gap: 1rem;
+}
+
+.backdrop {
+  display: flex;
+  transition: all 0.3s ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: scale(1);
 }
 
 body {
@@ -317,7 +347,6 @@ table, th, td {
   font-size: 22px;
 }
 
-.app-configuration,
 .theme-configuration {
   box-shadow: 0 0 5px black;
   transform: scale(0.98);
@@ -330,15 +359,14 @@ table, th, td {
   border-radius: 12px;
   min-width: 30vw;
   max-height: 65vh;
+  z-index: 100;
 }
 
-.app-configuration.show,
 .theme-configuration.show {
   transform: scale(1);
   opacity: 1;
 }
 
-.app-configuration.hidden2,
 .theme-configuration.hidden2 {
   transform: scale(0.98);
   opacity: 0;
@@ -651,6 +679,7 @@ textarea {
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
+  z-index: 200;
 }
 
 #custom-confirm {

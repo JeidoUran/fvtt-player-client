@@ -1,7 +1,6 @@
 // noinspection JSIgnoredPromiseFromCall
 import * as particles from "./utils/particles";
 import {
-  AppConfigSchema,
   ThemeConfigSchema,
   ParticleOptions,
   GameConfig,
@@ -12,6 +11,14 @@ import {
   initNotificationTimer,
   setNotificationTimer,
 } from "./utils/notifications";
+import {
+  applyAppConfig,
+  setupPingInterval,
+} from "./utils/appConfigHelpers";
+import {
+  updateServerInfos,
+  refreshAllServerInfos,
+} from "./utils/serverInfoHelpers";
 import { getContrastColor } from "./utils/getContrastColor";
 import { safePrompt } from "./utils/safePrompt";
 import { hexToRgba } from "./utils/hexToRgba";
@@ -40,26 +47,6 @@ let preventMenuClose = false;
 let lastParticleOptions: ParticleOptions | null = null;
 let games: GameConfig[] = [];
 const seenOffline = new Map<string, boolean>();
-
-let pingIntervalId: number | null = null;
-
-/**
- * Sets ping interval from user config
- */
-async function setupPingInterval() {
-  // Read config and retrieve rate (or fallback to 30 000 ms)
-  const cfg = await window.api.localAppConfig();
-  const seconds = cfg.serverInfoPingRate;
-  const rate = Math.max(1, seconds) * 1000;
-
-  // If there was an interval running already, stop it
-  if (pingIntervalId !== null) {
-    clearInterval(pingIntervalId);
-  }
-
-  // Start a new interval
-  pingIntervalId = window.setInterval(refreshAllServerInfos, rate);
-}
 
 /**
  * Dynamically inject or remove a Google Font from a <link> in <head>.
@@ -142,207 +129,6 @@ const gameItemList = document.querySelector("#game-list");
 const gameItemTemplate = document
   .querySelector("template")
   .content.querySelector("li");
-
-document
-  .querySelector("#save-app-config")
-  .addEventListener("click", async (e) => {
-    if (!(e.target instanceof Element)) return;
-
-    const appConfigMenu = document.querySelector(
-      ".app-configuration",
-    ) as HTMLDivElement;
-
-    if (appConfigMenu && !preventMenuClose) {
-      appConfigMenu.classList.add("hidden2");
-
-      const computedStyle = window.getComputedStyle(appConfigMenu);
-      const transitionDuration =
-        parseFloat(computedStyle.transitionDuration) || 0;
-
-      if (transitionDuration > 0) {
-        appConfigMenu.addEventListener("transitionend", function handler(e) {
-          if (e.propertyName === "opacity") {
-            appConfigMenu.classList.remove("show");
-            appConfigMenu.classList.remove("flex-display");
-            appConfigMenu.classList.add("hidden-display");
-            appConfigMenu.removeEventListener("transitionend", handler);
-          }
-        });
-      } else {
-        appConfigMenu.classList.remove("show");
-        appConfigMenu.classList.remove("flex-display");
-        appConfigMenu.classList.add("hidden-display");
-      }
-    }
-
-    preventMenuClose = false;
-
-    const closeUserConfig = e.target.closest(
-      ".app-configuration",
-    ) as HTMLDivElement;
-    const cachePath = (
-      closeUserConfig.querySelector("#cache-path") as HTMLInputElement
-    ).value;
-    const autoCacheClear = (
-      closeUserConfig.querySelector("#clear-cache-on-close") as HTMLInputElement
-    ).checked;
-    const ignoreCertificateErrors = (
-      closeUserConfig.querySelector("#insecure-ssl") as HTMLInputElement
-    ).checked;
-    const discordRP = (
-      closeUserConfig.querySelector("#discord-rp") as HTMLInputElement
-    ).checked;
-    const notificationTimer = Number(
-      (closeUserConfig.querySelector("#notification-timer") as HTMLInputElement)
-        .value,
-    );
-    const serverInfoEnabled = (
-      closeUserConfig.querySelector("#server-infos-toggle") as HTMLInputElement
-    ).checked;
-    const statusEnabled = (
-      closeUserConfig.querySelector("#server-status-toggle") as HTMLInputElement
-    ).checked;
-    const foundryVersionEnabled = (
-      closeUserConfig.querySelector(
-        "#foundry-version-toggle",
-      ) as HTMLInputElement
-    ).checked;
-    const worldEnabled = (
-      closeUserConfig.querySelector("#world-toggle") as HTMLInputElement
-    ).checked;
-    const gameSystemEnabled = (
-      closeUserConfig.querySelector("#game-system-toggle") as HTMLInputElement
-    ).checked;
-    const gameSystemVersionEnabled = (
-      closeUserConfig.querySelector("#game-version-toggle") as HTMLInputElement
-    ).checked;
-    const onlinePlayersEnabled = (
-      closeUserConfig.querySelector(
-        "#online-players-toggle",
-      ) as HTMLInputElement
-    ).checked;
-    const fullScreenEnabled = (
-      closeUserConfig.querySelector("#full-screen-toggle") as HTMLInputElement
-    ).checked;
-    const shareSessionWindows = (
-      closeUserConfig.querySelector("#share-session-toggle") as HTMLInputElement
-    ).checked;
-    const serverInfoPingRate = Number(
-      (
-        closeUserConfig.querySelector(
-          "#server-infos-ping-rate",
-        ) as HTMLInputElement
-      ).value,
-    );
-    const config = {
-      cachePath,
-      autoCacheClear,
-      ignoreCertificateErrors,
-      discordRP,
-      notificationTimer,
-      serverInfoEnabled,
-      serverInfoOptions: {
-        statusEnabled,
-        foundryVersionEnabled,
-        worldEnabled,
-        gameSystemEnabled,
-        gameSystemVersionEnabled,
-        onlinePlayersEnabled,
-      },
-      serverInfoPingRate,
-      fullScreenEnabled,
-      shareSessionWindows,
-    } as AppConfig;
-
-    const rawConfig: unknown = {
-      games: games,
-      cachePath: config.cachePath,
-      autoCacheClear: config.autoCacheClear,
-      ignoreCertificateErrors: config.ignoreCertificateErrors,
-      notificationTimer: config.notificationTimer,
-      discordRP: config.discordRP,
-      customCSS: config.customCSS,
-      serverInfoEnabled: config.serverInfoEnabled,
-      serverInfoOptions: config.serverInfoOptions,
-      serverInfoPingRate: config.serverInfoPingRate,
-      fullScreenEnabled: config.fullScreenEnabled,
-      shareSessionWindows: config.shareSessionWindows,
-    };
-
-    const result = AppConfigSchema.safeParse(rawConfig);
-    if (!result.success) {
-      console.error(result.error.format());
-      await safePrompt(
-        "Invalid client values detected. Changes were not applied.",
-        { mode: "alert" },
-      );
-      const appConfig = await window.api.localAppConfig();
-      applyAppConfig(appConfig);
-      return;
-    }
-
-    console.log(config);
-    const validConfig = result.data as AppConfig;
-
-    const timer =
-      typeof validConfig.notificationTimer === "number"
-        ? validConfig.notificationTimer
-        : 3;
-    setNotificationTimer(timer);
-
-    await window.api.saveAppConfig(validConfig);
-    applyAppConfig(validConfig);
-    refreshAllServerInfos();
-    await setupPingInterval();
-    showNotification("Changes saved");
-  });
-
-const cancelButton = document.querySelector(
-  "#cancel-app-config",
-) as HTMLButtonElement;
-
-if (cancelButton) {
-  cancelButton.addEventListener("click", async () => {
-    const appConfig = await window.api.localAppConfig();
-    applyAppConfig(appConfig);
-    showNotification("Changes canceled");
-
-    const appConfigMenu = document.querySelector(
-      ".app-configuration",
-    ) as HTMLDivElement;
-    if (appConfigMenu) {
-      appConfigMenu.classList.add("hidden2");
-
-      const computedStyle = window.getComputedStyle(appConfigMenu);
-      const transitionDuration =
-        parseFloat(computedStyle.transitionDuration) || 0;
-
-      if (transitionDuration > 0) {
-        appConfigMenu.addEventListener("transitionend", function handler(e) {
-          if (e.propertyName === "opacity") {
-            appConfigMenu.classList.remove("show");
-            appConfigMenu.classList.remove("flex-display");
-            appConfigMenu.classList.add("hidden-display");
-            appConfigMenu.removeEventListener("transitionend", handler);
-          }
-        });
-      } else {
-        appConfigMenu.classList.remove("show");
-        appConfigMenu.classList.remove("flex-display");
-        appConfigMenu.classList.add("hidden-display");
-      }
-    }
-  });
-}
-
-document.querySelector("#clear-cache").addEventListener("click", async () => {
-  const confirmed = await safePrompt(
-    "Are you sure you want to clear the cache?",
-  );
-  if (!confirmed) return;
-  window.api.clearCache();
-  showNotification("Cache cleared");
-});
 
 document
   .querySelector("#save-theme-config")
@@ -575,20 +361,6 @@ document.addEventListener("click", (event) => {
     target.innerHTML = '<i class="fa-solid fa-eye"></i>';
   }
 });
-
-const openUserDataBtn = document.getElementById(
-  "open-user-data",
-) as HTMLButtonElement | null;
-
-if (openUserDataBtn) {
-  openUserDataBtn.addEventListener("click", async () => {
-    try {
-      await window.api.openUserDataFolder();
-    } catch (err) {
-      console.error("Impossible d’ouvrir le dossier userData :", err);
-    }
-  });
-}
 
 const closeButton = document.querySelector(".tooltip-wrapper.close-app")!;
 closeButton.addEventListener("click", () => {
@@ -869,9 +641,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const resetAppearanceButton = document.getElementById(
     "reset-appearance",
   ) as HTMLButtonElement;
-  const resetClientButton = document.getElementById(
-    "reset-client",
-  ) as HTMLButtonElement;
 
   if (resetAppearanceButton) {
     resetAppearanceButton.addEventListener("click", async () => {
@@ -905,28 +674,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       await window.api.saveThemeConfig(themeConfig);
       showNotification("Appearance settings reset");
-    });
-  }
-
-  if (resetClientButton) {
-    resetClientButton.addEventListener("click", async () => {
-      const confirmed = await safePrompt(
-        "Are you sure you want to reset all client settings? This will erase your cache, certificate, server status and Discord settings (games and themes are not affected).",
-      );
-      if (!confirmed) return;
-
-      appConfig.cachePath = undefined;
-      appConfig.autoCacheClear = undefined;
-      appConfig.customCSS = undefined;
-      appConfig.ignoreCertificateErrors = undefined;
-      appConfig.discordRP = undefined;
-      appConfig.fullScreenEnabled = undefined;
-      appConfig.shareSessionWindows = undefined;
-
-      applyAppConfig(appConfig);
-
-      await window.api.saveAppConfig(appConfig);
-      showNotification("Client settings reset");
     });
   }
 
@@ -1070,7 +817,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const originalClass = icon.className;
       icon.className = "fa-solid fa-spinner fa-spin";
 
-      updateServerInfos(li, game, seenOffline)
+      updateServerInfos(li, game)
         .catch((err) => {
           console.warn(`updateServerInfos failed for ${game.name}:`, err);
         })
@@ -1080,7 +827,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     } else {
       // fallback if no icon
-      updateServerInfos(li, game, seenOffline).catch((err) => {
+      updateServerInfos(li, game).catch((err) => {
         console.warn(`updateServerInfos failed for ${game.name}:`, err);
       });
     }
@@ -1391,7 +1138,7 @@ async function createGameItem(game: GameConfig) {
     window.location.href = game.url;
   });
   gameItemList.appendChild(li);
-  await updateServerInfos(li, game, seenOffline);
+  await updateServerInfos(li, game);
 
   // Retrieve app config from userData
   const appConfig = await window.api.localAppConfig();
@@ -1477,103 +1224,6 @@ async function createGameItem(game: GameConfig) {
     } as SaveUserData);
     showNotification("Game settings saved");
   });
-}
-
-function applyAppConfig(config: AppConfig) {
-  (document.querySelector("#cache-path") as HTMLInputElement).value = "";
-  (document.querySelector("#insecure-ssl") as HTMLInputElement).checked = false;
-  (
-    document.querySelector("#clear-cache-on-close") as HTMLInputElement
-  ).checked = false;
-  (document.querySelector("#discord-rp") as HTMLInputElement).checked = false;
-  (document.querySelector("#full-screen-toggle") as HTMLInputElement).checked =
-    false;
-  (
-    document.querySelector("#share-session-toggle") as HTMLInputElement
-  ).checked = false;
-  if (config.cachePath) {
-    (document.querySelector("#cache-path") as HTMLInputElement).value =
-      config.cachePath;
-    window.api.setCachePath(config.cachePath);
-  }
-  if (config.ignoreCertificateErrors) {
-    (document.querySelector("#insecure-ssl") as HTMLInputElement).checked =
-      config.ignoreCertificateErrors;
-  }
-  if (config.autoCacheClear) {
-    (
-      document.querySelector("#clear-cache-on-close") as HTMLInputElement
-    ).checked = config.autoCacheClear;
-  }
-  if (config.discordRP) {
-    (document.querySelector("#discord-rp") as HTMLInputElement).checked =
-      config.discordRP;
-  }
-
-  const fsToggle = document.querySelector(
-    "#full-screen-toggle",
-  ) as HTMLInputElement;
-  fsToggle.checked = config.fullScreenEnabled ?? false;
-  window.api.setFullScreen(config.fullScreenEnabled ?? false);
-  const closeButton = document.querySelector(
-    ".tooltip-wrapper.close-app",
-  ) as HTMLElement;
-  window.api.isFullScreen().then((fs) => {
-    closeButton.style.display = fs ? "block" : "none";
-  });
-
-  if (config.notificationTimer != null) {
-    const inputTimer = document.querySelector(
-      "#notification-timer",
-    ) as HTMLInputElement;
-    inputTimer.valueAsNumber = config.notificationTimer;
-  }
-
-  const pingInput = document.querySelector(
-    "#server-infos-ping-rate",
-  ) as HTMLInputElement;
-  pingInput.valueAsNumber = config.serverInfoPingRate;
-
-  const shareSessionToggle = document.querySelector(
-    "#share-session-toggle",
-  ) as HTMLInputElement;
-  shareSessionToggle.checked = config.shareSessionWindows ?? false;
-
-  const opts = config.serverInfoOptions!;
-
-  (
-    document.querySelector("#server-status-toggle") as HTMLInputElement
-  ).checked = opts.statusEnabled;
-  (
-    document.querySelector("#foundry-version-toggle") as HTMLInputElement
-  ).checked = opts.foundryVersionEnabled;
-  (document.querySelector("#world-toggle") as HTMLInputElement).checked =
-    opts.worldEnabled;
-  (document.querySelector("#game-system-toggle") as HTMLInputElement).checked =
-    opts.gameSystemEnabled;
-  (document.querySelector("#game-version-toggle") as HTMLInputElement).checked =
-    opts.gameSystemVersionEnabled;
-  (
-    document.querySelector("#online-players-toggle") as HTMLInputElement
-  ).checked = opts.onlinePlayersEnabled;
-
-  // Display serverInfo and refresh button
-  const serverInfoConfig = document.querySelector(
-    ".server-infos-configuration",
-  ) as HTMLElement | null;
-  const serverInfoToggle = document.querySelector(
-    "#server-infos-toggle",
-  ) as HTMLInputElement | null;
-
-  if (serverInfoConfig && serverInfoToggle) {
-    const enabled = config.serverInfoEnabled ?? true;
-
-    // checks button status
-    serverInfoToggle.checked = enabled;
-
-    // show/hide server status block
-    serverInfoConfig.style.display = enabled ? "block" : "none";
-  }
 }
 
 function applyThemeConfig(config: ThemeConfig) {
@@ -1907,163 +1557,6 @@ async function migrateConfig() {
     window.localStorage.removeItem("appConfig");
   }
   window.api.saveAppConfig(localAppConfig);
-}
-
-async function getServerInfo(
-  game: GameConfig,
-): Promise<ServerStatusData | null> {
-  // no more CORS fetch, go through main.ts
-  return window.api.pingServer(game.url);
-}
-async function updateServerInfos(
-  item: HTMLElement,
-  game: GameConfig,
-  seenOffline: Map<string, boolean>,
-) {
-  // Retrieve user config
-  const { serverInfoEnabled = true, serverInfoOptions } =
-    await window.api.localAppConfig();
-
-  const serverInfos = item.querySelector(
-    ".server-infos",
-  ) as HTMLDivElement | null;
-  if (!serverInfos) return;
-
-  // If global toggle is off, hide everything and return
-  if (!serverInfoEnabled) {
-    serverInfos.style.display = "none";
-    return;
-  }
-  serverInfos.style.display = "";
-
-  // Individual options and their defaults
-  const {
-    statusEnabled = true,
-    foundryVersionEnabled = true,
-    worldEnabled = false,
-    gameSystemEnabled = true,
-    gameSystemVersionEnabled = true,
-    onlinePlayersEnabled = true,
-  } = serverInfoOptions;
-
-  // Retrieve each <span> and apply show/hide
-  const statusSpan = serverInfos.querySelector(".status") as HTMLSpanElement;
-  const versionSpan = serverInfos.querySelector(".version") as HTMLSpanElement;
-  const worldSpan = serverInfos.querySelector(".world") as HTMLSpanElement;
-  const systemSpan = serverInfos.querySelector(".system") as HTMLSpanElement;
-  const systemVersionSpan = serverInfos.querySelector(
-    ".systemVersion",
-  ) as HTMLSpanElement;
-  const usersSpan = serverInfos.querySelector(".users") as HTMLSpanElement;
-
-  const statusWrapper = statusSpan.closest(".tooltip-wrapper") as HTMLElement;
-  const versionWrapper = versionSpan.closest(".tooltip-wrapper") as HTMLElement;
-  const worldWrapper = worldSpan.closest(".tooltip-wrapper") as HTMLElement;
-  const systemWrapper = systemSpan.closest(".tooltip-wrapper") as HTMLElement;
-  const systemVersionWrapper = systemVersionSpan.closest(
-    ".tooltip-wrapper",
-  ) as HTMLElement;
-  const usersWrapper = usersSpan.closest(".tooltip-wrapper") as HTMLElement;
-
-  if (statusWrapper) statusWrapper.style.display = statusEnabled ? "" : "none";
-  if (versionWrapper)
-    versionWrapper.style.display = foundryVersionEnabled ? "" : "none";
-  if (worldWrapper) worldWrapper.style.display = worldEnabled ? "" : "none";
-  if (systemWrapper)
-    systemWrapper.style.display = gameSystemEnabled ? "" : "none";
-  if (systemVersionWrapper)
-    systemVersionWrapper.style.display = gameSystemVersionEnabled ? "" : "none";
-  if (usersWrapper)
-    usersWrapper.style.display = onlinePlayersEnabled ? "" : "none";
-
-  // Ping server, récupérer le code d’erreur en cas d’échec
-  let info: ServerStatusData | null = null;
-  let errorReason: string | null = null;
-  try {
-    info = await getServerInfo(game);
-  } catch (err: any) {
-    errorReason = err?.message ?? String(err);
-    info = null;
-  }
-  const idKey = String(game.id);
-  const wasOffline = seenOffline.get(idKey) ?? false;
-  const nowOffline = info === null;
-
-  // log **only** when status goes up→down or down→up
-  if (nowOffline && !wasOffline) {
-    console.warn(
-      `Server ${game.name} is unreachable.` +
-        (errorReason ? ` Reason: ${errorReason}` : ""),
-    );
-  }
-  if (!nowOffline && wasOffline) {
-    console.info(`Server ${game.name} is back online.`);
-  }
-  seenOffline.set(idKey, nowOffline);
-
-  // If it fails, displays "-"
-  if (!info) {
-    if (statusEnabled) {
-      statusSpan.innerHTML = `<i class="fa-solid fa-xmark"></i> Offline`;
-    }
-    if (foundryVersionEnabled) {
-      versionSpan.innerHTML = `<i class="fa-solid fa-dice-d20"></i> -`;
-    }
-    if (worldEnabled) {
-      worldSpan.innerHTML = `<i class="fa-solid fa-globe"></i> -`;
-    }
-    if (gameSystemEnabled) {
-      systemSpan.innerHTML = `<i class="fa-solid fa-dice"></i> -`;
-    }
-    if (gameSystemVersionEnabled) {
-      systemVersionSpan.innerHTML = `<i class="fa-solid fa-screwdriver-wrench"></i> -`;
-    }
-    if (onlinePlayersEnabled) {
-      usersSpan.innerHTML = `<i class="fa-solid fa-users"></i> -`;
-    }
-    return;
-  }
-
-  // Otherwise, inject real data
-  if (statusEnabled) {
-    statusSpan.innerHTML = info.version
-      ? `<i class="fa-solid fa-signal"></i> Online`
-      : `<i class="fa-solid fa-xmark"></i> Offline`;
-  }
-  if (foundryVersionEnabled) {
-    versionSpan.innerHTML = `<i class="fa-solid fa-dice-d20"></i> v${info.version ?? "-"}`;
-  }
-  if (worldEnabled) {
-    worldSpan.innerHTML = `<i class="fa-solid fa-globe"></i> ${info.world ?? "-"}`;
-  }
-  if (gameSystemEnabled) {
-    systemSpan.innerHTML = `<i class="fa-solid fa-dice"></i> ${info.system?.toUpperCase() ?? "-"}`;
-  }
-  if (gameSystemVersionEnabled) {
-    systemVersionSpan.innerHTML = `<i class="fa-solid fa-screwdriver-wrench"></i> ${info.systemVersion ?? "-"}`;
-  }
-  if (onlinePlayersEnabled) {
-    usersSpan.innerHTML = `<i class="fa-solid fa-users"></i> ${info.users ?? "0"}`;
-  }
-}
-
-function refreshAllServerInfos() {
-  const seenOffline = new Map<string, boolean>();
-  const gameItems = Array.from(
-    document.querySelectorAll<HTMLElement>(".game-item"),
-  );
-
-  gameItems.forEach((item) => {
-    // Retrieves GameConfig from dataset
-    const key = item.dataset.gameId!;
-    const game = games.find((g) => String(g.id) === key);
-    if (!game) return;
-
-    // Pass seenOffline as 3rd arg
-    updateServerInfos(item, game, seenOffline).catch((err) => {
-      console.warn(`updateServerInfos failed for ${game.name}:`, err);
-    });
-  });
 }
 
 function renderTooltips() {
