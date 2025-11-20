@@ -185,18 +185,18 @@ export function getUserData(): UserData {
 
       // Only delete erroneous keys
       const dataObj = { ...(rawData as Record<string, any>) };
-      for (const err of validation.error.errors) {
-        if (!err.path.length) continue;
+      for (const issue of validation.error.issues) {
+        if (!issue.path.length) continue;
         let obj: any = dataObj;
-        for (let i = 0; i < err.path.length - 1; i++) {
-          const p = err.path[i];
+        for (let i = 0; i < issue.path.length - 1; i++) {
+          const p = issue.path[i];
           if (obj && typeof obj[p] === "object") obj = obj[p];
           else {
             obj = null;
             break;
           }
         }
-        const last = err.path.at(-1);
+        const last = issue.path.at(-1);
         if (obj && typeof last === "string") {
           delete obj[last];
         }
