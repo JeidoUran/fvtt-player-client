@@ -160,7 +160,8 @@
         <!-- Share Session between Windows -->
         <div class="share-session-toggle-field field">
           <label class="switch-label">Share Session between Windows</label>
-          <div class="tooltip-wrapper" style="display: initial; position: initial;">
+          <el-tooltip placement="bottom">
+              <template #content>Does not affect already opened windows.</template>
             <el-switch
             v-model="form.shareSessionBetweenWindows"
             class="mt-2"
@@ -170,10 +171,7 @@
             :active-icon="Check"
             :inactive-icon="Close"
             id="share-session-toggle" />
-            <div class="tooltip">
-              Does not affect already opened windows
-            </div>
-          </div>
+          </el-tooltip>
         </div>
 
         <!-- Discord Rich Presence -->
@@ -182,7 +180,10 @@
             <i class="fa-brands fa-discord"></i>
             Enable Discord Rich Presence
           </label>
-          <div class="tooltip-wrapper" style="display: initial; position: initial;">
+          <el-tooltip placement="bottom">
+              <template #content>Requires FoundryVTT Rich Presence module installed per server.<br />
+              Turning this option off disables Discord Rich Presence globally,
+              regardless of each server's module settings.</template>
             <el-switch
             v-model="form.enableDiscordRp"
             class="mt-2"
@@ -192,12 +193,7 @@
             :active-icon="Check"
             :inactive-icon="Close"
             id="discord-rp" />
-            <div class="tooltip">
-              Requires Foundry VTT Rich Presence module installed per server<br>
-              Turning this option off disables Discord Rich Presence globally,
-              regardless of each server's module settings
-            </div>
-          </div>
+          </el-tooltip>
         </div>
 
         <div class="download-link">

@@ -791,6 +791,11 @@ textarea {
   left: 0;
 }
 
+.el-popper {
+  font-size: 18px !important;
+  font-family: var(--font-secondary) !important;
+}
+
 .tooltip-wrapper {
   display: inline-block;
 }
