@@ -1058,7 +1058,7 @@ ipcMain.on("cache-path", (_, cachePath: string) => {
 
 ipcMain.handle("ping-server", (_e, rawUrl: string) => {
   return new Promise<ServerStatusData | null>((resolve, reject) => {
-    const pingUrl = new URL("/api/status", rawUrl).toString();
+    const pingUrl = new URL("api/status", rawUrl).toString();
 
     // fire the request
     const req = net.request(pingUrl);
