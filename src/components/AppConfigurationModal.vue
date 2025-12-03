@@ -53,7 +53,7 @@
           v-model="form.enableServerStatus"
           class="mt-2"
           size="large"
-          style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000; --el-switch-border-color: #000000;"
+          style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
           inline-prompt
           :active-icon="Check"
           :inactive-icon="Close"
@@ -68,7 +68,7 @@
               <el-switch
               v-model="form.showServerStatusOnline"
               class="mt-2"
-              style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+              style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
               inline-prompt
               :active-icon="Check"
               :inactive-icon="Close"
@@ -80,7 +80,7 @@
               <el-switch
               v-model="form.showFoundryVersion"
               class="mt-2"
-              style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+              style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
               inline-prompt
               :active-icon="Check"
               :inactive-icon="Close"
@@ -92,7 +92,7 @@
               <el-switch
               v-model="form.showWorldName"
               class="mt-2"
-              style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+              style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
               inline-prompt
               :active-icon="Check"
               :inactive-icon="Close"
@@ -104,7 +104,7 @@
               <el-switch
               v-model="form.showGameSystem"
               class="mt-2"
-              style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+              style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
               inline-prompt
               :active-icon="Check"
               :inactive-icon="Close"
@@ -115,7 +115,7 @@
               <el-switch
               v-model="form.showGameVersion"
               class="mt-2"
-              style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+              style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
               inline-prompt
               :active-icon="Check"
               :inactive-icon="Close"
@@ -126,7 +126,7 @@
               <el-switch
               v-model="form.showOnlinePlayers"
               class="mt-2"
-              style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+              style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
               inline-prompt
               :active-icon="Check"
               :inactive-icon="Close"
@@ -150,7 +150,7 @@
           v-model="form.forceFullScreen"
           class="mt-2"
           size="large"
-          style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+          style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
           inline-prompt
           :active-icon="Check"
           :inactive-icon="Close"
@@ -165,7 +165,7 @@
             v-model="form.shareSessionBetweenWindows"
             class="mt-2"
             size="large"
-            style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+            style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
             inline-prompt
             :active-icon="Check"
             :inactive-icon="Close"
@@ -187,7 +187,7 @@
             v-model="form.enableDiscordRp"
             class="mt-2"
             size="large"
-            style="margin-left: 24px; --el-switch-on-color: #98e4f7; --el-switch-off-color: #000000;"
+            style="margin-left: 24px; --el-switch-on-color: var(--color-accent); --el-switch-off-color: #000000;"
             inline-prompt
             :active-icon="Check"
             :inactive-icon="Close"
