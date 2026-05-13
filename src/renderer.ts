@@ -1374,6 +1374,17 @@ async function createGameItem(game: GameConfig) {
     loginData.adminPassword;
   (li.querySelector(".game-name-edit") as HTMLInputElement).value = game.name;
   (li.querySelector(".game-url-edit") as HTMLInputElement).value = game.url;
+  const overrideSelect = li.querySelector(
+    ".server-info-override",
+  ) as HTMLSelectElement | null;
+  if (overrideSelect) {
+    overrideSelect.value =
+      game.serverInfoEnabled === true
+        ? "enabled"
+        : game.serverInfoEnabled === false
+          ? "disabled"
+          : "inherit";
+  }
   li.querySelector("a").innerText = game.name;
   li.querySelector(".game-main-button").addEventListener("click", async () => {
     window.api.openGame(game.id ?? game.name, game.name);
@@ -1387,16 +1398,6 @@ async function createGameItem(game: GameConfig) {
   });
   gameItemList.appendChild(li);
   await updateServerInfos(li, game, seenOffline);
-
-  // Retrieve app config from userData
-  const appConfig = await window.api.localAppConfig();
-  // Hide or display each "Refresh server" button
-  document
-    .querySelectorAll<HTMLElement>(".config-main-button.refresh")
-    .forEach((btn) => {
-      btn.style.display =
-        (appConfig.serverInfoEnabled ?? true) ? "flex" : "none";
-    });
 
   renderTooltips();
   const userConfiguration = li.querySelector(
@@ -1441,6 +1442,18 @@ async function createGameItem(game: GameConfig) {
     const newGameUrl = (
       closeUserConfig.querySelector(".game-url-edit") as HTMLInputElement
     ).value;
+    const overrideValue =
+      (
+        closeUserConfig.querySelector(
+          ".server-info-override",
+        ) as HTMLSelectElement | null
+      )?.value ?? "inherit";
+    const newServerInfoEnabled: boolean | undefined =
+      overrideValue === "enabled"
+        ? true
+        : overrideValue === "disabled"
+          ? false
+          : undefined;
 
     console.log({
       gameId,
@@ -1449,10 +1462,12 @@ async function createGameItem(game: GameConfig) {
       adminPassword,
       newGameName,
       newGameUrl,
+      newServerInfoEnabled,
     });
 
     game.name = newGameName;
     game.url = newGameUrl;
+    game.serverInfoEnabled = newServerInfoEnabled;
 
     (li.querySelector("a") as HTMLAnchorElement).innerText = newGameName;
 
@@ -1461,8 +1476,14 @@ async function createGameItem(game: GameConfig) {
       if (gameToUpdate) {
         gameToUpdate.name = newGameName;
         gameToUpdate.url = newGameUrl;
+        if (newServerInfoEnabled === undefined) {
+          delete gameToUpdate.serverInfoEnabled;
+        } else {
+          gameToUpdate.serverInfoEnabled = newServerInfoEnabled;
+        }
       }
     });
+    await updateServerInfos(li, game, seenOffline);
 
     window.api.saveUserData({
       gameId,
@@ -1924,8 +1945,20 @@ async function updateServerInfos(
   ) as HTMLDivElement | null;
   if (!serverInfos) return;
 
-  // If global toggle is off, hide everything and return
-  if (!serverInfoEnabled) {
+  // Per-server override takes precedence over the global toggle. Falling back
+  // to the global setting keeps existing behavior for games with no override.
+  const effectiveServerInfoEnabled =
+    game.serverInfoEnabled ?? serverInfoEnabled;
+
+  const refreshButton = item.querySelector<HTMLElement>(
+    ".config-main-button.refresh",
+  );
+  if (refreshButton) {
+    refreshButton.style.display =
+      serverInfoEnabled && effectiveServerInfoEnabled ? "flex" : "none";
+  }
+
+  if (!effectiveServerInfoEnabled) {
     serverInfos.style.display = "none";
     return;
   }
