@@ -17,6 +17,7 @@ export const GameConfigSchema = z.object({
   url: z.string().optional(),
   id: GameIdSchema.optional(),
   cssId: z.string().optional(),
+  serverInfoEnabled: z.boolean().optional(),
 });
 export type GameConfig = z.infer<typeof GameConfigSchema>;
 

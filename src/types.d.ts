@@ -11,6 +11,7 @@ type GameConfigType = {
   url: string;
   id?: GameId;
   cssId?: string;
+  serverInfoEnabled?: boolean;
 };
 
 type AppConfig = {
